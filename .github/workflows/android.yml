@@ -15,10 +15,10 @@ jobs:
       - uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: 8.7
-      - run: gradle tasks
-      - run: gradle assembleDebug --stacktrace
+      - run: gradle assembleDebug assembleRelease --stacktrace
       - uses: actions/upload-artifact@v4
-        if: success()
         with:
-          name: WhatsThat-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          name: WhatsThat-builds
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/release/*.apk
