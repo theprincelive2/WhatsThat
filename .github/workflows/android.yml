@@ -15,10 +15,17 @@ jobs:
       - uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: 8.7
-      - run: gradle assembleDebug assembleRelease --stacktrace
+      - name: Decode keystore
+        run: |
+          if [ -n "${{ secrets.WHATS_THAT_KEYSTORE_B64 }}" ]; then
+            echo "${{ secrets.WHATS_THAT_KEYSTORE_B64 }}" | base64 -d > whats_that_keystore.jks
+          fi
+      - name: Build APKs
+        run: |
+          gradle assembleDebug assembleRelease -PWHATS_THAT_KEYSTORE=whats_that_keystore.jks -PWHATS_THAT_STORE_PASSWORD=${{ secrets.WHATS_THAT_STORE_PASSWORD }} -PWHATS_THAT_KEY_ALIAS=${{ secrets.WHATS_THAT_KEY_ALIAS }} -PWHATS_THAT_KEY_PASSWORD=${{ secrets.WHATS_THAT_KEY_PASSWORD }} --stacktrace
       - uses: actions/upload-artifact@v4
         with:
-          name: WhatsThat-builds
+          name: WhatsThat-V5-builds
           path: |
             app/build/outputs/apk/debug/*.apk
             app/build/outputs/apk/release/*.apk
