@@ -10,8 +10,8 @@ android {
         applicationId 'com.theprincelive.whatsthat'
         minSdk 26
         targetSdk 35
-        versionCode 6
-        versionName '1.5'
+        versionCode 7
+        versionName '1.6'
     }
 
     lint {
@@ -39,9 +39,10 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            if (hasReleaseSigning) {
-                signingConfig signingConfigs.release
+            if (!hasReleaseSigning) {
+                throw new GradleException('Release signing is missing. Add the keystore secrets before building release APK.')
             }
+            signingConfig signingConfigs.release
         }
     }
 }
