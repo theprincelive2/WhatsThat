@@ -14,6 +14,8 @@ import java.util.Locale;
 public class MessageStore extends SQLiteOpenHelper {
     private static final String DB_NAME = "whatsthat.db";
     private static final int DB_VERSION = 1;
+    private static final String PKG_MAIN = "com.whatsapp";
+    private static final String PKG_BUSINESS = "com.whatsapp.w4b";
 
     public MessageStore(Context context) { super(context, DB_NAME, null, DB_VERSION); }
 
@@ -25,10 +27,11 @@ public class MessageStore extends SQLiteOpenHelper {
 
     public void saveMessage(String sender, String body, String packageName, long receivedAt) {
         if (body == null || body.trim().isEmpty()) return;
+        if (!isAllowedPackage(packageName)) return;
         String cleanBody = clean(body);
         String cleanSender = clean(sender);
         SQLiteDatabase db = getWritableDatabase();
-        Cursor c = db.rawQuery("SELECT sender, body, received_at FROM messages ORDER BY id DESC LIMIT 1", null);
+        Cursor c = db.rawQuery("SELECT sender, body, received_at FROM messages WHERE package_name=? OR package_name=? ORDER BY id DESC LIMIT 1", new String[]{PKG_MAIN, PKG_BUSINESS});
         try {
             if (c.moveToFirst()) {
                 String lastSender = c.getString(0);
@@ -47,12 +50,16 @@ public class MessageStore extends SQLiteOpenHelper {
 
     public List<SavedMessage> getRecentStructured() {
         ArrayList<SavedMessage> rows = new ArrayList<>();
-        Cursor c = getReadableDatabase().rawQuery("SELECT sender, body, received_at FROM messages ORDER BY received_at DESC LIMIT 300", null);
+        Cursor c = getReadableDatabase().rawQuery("SELECT sender, body, received_at FROM messages WHERE package_name=? OR package_name=? ORDER BY received_at DESC LIMIT 300", new String[]{PKG_MAIN, PKG_BUSINESS});
         SimpleDateFormat fmt = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault());
         try {
             while (c.moveToNext()) rows.add(new SavedMessage(c.getString(0), c.getString(1), fmt.format(new Date(c.getLong(2)))));
         } finally { c.close(); }
         return rows;
+    }
+
+    public void removeNonWhatsAppRows() {
+        getWritableDatabase().delete("messages", "package_name<>? AND package_name<>?", new String[]{PKG_MAIN, PKG_BUSINESS});
     }
 
     public List<String> getRecentMessages() {
@@ -62,5 +69,6 @@ public class MessageStore extends SQLiteOpenHelper {
     }
 
     public void clearMessages() { getWritableDatabase().delete("messages", null, null); }
+    private boolean isAllowedPackage(String value) { return PKG_MAIN.equals(value) || PKG_BUSINESS.equals(value); }
     private String clean(String value) { return value == null ? "Unknown" : value.trim(); }
 }
