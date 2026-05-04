@@ -10,8 +10,8 @@ android {
         applicationId 'com.theprincelive.whatsthat'
         minSdk 26
         targetSdk 35
-        versionCode 8
-        versionName '1.7'
+        versionCode 9
+        versionName '2.0'
     }
 
     lint {
@@ -25,7 +25,6 @@ android {
             def storePasswordValue = project.findProperty('WHATS_THAT_STORE_PASSWORD')
             def keyAliasValue = project.findProperty('WHATS_THAT_KEY_ALIAS')
             def keyPasswordValue = project.findProperty('WHATS_THAT_KEY_PASSWORD')
-
             if (keystorePath != null && storePasswordValue != null && keyAliasValue != null && keyPasswordValue != null) {
                 storeFile file(keystorePath)
                 storePassword storePasswordValue
