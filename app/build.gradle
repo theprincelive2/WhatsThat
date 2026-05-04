@@ -10,11 +10,14 @@ android {
         applicationId 'com.theprincelive.whatsthat'
         minSdk 26
         targetSdk 35
-        versionCode 13
-        versionName '5.0'
+        versionCode 14
+        versionName '6.0'
     }
 
-    lint { checkReleaseBuilds false abortOnError false }
+    lint {
+        checkReleaseBuilds = false
+        abortOnError = false
+    }
 
     signingConfigs {
         release {
@@ -31,5 +34,10 @@ android {
         }
     }
 
-    buildTypes { release { minifyEnabled false signingConfig signingConfigs.release } }
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
 }
