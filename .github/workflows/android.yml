@@ -29,7 +29,7 @@ jobs:
             exit 0
           fi
           echo "$KEYSTORE_B64" | base64 -d > whats_that_keystore.jks
-          gradle assembleRelease -PWHATS_THAT_KEYSTORE=whats_that_keystore.jks -PWHATS_THAT_STORE_PASSWORD="$STORE_PASSWORD" -PWHATS_THAT_KEY_ALIAS="$KEY_ALIAS" -PWHATS_THAT_KEY_PASSWORD="$KEY_PASSWORD" --stacktrace
+          gradle assembleRelease -PWHATS_THAT_KEYSTORE=../whats_that_keystore.jks -PWHATS_THAT_STORE_PASSWORD="$STORE_PASSWORD" -PWHATS_THAT_KEY_ALIAS="$KEY_ALIAS" -PWHATS_THAT_KEY_PASSWORD="$KEY_PASSWORD" --stacktrace
       - uses: actions/upload-artifact@v4
         with:
           name: WhatsThat-V5-builds
