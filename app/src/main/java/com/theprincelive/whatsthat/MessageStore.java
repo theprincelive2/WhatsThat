@@ -108,6 +108,23 @@ public class MessageStore extends SQLiteOpenHelper {
         return getWritableDatabase().delete("messages", "sender=?", new String[]{clean(sender)});
     }
 
+    public int deleteSender(String sender, boolean otherNotices) {
+        String packageWhere = otherNotices ? "package_name<>? AND package_name<>?" : "(package_name=? OR package_name=?)";
+        return getWritableDatabase().delete("messages", "sender=? AND " + packageWhere, new String[]{clean(sender), PKG_MAIN, PKG_BUSINESS});
+    }
+
+    public int deletePackage(String packageName) {
+        return getWritableDatabase().delete("messages", "package_name=?", new String[]{clean(packageName)});
+    }
+
+    public int deleteSimilar(String packageName, String sender, String body) {
+        return getWritableDatabase().delete(
+                "messages",
+                "package_name=? AND sender=? AND body=?",
+                new String[]{clean(packageName), clean(sender), clean(body)}
+        );
+    }
+
     public int deleteOlderThanDays(int days) {
         if (days <= 0) return 0;
         long cutoff = System.currentTimeMillis() - (days * 24L * 60L * 60L * 1000L);

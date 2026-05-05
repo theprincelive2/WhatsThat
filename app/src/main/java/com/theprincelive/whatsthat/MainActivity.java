@@ -91,10 +91,7 @@ public class MainActivity extends Activity {
         });
         list.setOnItemLongClickListener((parent, view, position, id) -> {
             SavedMessage msg = (SavedMessage) parent.getItemAtPosition(position);
-            activeSender = msg.sender;
-            searchBox.setText("");
-            load();
-            Toast.makeText(this, "Showing " + msg.sender, Toast.LENGTH_SHORT).show();
+            showMessageActions(msg);
             return true;
         });
         setupRetention();
@@ -198,6 +195,80 @@ public class MainActivity extends Activity {
                 .show();
     }
 
+    void showMessageActions(SavedMessage msg) {
+        boolean otherMode = showingOtherNotices();
+        ArrayList<String> actions = new ArrayList<>();
+        actions.add("Filter by sender");
+        actions.add("Delete this message");
+        actions.add("Delete all from this sender");
+        actions.add("Hide messages like this");
+        if (otherMode) actions.add("Delete all from this app");
+
+        new AlertDialog.Builder(this)
+                .setTitle(msg.sender == null ? "Message actions" : msg.sender)
+                .setItems(actions.toArray(new String[0]), (dialog, which) -> handleMessageAction(actions.get(which), msg, otherMode))
+                .show();
+    }
+
+    void handleMessageAction(String action, SavedMessage msg, boolean otherMode) {
+        if ("Filter by sender".equals(action)) {
+            activeSender = msg.sender;
+            searchBox.setText("");
+            load();
+            Toast.makeText(this, "Showing " + msg.sender, Toast.LENGTH_SHORT).show();
+        } else if ("Delete this message".equals(action)) {
+            store.deleteMessage(msg.id);
+            load();
+        } else if ("Delete all from this sender".equals(action)) {
+            confirmDeleteSender(msg, otherMode);
+        } else if ("Hide messages like this".equals(action)) {
+            confirmHideSimilar(msg);
+        } else if ("Delete all from this app".equals(action)) {
+            confirmDeleteApp(msg);
+        }
+    }
+
+    void confirmDeleteSender(SavedMessage msg, boolean otherMode) {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete all from sender?")
+                .setMessage("Remove saved items from " + safe(msg.sender) + " in this inbox.")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    store.deleteSender(msg.sender, otherMode);
+                    activeSender = null;
+                    load();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    void confirmHideSimilar(SavedMessage msg) {
+        new AlertDialog.Builder(this)
+                .setTitle("Hide messages like this?")
+                .setMessage("Future notifications with the same app, sender, and message text will not be saved. Existing matching rows will be removed.")
+                .setPositiveButton("Hide", (dialog, which) -> {
+                    NotificationRules.hideSimilar(this, msg.packageName, msg.sender, msg.body);
+                    int removed = store.deleteSimilar(msg.packageName, msg.sender, msg.body);
+                    activeSender = null;
+                    load();
+                    Toast.makeText(this, "Hidden rule saved. Removed " + removed + " items.", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    void confirmDeleteApp(SavedMessage msg) {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete all from this app?")
+                .setMessage("Remove saved notices from " + safe(msg.packageName) + ".")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    store.deletePackage(msg.packageName);
+                    activeSender = null;
+                    load();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
     void shareCsv() {
         String csv = store.exportCsv(showingOtherNotices());
         if (csv.trim().equals("sender,message,package,received_at")) {
@@ -249,6 +320,10 @@ public class MainActivity extends Activity {
     String countLabel(int count, boolean otherMode) {
         if (otherMode) return count == 1 ? " notice" : " notices";
         return count == 1 ? " chat" : " chats";
+    }
+
+    String safe(String value) {
+        return value == null || value.trim().isEmpty() ? "Unknown" : value;
     }
 
     String emptyModeText(boolean otherMode) {

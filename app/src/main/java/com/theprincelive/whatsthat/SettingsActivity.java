@@ -20,6 +20,7 @@ public class SettingsActivity extends Activity {
     Button otherCaptureBtn;
     Button lockBtn;
     Button disableLockBtn;
+    Button hiddenRulesBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +43,10 @@ public class SettingsActivity extends Activity {
         otherCaptureBtn.setOnClickListener(v -> toggleOtherCapture());
         root.addView(otherCaptureBtn, buttonParams(10));
 
+        hiddenRulesBtn = secondaryButton("");
+        hiddenRulesBtn.setOnClickListener(v -> clearHiddenRules());
+        root.addView(hiddenRulesBtn, buttonParams(10));
+
         lockBtn = secondaryButton("");
         lockBtn.setOnClickListener(v -> openLockSetup());
         root.addView(lockBtn, buttonParams(10));
@@ -61,6 +66,7 @@ public class SettingsActivity extends Activity {
 
         updateOtherButton();
         updateLockButtons();
+        updateHiddenRulesButton();
         setContentView(root);
     }
 
@@ -68,6 +74,7 @@ public class SettingsActivity extends Activity {
     protected void onResume() {
         super.onResume();
         updateLockButtons();
+        updateHiddenRulesButton();
     }
 
     void toggleOtherCapture() {
@@ -79,6 +86,19 @@ public class SettingsActivity extends Activity {
 
     void updateOtherButton() {
         otherCaptureBtn.setText(captureOther() ? "Stop Capturing Other Notices" : "Capture Other Notices");
+    }
+
+    void clearHiddenRules() {
+        NotificationRules.clear(this);
+        updateHiddenRulesButton();
+        Toast.makeText(this, "Hidden notification rules cleared.", Toast.LENGTH_SHORT).show();
+    }
+
+    void updateHiddenRulesButton() {
+        if (hiddenRulesBtn == null) return;
+        int count = NotificationRules.count(this);
+        hiddenRulesBtn.setText(count == 0 ? "No Hidden Notification Rules" : "Clear " + count + " Hidden Rules");
+        hiddenRulesBtn.setEnabled(count > 0);
     }
 
     void openLockSetup() {

@@ -25,6 +25,7 @@ public class WhatsNotificationService extends NotificationListenerService {
         String text = textCs == null ? "" : textCs.toString();
         if (text.trim().isEmpty()) return;
         if (whatsapp && isWhatsAppNoise(title, text)) return;
+        if (NotificationRules.isHidden(getApplicationContext(), pkg, title, text)) return;
 
         new MessageStore(getApplicationContext()).saveMessage(title, text, pkg, System.currentTimeMillis());
     }
