@@ -187,6 +187,22 @@
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
+            <Button
+                android:id="@+id/settingsBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:layout_marginLeft="8dp"
+                android:background="@drawable/bg_chip"
+                android:backgroundTint="@null"
+                android:minHeight="0dp"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:text="Settings"
+                android:textAllCaps="false"
+                android:textColor="@color/brand_text"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
             <Spinner
                 android:id="@+id/retentionSpinner"
                 android:layout_width="158dp"

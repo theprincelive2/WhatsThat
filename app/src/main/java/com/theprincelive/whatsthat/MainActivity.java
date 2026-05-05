@@ -39,6 +39,7 @@ public class MainActivity extends Activity {
     Button modeBtn;
     Button filterBtn;
     Button exportBtn;
+    Button settingsBtn;
     Spinner retentionSpinner;
     LinearLayout accessBanner;
     String activeSender;
@@ -58,6 +59,7 @@ public class MainActivity extends Activity {
         modeBtn = findViewById(R.id.modeBtn);
         filterBtn = findViewById(R.id.filterBtn);
         exportBtn = findViewById(R.id.exportBtn);
+        settingsBtn = findViewById(R.id.settingsBtn);
         retentionSpinner = findViewById(R.id.retentionSpinner);
         accessBanner = findViewById(R.id.accessBanner);
         filterBtn.setSingleLine(true);
@@ -66,6 +68,7 @@ public class MainActivity extends Activity {
         open.setOnClickListener(v -> startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));
         modeBtn.setOnClickListener(v -> toggleInboxMode());
         clear.setOnClickListener(v -> confirmClearAll());
+        settingsBtn.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
         filterBtn.setOnClickListener(v -> {
             activeSender = null;
             load();
