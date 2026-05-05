@@ -43,6 +43,7 @@ public class MainActivity extends Activity {
     Spinner retentionSpinner;
     LinearLayout accessBanner;
     String activeSender;
+    boolean lockStarted;
 
     @Override
     protected void onCreate(Bundle b) {
@@ -97,6 +98,7 @@ public class MainActivity extends Activity {
             return true;
         });
         setupRetention();
+        requireUnlock();
         load();
         showOnboardingIfNeeded();
     }
@@ -104,7 +106,19 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        requireUnlock();
         load();
+    }
+
+    void requireUnlock() {
+        if (AppLock.isEnabled(this) && !AppLock.isUnlocked() && !lockStarted) {
+            lockStarted = true;
+            Intent intent = new Intent(this, LockActivity.class);
+            intent.putExtra(LockActivity.MODE, LockActivity.MODE_UNLOCK);
+            startActivity(intent);
+        } else if (!AppLock.isEnabled(this) || AppLock.isUnlocked()) {
+            lockStarted = false;
+        }
     }
 
     boolean enabled() {

@@ -3,6 +3,7 @@
 
   <activity android:name=".MessageDetailActivity" android:exported="false" />
   <activity android:name=".SettingsActivity" android:exported="false" />
+  <activity android:name=".LockActivity" android:exported="false" />
 
   <activity android:name=".MainActivity" android:exported="true">
    <intent-filter>

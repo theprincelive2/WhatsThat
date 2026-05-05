@@ -18,6 +18,8 @@ public class SettingsActivity extends Activity {
     private static final String PREF_CAPTURE_OTHER = "capture_other_notices";
 
     Button otherCaptureBtn;
+    Button lockBtn;
+    Button disableLockBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +42,14 @@ public class SettingsActivity extends Activity {
         otherCaptureBtn.setOnClickListener(v -> toggleOtherCapture());
         root.addView(otherCaptureBtn, buttonParams(10));
 
+        lockBtn = secondaryButton("");
+        lockBtn.setOnClickListener(v -> openLockSetup());
+        root.addView(lockBtn, buttonParams(10));
+
+        disableLockBtn = secondaryButton("Turn Off App Lock");
+        disableLockBtn.setOnClickListener(v -> openLockDisable());
+        root.addView(disableLockBtn, buttonParams(10));
+
         root.addView(section("What WhatsThat Saves"));
         root.addView(copy("WhatsThat saves new notifications after you grant Notification Access. WhatsApp mode ignores status noise such as \"Checking for new messages\" and grouped \"2 new messages\" alerts."));
 
@@ -50,7 +60,14 @@ public class SettingsActivity extends Activity {
         root.addView(copy("The app stores notification text locally on this phone. It cannot read old chats, muted WhatsApp chats, deleted messages, or anything that never appeared as a notification."));
 
         updateOtherButton();
+        updateLockButtons();
         setContentView(root);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateLockButtons();
     }
 
     void toggleOtherCapture() {
@@ -62,6 +79,25 @@ public class SettingsActivity extends Activity {
 
     void updateOtherButton() {
         otherCaptureBtn.setText(captureOther() ? "Stop Capturing Other Notices" : "Capture Other Notices");
+    }
+
+    void openLockSetup() {
+        Intent intent = new Intent(this, LockActivity.class);
+        intent.putExtra(LockActivity.MODE, AppLock.isEnabled(this) ? LockActivity.MODE_CHANGE : LockActivity.MODE_SET);
+        startActivity(intent);
+    }
+
+    void openLockDisable() {
+        Intent intent = new Intent(this, LockActivity.class);
+        intent.putExtra(LockActivity.MODE, LockActivity.MODE_DISABLE);
+        startActivity(intent);
+    }
+
+    void updateLockButtons() {
+        if (lockBtn == null || disableLockBtn == null) return;
+        boolean enabled = AppLock.isEnabled(this);
+        lockBtn.setText(enabled ? "Change App Lock PIN" : "Set App Lock PIN");
+        disableLockBtn.setVisibility(enabled ? android.view.View.VISIBLE : android.view.View.GONE);
     }
 
     boolean captureOther() {
