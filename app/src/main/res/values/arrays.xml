@@ -1,0 +1,8 @@
+<resources>
+    <string-array name="retention_options">
+        <item>Keep forever</item>
+        <item>Delete after 7 days</item>
+        <item>Delete after 30 days</item>
+        <item>Delete after 90 days</item>
+    </string-array>
+</resources>

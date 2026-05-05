@@ -24,7 +24,7 @@ public class MessageAdapter extends BaseAdapter {
 
     public int getCount() { return items.size(); }
     public Object getItem(int position) { return items.get(position); }
-    public long getItemId(int position) { return position; }
+    public long getItemId(int position) { return items.get(position).id; }
 
     public View getView(int position, View convertView, ViewGroup parent) {
         SavedMessage msg = items.get(position);
@@ -32,6 +32,16 @@ public class MessageAdapter extends BaseAdapter {
         LinearLayout outer = new LinearLayout(context);
         outer.setOrientation(LinearLayout.VERTICAL);
         outer.setPadding(dp(10), dp(6), dp(10), dp(8));
+
+        if (position == 0 || !safe(items.get(position - 1).dateLabel).equals(safe(msg.dateLabel))) {
+            TextView group = new TextView(context);
+            group.setText(safe(msg.dateLabel));
+            group.setTextColor(Color.rgb(111, 117, 108));
+            group.setTextSize(12);
+            group.setTypeface(Typeface.DEFAULT_BOLD);
+            group.setPadding(dp(4), dp(8), 0, dp(6));
+            outer.addView(group);
+        }
 
         LinearLayout card = new LinearLayout(context);
         card.setOrientation(LinearLayout.HORIZONTAL);
@@ -82,7 +92,7 @@ public class MessageAdapter extends BaseAdapter {
         top.addView(sender, new LinearLayout.LayoutParams(0, -2, 1));
 
         TextView time = new TextView(context);
-        time.setText(msg.time == null ? "" : msg.time);
+        time.setText(msg.shortTime == null ? "" : msg.shortTime);
         time.setTextColor(Color.rgb(111, 117, 108));
         time.setTextSize(11);
         time.setGravity(Gravity.RIGHT);
@@ -107,6 +117,10 @@ public class MessageAdapter extends BaseAdapter {
     private String initial(String name) {
         if (name == null || name.trim().isEmpty()) return "?";
         return name.trim().substring(0, 1).toUpperCase();
+    }
+
+    private String safe(String value) {
+        return value == null ? "" : value;
     }
 
     private int dp(int value) {
