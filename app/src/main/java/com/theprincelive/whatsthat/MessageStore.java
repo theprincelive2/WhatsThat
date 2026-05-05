@@ -29,11 +29,11 @@ public class MessageStore extends SQLiteOpenHelper {
 
     public void saveMessage(String sender, String body, String packageName, long receivedAt) {
         if (body == null || body.trim().isEmpty()) return;
-        if (!isAllowedPackage(packageName)) return;
         String cleanBody = clean(body);
         String cleanSender = clean(sender);
+        String cleanPackage = clean(packageName);
         SQLiteDatabase db = getWritableDatabase();
-        Cursor c = db.rawQuery("SELECT sender, body, received_at FROM messages WHERE package_name=? OR package_name=? ORDER BY id DESC LIMIT 1", new String[]{PKG_MAIN, PKG_BUSINESS});
+        Cursor c = db.rawQuery("SELECT sender, body, received_at FROM messages WHERE package_name=? ORDER BY id DESC LIMIT 1", new String[]{cleanPackage});
         try {
             if (c.moveToFirst()) {
                 String lastSender = c.getString(0);
@@ -45,14 +45,15 @@ public class MessageStore extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put("sender", cleanSender);
         values.put("body", cleanBody);
-        values.put("package_name", clean(packageName));
+        values.put("package_name", cleanPackage);
         values.put("received_at", receivedAt);
         db.insert("messages", null, values);
     }
 
-    public List<SavedMessage> getRecentStructured() {
+    public List<SavedMessage> getRecentStructured(boolean otherNotices) {
         ArrayList<SavedMessage> rows = new ArrayList<>();
-        Cursor c = getReadableDatabase().rawQuery("SELECT id, sender, body, package_name, received_at FROM messages WHERE package_name=? OR package_name=? ORDER BY received_at DESC LIMIT 300", new String[]{PKG_MAIN, PKG_BUSINESS});
+        String where = otherNotices ? "package_name<>? AND package_name<>?" : "(package_name=? OR package_name=?)";
+        Cursor c = getReadableDatabase().rawQuery("SELECT id, sender, body, package_name, received_at FROM messages WHERE " + where + " ORDER BY received_at DESC LIMIT 300", new String[]{PKG_MAIN, PKG_BUSINESS});
         SimpleDateFormat fullFmt = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault());
         DateFormat shortFmt = DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault());
         try {
@@ -74,10 +75,15 @@ public class MessageStore extends SQLiteOpenHelper {
         return rows;
     }
 
-    public String exportCsv() {
+    public List<SavedMessage> getRecentStructured() {
+        return getRecentStructured(false);
+    }
+
+    public String exportCsv(boolean otherNotices) {
         StringBuilder out = new StringBuilder();
         out.append("sender,message,package,received_at\n");
-        Cursor c = getReadableDatabase().rawQuery("SELECT sender, body, package_name, received_at FROM messages WHERE package_name=? OR package_name=? ORDER BY received_at DESC", new String[]{PKG_MAIN, PKG_BUSINESS});
+        String where = otherNotices ? "package_name<>? AND package_name<>?" : "(package_name=? OR package_name=?)";
+        Cursor c = getReadableDatabase().rawQuery("SELECT sender, body, package_name, received_at FROM messages WHERE " + where + " ORDER BY received_at DESC", new String[]{PKG_MAIN, PKG_BUSINESS});
         SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
         try {
             while (c.moveToNext()) {
@@ -88,6 +94,10 @@ public class MessageStore extends SQLiteOpenHelper {
             }
         } finally { c.close(); }
         return out.toString();
+    }
+
+    public String exportCsv() {
+        return exportCsv(false);
     }
 
     public int deleteMessage(long id) {
@@ -104,6 +114,22 @@ public class MessageStore extends SQLiteOpenHelper {
         return getWritableDatabase().delete("messages", "received_at<?", new String[]{String.valueOf(cutoff)});
     }
 
+    public void clearMessages(boolean otherNotices) {
+        if (otherNotices) {
+            getWritableDatabase().delete("messages", "package_name<>? AND package_name<>?", new String[]{PKG_MAIN, PKG_BUSINESS});
+        } else {
+            getWritableDatabase().delete("messages", "package_name=? OR package_name=?", new String[]{PKG_MAIN, PKG_BUSINESS});
+        }
+    }
+
+    public int deleteWhatsAppNoise() {
+        return getWritableDatabase().delete(
+                "messages",
+                "(package_name=? OR package_name=?) AND (lower(body)=? OR lower(body) LIKE ? OR lower(body) LIKE ?)",
+                new String[]{PKG_MAIN, PKG_BUSINESS, "checking for new messages", "% new message", "% new messages"}
+        );
+    }
+
     public void removeNonWhatsAppRows() {
         getWritableDatabase().delete("messages", "package_name<>? AND package_name<>?", new String[]{PKG_MAIN, PKG_BUSINESS});
     }
@@ -115,7 +141,6 @@ public class MessageStore extends SQLiteOpenHelper {
     }
 
     public void clearMessages() { getWritableDatabase().delete("messages", null, null); }
-    private boolean isAllowedPackage(String value) { return PKG_MAIN.equals(value) || PKG_BUSINESS.equals(value); }
     private String clean(String value) { return value == null ? "Unknown" : value.trim(); }
 
     private String csv(String value) {

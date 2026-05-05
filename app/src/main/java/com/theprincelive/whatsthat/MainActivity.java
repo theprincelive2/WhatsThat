@@ -25,6 +25,8 @@ public class MainActivity extends Activity {
     private static final String PREFS = "whatsthat_prefs";
     private static final String PREF_RETENTION_DAYS = "retention_days";
     private static final String PREF_ONBOARDED = "onboarded";
+    private static final String PREF_CAPTURE_OTHER = "capture_other_notices";
+    private static final String PREF_SHOW_OTHER = "show_other_notices";
 
     MessageStore store;
     ListView list;
@@ -34,6 +36,7 @@ public class MainActivity extends Activity {
     TextView statusText;
     EditText searchBox;
     Button open;
+    Button modeBtn;
     Button filterBtn;
     Button exportBtn;
     Spinner retentionSpinner;
@@ -52,6 +55,7 @@ public class MainActivity extends Activity {
         statusText = findViewById(R.id.statusText);
         searchBox = findViewById(R.id.searchBox);
         open = findViewById(R.id.openBtn);
+        modeBtn = findViewById(R.id.modeBtn);
         filterBtn = findViewById(R.id.filterBtn);
         exportBtn = findViewById(R.id.exportBtn);
         retentionSpinner = findViewById(R.id.retentionSpinner);
@@ -60,6 +64,7 @@ public class MainActivity extends Activity {
         Button clear = findViewById(R.id.clearBtn);
 
         open.setOnClickListener(v -> startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));
+        modeBtn.setOnClickListener(v -> toggleInboxMode());
         clear.setOnClickListener(v -> confirmClearAll());
         filterBtn.setOnClickListener(v -> {
             activeSender = null;
@@ -106,12 +111,14 @@ public class MainActivity extends Activity {
 
     void load() {
         boolean hasAccess = enabled();
+        boolean otherMode = showingOtherNotices();
         open.setVisibility(hasAccess ? View.GONE : View.VISIBLE);
         accessBanner.setVisibility(hasAccess && activeSender == null ? View.GONE : View.VISIBLE);
-        statusText.setText(hasAccess ? "WhatsApp notification inbox" : "Enable access to start capturing alerts");
+        statusText.setText(otherMode ? "Other notification inbox" : "WhatsApp notification inbox");
         applyRetention();
+        store.deleteWhatsAppNoise();
 
-        List<SavedMessage> rows = store.getRecentStructured();
+        List<SavedMessage> rows = store.getRecentStructured(otherMode);
         String q = searchBox.getText().toString().toLowerCase(Locale.getDefault());
         List<SavedMessage> filtered = new ArrayList<>();
         for (SavedMessage m : rows) {
@@ -121,15 +128,19 @@ public class MainActivity extends Activity {
         }
 
         int count = filtered.size();
-        countText.setText(count + (count == 1 ? " chat" : " chats"));
+        countText.setText(count + countLabel(count, otherMode));
         if (!hasAccess) {
-            latestText.setText("Turn on Notification Access so new WhatsApp alerts appear here.");
+            latestText.setText("Turn on Notification Access so saved alerts can appear here.");
+        } else if (otherMode && !captureOtherNotices()) {
+            latestText.setText("Other notices are off. Tap Other notices to start capturing non-WhatsApp notifications.");
         } else if (activeSender != null) {
             latestText.setText("Showing saved alerts from " + activeSender + ".");
         } else {
-            latestText.setText(count == 0 ? "New WhatsApp alerts will appear here." : "Latest: " + filtered.get(0).time);
+            latestText.setText(count == 0 ? emptyModeText(otherMode) : "Latest: " + filtered.get(0).time);
         }
+        modeBtn.setText(otherMode ? "Other notices" : "WhatsApp");
         filterBtn.setText(activeSender == null ? "All" : "Clear filter");
+        emptyText.setText(emptyModeText(otherMode));
         emptyText.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
         list.setVisibility(filtered.isEmpty() ? View.GONE : View.VISIBLE);
         list.setAdapter(new MessageAdapter(this, filtered));
@@ -159,10 +170,10 @@ public class MainActivity extends Activity {
 
     void confirmClearAll() {
         new AlertDialog.Builder(this)
-                .setTitle("Clear all saved messages?")
-                .setMessage("This removes the local notification history stored by WhatsThat.")
+                .setTitle(showingOtherNotices() ? "Clear other notices?" : "Clear WhatsApp messages?")
+                .setMessage("This removes the saved items in the current inbox only.")
                 .setPositiveButton("Clear", (dialog, which) -> {
-                    store.clearMessages();
+                    store.clearMessages(showingOtherNotices());
                     activeSender = null;
                     load();
                 })
@@ -171,7 +182,7 @@ public class MainActivity extends Activity {
     }
 
     void shareCsv() {
-        String csv = store.exportCsv();
+        String csv = store.exportCsv(showingOtherNotices());
         if (csv.trim().equals("sender,message,package,received_at")) {
             Toast.makeText(this, "No messages to export yet.", Toast.LENGTH_SHORT).show();
             return;
@@ -188,7 +199,7 @@ public class MainActivity extends Activity {
         prefs().edit().putBoolean(PREF_ONBOARDED, true).apply();
         new AlertDialog.Builder(this)
                 .setTitle("Set up WhatsThat")
-                .setMessage("WhatsThat saves new WhatsApp and WhatsApp Business notifications after you grant Notification Access. It cannot read old chats or messages that never appeared as notifications.")
+                .setMessage("WhatsThat saves new WhatsApp and WhatsApp Business notifications after you grant Notification Access. Use the inbox chip to opt into other app notifications. It cannot read old chats or messages that never appeared as notifications.")
                 .setPositiveButton("Enable access", (dialog, which) -> startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)))
                 .setNegativeButton("Later", null)
                 .show();
@@ -196,6 +207,38 @@ public class MainActivity extends Activity {
 
     SharedPreferences prefs() {
         return getSharedPreferences(PREFS, MODE_PRIVATE);
+    }
+
+    void toggleInboxMode() {
+        boolean nextOtherMode = !showingOtherNotices();
+        prefs().edit()
+                .putBoolean(PREF_SHOW_OTHER, nextOtherMode)
+                .putBoolean(PREF_CAPTURE_OTHER, nextOtherMode || captureOtherNotices())
+                .apply();
+        activeSender = null;
+        searchBox.setText("");
+        Toast.makeText(this, nextOtherMode ? "Other notifications will now be captured." : "Showing WhatsApp inbox.", Toast.LENGTH_SHORT).show();
+        load();
+    }
+
+    boolean showingOtherNotices() {
+        return prefs().getBoolean(PREF_SHOW_OTHER, false);
+    }
+
+    boolean captureOtherNotices() {
+        return prefs().getBoolean(PREF_CAPTURE_OTHER, false);
+    }
+
+    String countLabel(int count, boolean otherMode) {
+        if (otherMode) return count == 1 ? " notice" : " notices";
+        return count == 1 ? " chat" : " chats";
+    }
+
+    String emptyModeText(boolean otherMode) {
+        if (otherMode) return captureOtherNotices()
+                ? "No other notices yet.\nNew non-WhatsApp notifications will appear here."
+                : "Tap Other notices to start capturing non-WhatsApp notifications.";
+        return "No WhatsApp messages yet.\nNew WhatsApp alerts will appear here like chats.";
     }
 
     int daysForPosition(int position) {

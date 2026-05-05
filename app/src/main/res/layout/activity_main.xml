@@ -125,7 +125,7 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/filterBtn"
+                android:id="@+id/modeBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="38dp"
                 android:background="@drawable/bg_chip_selected"
@@ -133,9 +133,25 @@
                 android:minHeight="0dp"
                 android:paddingLeft="16dp"
                 android:paddingRight="16dp"
-                android:text="All"
+                android:text="WhatsApp"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/filterBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:layout_marginLeft="8dp"
+                android:background="@drawable/bg_chip"
+                android:backgroundTint="@null"
+                android:minHeight="0dp"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:text="All"
+                android:textAllCaps="false"
+                android:textColor="@color/brand_text"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
@@ -190,7 +206,7 @@
         android:layout_marginLeft="14dp"
         android:layout_marginTop="10dp"
         android:layout_marginRight="14dp"
-        android:text="Long-press a chat to filter by sender."
+        android:text="Tap WhatsApp to switch inboxes. Long-press a row to filter by sender."
         android:textColor="@color/brand_muted"
         android:textSize="12sp" />
 
