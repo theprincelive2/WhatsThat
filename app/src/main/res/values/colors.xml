@@ -1,12 +1,16 @@
 <resources>
-    <color name="brand_bg">#F6F1E8</color>
-    <color name="brand_surface">#FFFDF8</color>
+    <color name="brand_bg">#FFFFFF</color>
+    <color name="brand_surface">#F7F8F6</color>
     <color name="brand_card">#FFFFFF</color>
     <color name="brand_ink">#171B18</color>
     <color name="brand_text">#25302B</color>
     <color name="brand_muted">#6F756C</color>
-    <color name="brand_line">#E7DED0</color>
-    <color name="brand_green">#0F4D39</color>
-    <color name="brand_green_soft">#DDEBE2</color>
+    <color name="brand_line">#E7EAE6</color>
+    <color name="brand_green">#006B55</color>
+    <color name="brand_green_soft">#E5F5EC</color>
+    <color name="brand_header">#006B55</color>
+    <color name="brand_header_dark">#005243</color>
+    <color name="brand_chip">#EFF1EF</color>
+    <color name="brand_unread">#12B76A</color>
     <color name="brand_brass">#B8842B</color>
 </resources>

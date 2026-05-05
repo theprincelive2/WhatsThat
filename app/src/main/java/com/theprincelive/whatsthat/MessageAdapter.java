@@ -31,7 +31,7 @@ public class MessageAdapter extends BaseAdapter {
 
         LinearLayout outer = new LinearLayout(context);
         outer.setOrientation(LinearLayout.VERTICAL);
-        outer.setPadding(dp(10), dp(6), dp(10), dp(8));
+        outer.setPadding(dp(12), 0, dp(12), 0);
 
         if (position == 0 || !safe(items.get(position - 1).dateLabel).equals(safe(msg.dateLabel))) {
             TextView group = new TextView(context);
@@ -39,42 +39,29 @@ public class MessageAdapter extends BaseAdapter {
             group.setTextColor(Color.rgb(111, 117, 108));
             group.setTextSize(12);
             group.setTypeface(Typeface.DEFAULT_BOLD);
-            group.setPadding(dp(4), dp(8), 0, dp(6));
+            group.setGravity(Gravity.CENTER);
+            group.setPadding(0, dp(12), 0, dp(8));
             outer.addView(group);
         }
 
-        LinearLayout card = new LinearLayout(context);
-        card.setOrientation(LinearLayout.HORIZONTAL);
-        card.setGravity(Gravity.CENTER_VERTICAL);
-        card.setPadding(dp(16), dp(15), dp(16), dp(15));
-        GradientDrawable cardBg = new GradientDrawable();
-        cardBg.setColor(Color.WHITE);
-        cardBg.setCornerRadius(dp(20));
-        cardBg.setStroke(dp(1), Color.rgb(231, 222, 208));
-        card.setBackground(cardBg);
-
-        TextView accent = new TextView(context);
-        GradientDrawable accentBg = new GradientDrawable();
-        accentBg.setColor(Color.rgb(15, 77, 57));
-        accentBg.setCornerRadius(dp(6));
-        accent.setBackground(accentBg);
-        LinearLayout.LayoutParams accentParams = new LinearLayout.LayoutParams(dp(4), dp(58));
-        accentParams.setMargins(0, 0, dp(12), 0);
-        card.addView(accent, accentParams);
+        LinearLayout row = new LinearLayout(context);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(0, dp(10), 0, dp(10));
 
         TextView avatar = new TextView(context);
         avatar.setText(initial(msg.sender));
-        avatar.setTextColor(Color.rgb(15, 77, 57));
-        avatar.setTextSize(15);
+        avatar.setTextColor(Color.WHITE);
+        avatar.setTextSize(19);
         avatar.setTypeface(Typeface.DEFAULT_BOLD);
         avatar.setGravity(Gravity.CENTER);
         GradientDrawable avatarBg = new GradientDrawable();
-        avatarBg.setColor(Color.rgb(221, 235, 226));
+        avatarBg.setColor(avatarColor(position));
         avatarBg.setShape(GradientDrawable.OVAL);
         avatar.setBackground(avatarBg);
-        LinearLayout.LayoutParams avatarParams = new LinearLayout.LayoutParams(dp(44), dp(44));
-        avatarParams.setMargins(0, 0, dp(14), 0);
-        card.addView(avatar, avatarParams);
+        LinearLayout.LayoutParams avatarParams = new LinearLayout.LayoutParams(dp(52), dp(52));
+        avatarParams.setMargins(0, 0, dp(12), 0);
+        row.addView(avatar, avatarParams);
 
         LinearLayout content = new LinearLayout(context);
         content.setOrientation(LinearLayout.VERTICAL);
@@ -85,7 +72,7 @@ public class MessageAdapter extends BaseAdapter {
 
         TextView sender = new TextView(context);
         sender.setText(msg.sender == null ? "Unknown" : msg.sender);
-        sender.setTextColor(Color.rgb(23, 27, 24));
+        sender.setTextColor(Color.rgb(17, 27, 24));
         sender.setTextSize(16);
         sender.setTypeface(Typeface.DEFAULT_BOLD);
         sender.setSingleLine(true);
@@ -93,24 +80,40 @@ public class MessageAdapter extends BaseAdapter {
 
         TextView time = new TextView(context);
         time.setText(msg.shortTime == null ? "" : msg.shortTime);
-        time.setTextColor(Color.rgb(111, 117, 108));
-        time.setTextSize(11);
+        time.setTextColor(Color.rgb(0, 107, 85));
+        time.setTextSize(12);
         time.setGravity(Gravity.RIGHT);
         top.addView(time);
         content.addView(top);
 
         TextView body = new TextView(context);
         body.setText(msg.body == null ? "" : msg.body);
-        body.setTextColor(Color.rgb(37, 48, 43));
+        body.setTextColor(Color.rgb(100, 109, 104));
         body.setTextSize(14);
-        body.setLineSpacing(dp(3), 1.0f);
-        body.setMaxLines(2);
+        body.setLineSpacing(dp(2), 1.0f);
+        body.setMaxLines(1);
         body.setEllipsize(TextUtils.TruncateAt.END);
-        body.setPadding(0, dp(7), 0, 0);
+        body.setPadding(0, dp(5), 0, 0);
         content.addView(body);
 
-        card.addView(content, new LinearLayout.LayoutParams(0, -2, 1));
-        outer.addView(card, new LinearLayout.LayoutParams(-1, -2));
+        row.addView(content, new LinearLayout.LayoutParams(0, -2, 1));
+
+        TextView dot = new TextView(context);
+        GradientDrawable dotBg = new GradientDrawable();
+        dotBg.setColor(Color.rgb(18, 183, 106));
+        dotBg.setShape(GradientDrawable.OVAL);
+        dot.setBackground(dotBg);
+        LinearLayout.LayoutParams dotParams = new LinearLayout.LayoutParams(dp(9), dp(9));
+        dotParams.setMargins(dp(10), 0, dp(2), 0);
+        row.addView(dot, dotParams);
+
+        outer.addView(row, new LinearLayout.LayoutParams(-1, -2));
+
+        View divider = new View(context);
+        divider.setBackgroundColor(Color.rgb(231, 234, 230));
+        LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(-1, dp(1));
+        dividerParams.setMargins(dp(64), 0, 0, 0);
+        outer.addView(divider, dividerParams);
         return outer;
     }
 
@@ -121,6 +124,17 @@ public class MessageAdapter extends BaseAdapter {
 
     private String safe(String value) {
         return value == null ? "" : value;
+    }
+
+    private int avatarColor(int position) {
+        int[] colors = {
+                Color.rgb(0, 107, 85),
+                Color.rgb(7, 94, 84),
+                Color.rgb(18, 140, 126),
+                Color.rgb(66, 133, 91),
+                Color.rgb(45, 106, 79)
+        };
+        return colors[position % colors.length];
     }
 
     private int dp(int value) {

@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -36,6 +37,7 @@ public class MainActivity extends Activity {
     Button filterBtn;
     Button exportBtn;
     Spinner retentionSpinner;
+    LinearLayout accessBanner;
     String activeSender;
 
     @Override
@@ -53,6 +55,7 @@ public class MainActivity extends Activity {
         filterBtn = findViewById(R.id.filterBtn);
         exportBtn = findViewById(R.id.exportBtn);
         retentionSpinner = findViewById(R.id.retentionSpinner);
+        accessBanner = findViewById(R.id.accessBanner);
         filterBtn.setSingleLine(true);
         Button clear = findViewById(R.id.clearBtn);
 
@@ -104,7 +107,8 @@ public class MainActivity extends Activity {
     void load() {
         boolean hasAccess = enabled();
         open.setVisibility(hasAccess ? View.GONE : View.VISIBLE);
-        statusText.setText(hasAccess ? "Notification access active for new alerts" : "Enable access to start capturing alerts");
+        accessBanner.setVisibility(hasAccess && activeSender == null ? View.GONE : View.VISIBLE);
+        statusText.setText(hasAccess ? "WhatsApp notification inbox" : "Enable access to start capturing alerts");
         applyRetention();
 
         List<SavedMessage> rows = store.getRecentStructured();
@@ -117,9 +121,15 @@ public class MainActivity extends Activity {
         }
 
         int count = filtered.size();
-        countText.setText(count + (count == 1 ? " saved item" : " saved items"));
-        latestText.setText(count == 0 ? "New WhatsApp alerts will appear here." : "Latest capture: " + filtered.get(0).time);
-        filterBtn.setText(activeSender == null ? "All senders" : "Clear: " + activeSender);
+        countText.setText(count + (count == 1 ? " chat" : " chats"));
+        if (!hasAccess) {
+            latestText.setText("Turn on Notification Access so new WhatsApp alerts appear here.");
+        } else if (activeSender != null) {
+            latestText.setText("Showing saved alerts from " + activeSender + ".");
+        } else {
+            latestText.setText(count == 0 ? "New WhatsApp alerts will appear here." : "Latest: " + filtered.get(0).time);
+        }
+        filterBtn.setText(activeSender == null ? "All" : "Clear filter");
         emptyText.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
         list.setVisibility(filtered.isEmpty() ? View.GONE : View.VISIBLE);
         list.setAdapter(new MessageAdapter(this, filtered));
