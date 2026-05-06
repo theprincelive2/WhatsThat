@@ -1,6 +1,7 @@
 package com.theprincelive.whatsthat;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -10,6 +11,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,15 +23,22 @@ public class SettingsActivity extends Activity {
     Button lockBtn;
     Button disableLockBtn;
     Button hiddenRulesBtn;
+    MessageStore store;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        store = new MessageStore(this);
+
+        ScrollView scroll = new ScrollView(this);
+        scroll.setFillViewport(true);
+        scroll.setBackgroundColor(Color.WHITE);
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(dp(22), dp(28), dp(22), dp(22));
         root.setBackgroundColor(Color.WHITE);
+        scroll.addView(root, new ScrollView.LayoutParams(-1, -2));
 
         TextView title = title("Settings");
         root.addView(title);
@@ -46,6 +55,10 @@ public class SettingsActivity extends Activity {
         hiddenRulesBtn = secondaryButton("");
         hiddenRulesBtn.setOnClickListener(v -> clearHiddenRules());
         root.addView(hiddenRulesBtn, buttonParams(10));
+
+        Button cleanupBtn = secondaryButton("Cleanup Tools");
+        cleanupBtn.setOnClickListener(v -> showCleanupTools());
+        root.addView(cleanupBtn, buttonParams(10));
 
         lockBtn = secondaryButton("");
         lockBtn.setOnClickListener(v -> openLockSetup());
@@ -67,7 +80,7 @@ public class SettingsActivity extends Activity {
         updateOtherButton();
         updateLockButtons();
         updateHiddenRulesButton();
-        setContentView(root);
+        setContentView(scroll);
     }
 
     @Override
@@ -90,6 +103,54 @@ public class SettingsActivity extends Activity {
 
     void clearHiddenRules() {
         startActivity(new Intent(this, HiddenRulesActivity.class));
+    }
+
+    void showCleanupTools() {
+        String[] actions = {
+                "Remove WhatsApp noise",
+                "Clear Other notices",
+                "Delete notices older than 7 days",
+                "Delete notices older than 30 days",
+                "Delete notices older than 90 days"
+        };
+        new AlertDialog.Builder(this)
+                .setTitle("Cleanup Tools")
+                .setItems(actions, (dialog, which) -> handleCleanupAction(which))
+                .show();
+    }
+
+    void handleCleanupAction(int which) {
+        if (which == 0) {
+            int removed = store.deleteWhatsAppNoise();
+            Toast.makeText(this, "Removed " + removed + " WhatsApp noise items.", Toast.LENGTH_SHORT).show();
+        } else if (which == 1) {
+            confirmCleanup("Clear Other notices?", "This removes all saved non-WhatsApp notifications.", () -> {
+                store.clearMessages(true);
+                Toast.makeText(this, "Other notices cleared.", Toast.LENGTH_SHORT).show();
+            });
+        } else if (which == 2) {
+            confirmDeleteOlderThan(7);
+        } else if (which == 3) {
+            confirmDeleteOlderThan(30);
+        } else if (which == 4) {
+            confirmDeleteOlderThan(90);
+        }
+    }
+
+    void confirmDeleteOlderThan(int days) {
+        confirmCleanup("Delete old notices?", "This removes saved notifications older than " + days + " days.", () -> {
+            int removed = store.deleteOlderThanDays(days);
+            Toast.makeText(this, "Removed " + removed + " old notices.", Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    void confirmCleanup(String title, String message, Runnable action) {
+        new AlertDialog.Builder(this)
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton("Delete", (dialog, which) -> action.run())
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     void updateHiddenRulesButton() {
