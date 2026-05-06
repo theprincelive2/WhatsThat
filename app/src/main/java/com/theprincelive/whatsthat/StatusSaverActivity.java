@@ -23,6 +23,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -35,6 +36,8 @@ public class StatusSaverActivity extends Activity {
     private static final String PREF_STATUS_TREE = "status_tree_uri";
     private static final int REQUEST_STATUS_FOLDER = 44;
     private static final int REQUEST_WRITE_STORAGE = 45;
+    private static final String WHATSAPP_STATUS_DOC = "primary:Android/media/com.whatsapp/WhatsApp/Media/.Statuses";
+    private static final String BUSINESS_STATUS_DOC = "primary:Android/media/com.whatsapp.w4b/WhatsApp Business/Media/.Statuses";
 
     TextView folderText;
     TextView emptyText;
@@ -59,12 +62,25 @@ public class StatusSaverActivity extends Activity {
         title.setIncludeFontPadding(false);
         root.addView(title);
 
-        TextView intro = copy("Choose WhatsApp's .Statuses folder once, then save viewed photo and video statuses to your gallery.");
+        TextView intro = copy("Use Find WhatsApp first. Android still needs you to approve folder access once, but WhatsThat will open the picker near the usual Status folder.");
         root.addView(intro);
 
-        Button choose = primaryButton("Choose Status Folder");
-        choose.setOnClickListener(v -> chooseStatusFolder());
-        root.addView(choose, buttonParams(16));
+        LinearLayout buttonRow = new LinearLayout(this);
+        buttonRow.setOrientation(LinearLayout.HORIZONTAL);
+        Button findWhatsApp = primaryButton("Find WhatsApp");
+        findWhatsApp.setOnClickListener(v -> chooseStatusFolder(WHATSAPP_STATUS_DOC));
+        buttonRow.addView(findWhatsApp, new LinearLayout.LayoutParams(0, dp(50), 1));
+
+        Button findBusiness = secondaryButton("Business");
+        findBusiness.setOnClickListener(v -> chooseStatusFolder(BUSINESS_STATUS_DOC));
+        LinearLayout.LayoutParams businessParams = new LinearLayout.LayoutParams(0, dp(50), 1);
+        businessParams.setMargins(dp(10), 0, 0, 0);
+        buttonRow.addView(findBusiness, businessParams);
+        root.addView(buttonRow, buttonParams(16));
+
+        Button choose = secondaryButton("Choose Folder Manually");
+        choose.setOnClickListener(v -> chooseStatusFolder(null));
+        root.addView(choose, buttonParams(10));
 
         folderText = copy("");
         folderText.setPadding(0, dp(10), 0, dp(6));
@@ -85,9 +101,13 @@ public class StatusSaverActivity extends Activity {
         loadStatuses();
     }
 
-    void chooseStatusFolder() {
+    void chooseStatusFolder(String initialDocumentId) {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && initialDocumentId != null) {
+            Uri initialUri = DocumentsContract.buildTreeDocumentUri("com.android.externalstorage.documents", initialDocumentId);
+            intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, initialUri);
+        }
         startActivityForResult(intent, REQUEST_STATUS_FOLDER);
     }
 
@@ -99,6 +119,10 @@ public class StatusSaverActivity extends Activity {
         int flags = data.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION;
         getContentResolver().takePersistableUriPermission(treeUri, flags);
         prefs().edit().putString(PREF_STATUS_TREE, treeUri.toString()).apply();
+        String treeDocumentId = DocumentsContract.getTreeDocumentId(treeUri);
+        if (findStatusDocumentId(treeUri) != null && treeDocumentId != null && !treeDocumentId.endsWith("/.Statuses")) {
+            Toast.makeText(this, "Found .Statuses inside the selected folder.", Toast.LENGTH_SHORT).show();
+        }
         loadStatuses();
     }
 
@@ -107,14 +131,15 @@ public class StatusSaverActivity extends Activity {
         Uri tree = savedTree();
         if (tree == null) {
             folderText.setText("No folder selected.");
-            emptyText.setText("Tap Choose Status Folder, then select WhatsApp > Media > .Statuses.");
+            emptyText.setText("Tap Find WhatsApp. If the folder picker does not open there, choose Android > media > com.whatsapp > WhatsApp > Media > .Statuses.");
             listView.setAdapter(new StatusAdapter(this, files));
             return;
         }
         folderText.setText("Folder access is enabled.");
+        boolean hasStatusFolder = findStatusDocumentId(tree) != null;
         files.addAll(queryStatuses(tree));
         Collections.sort(files, (a, b) -> Long.compare(b.modifiedAt, a.modifiedAt));
-        emptyText.setText(files.isEmpty() ? "No statuses found. Open WhatsApp Status first, view a status, then return here." : "");
+        emptyText.setText(files.isEmpty() ? (hasStatusFolder ? "No statuses found. Open WhatsApp Status first, view a status, then return here." : "That folder does not contain .Statuses. Tap Find WhatsApp or choose WhatsApp > Media > .Statuses.") : "");
         emptyText.setVisibility(files.isEmpty() ? View.VISIBLE : View.GONE);
         listView.setVisibility(files.isEmpty() ? View.GONE : View.VISIBLE);
         listView.setAdapter(new StatusAdapter(this, files));
@@ -122,7 +147,9 @@ public class StatusSaverActivity extends Activity {
 
     List<StatusFile> queryStatuses(Uri treeUri) {
         ArrayList<StatusFile> out = new ArrayList<>();
-        Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, DocumentsContract.getTreeDocumentId(treeUri));
+        String statusDocumentId = findStatusDocumentId(treeUri);
+        if (statusDocumentId == null) return out;
+        Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, statusDocumentId);
         String[] columns = {
                 DocumentsContract.Document.COLUMN_DOCUMENT_ID,
                 DocumentsContract.Document.COLUMN_DISPLAY_NAME,
@@ -147,6 +174,34 @@ public class StatusSaverActivity extends Activity {
             prefs().edit().remove(PREF_STATUS_TREE).apply();
         }
         return out;
+    }
+
+    String findStatusDocumentId(Uri selectedTree) {
+        if (selectedTree == null) return null;
+        String selectedId = DocumentsContract.getTreeDocumentId(selectedTree);
+        if (selectedId != null && selectedId.endsWith("/.Statuses")) return selectedId;
+        if (selectedId == null) return null;
+        Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(selectedTree, selectedId);
+        String[] columns = {
+                DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+                DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+                DocumentsContract.Document.COLUMN_MIME_TYPE
+        };
+        try (Cursor cursor = getContentResolver().query(childrenUri, columns, null, null, null)) {
+            if (cursor == null) return null;
+            while (cursor.moveToNext()) {
+                String childId = cursor.getString(0);
+                String name = cursor.getString(1);
+                String mime = cursor.getString(2);
+                boolean folder = DocumentsContract.Document.MIME_TYPE_DIR.equals(mime);
+                if (folder && ".Statuses".equals(name)) {
+                    return childId;
+                }
+            }
+        } catch (Exception ignored) {
+            return null;
+        }
+        return null;
     }
 
     void showStatusActions(StatusFile file) {
@@ -214,12 +269,17 @@ public class StatusSaverActivity extends Activity {
     }
 
     Uri createMediaTarget(StatusFile file) {
+        String outputName = uniqueName(file.name);
         ContentValues values = new ContentValues();
-        values.put(MediaStore.MediaColumns.DISPLAY_NAME, uniqueName(file.name));
+        values.put(MediaStore.MediaColumns.DISPLAY_NAME, outputName);
         values.put(MediaStore.MediaColumns.MIME_TYPE, file.mimeType);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            values.put(MediaStore.MediaColumns.RELATIVE_PATH, (file.isVideo() ? "Movies" : "Pictures") + "/WhatsThat Statuses");
+            values.put(MediaStore.MediaColumns.RELATIVE_PATH, file.isVideo() ? "Movies/WhatsThat/Status Videos" : "Pictures/WhatsThat/Status Photos");
             values.put(MediaStore.MediaColumns.IS_PENDING, 1);
+        } else {
+            File folder = new File(android.os.Environment.getExternalStoragePublicDirectory(file.isVideo() ? android.os.Environment.DIRECTORY_MOVIES : android.os.Environment.DIRECTORY_PICTURES), file.isVideo() ? "WhatsThat/Status Videos" : "WhatsThat/Status Photos");
+            if (!folder.exists()) folder.mkdirs();
+            values.put(MediaStore.MediaColumns.DATA, new File(folder, outputName).getAbsolutePath());
         }
         Uri collection = file.isVideo() ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         return getContentResolver().insert(collection, values);
@@ -270,6 +330,21 @@ public class StatusSaverActivity extends Activity {
         GradientDrawable bg = new GradientDrawable();
         bg.setColor(Color.rgb(0, 107, 85));
         bg.setCornerRadius(dp(18));
+        button.setBackground(bg);
+        return button;
+    }
+
+    Button secondaryButton(String text) {
+        Button button = new Button(this);
+        button.setText(text);
+        button.setAllCaps(false);
+        button.setTextSize(14);
+        button.setTypeface(Typeface.DEFAULT_BOLD);
+        button.setTextColor(Color.rgb(0, 107, 85));
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.rgb(247, 248, 246));
+        bg.setCornerRadius(dp(18));
+        bg.setStroke(dp(1), Color.rgb(231, 234, 230));
         button.setBackground(bg);
         return button;
     }
