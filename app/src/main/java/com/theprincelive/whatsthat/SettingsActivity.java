@@ -55,6 +55,10 @@ public class SettingsActivity extends Activity {
         otherCaptureBtn.setOnClickListener(v -> toggleOtherCapture());
         root.addView(otherCaptureBtn, buttonParams(10));
 
+        Button statusSaverBtn = secondaryButton("WhatsApp Status Saver");
+        statusSaverBtn.setOnClickListener(v -> startActivity(new Intent(this, StatusSaverActivity.class)));
+        root.addView(statusSaverBtn, buttonParams(10));
+
         hiddenRulesBtn = secondaryButton("");
         hiddenRulesBtn.setOnClickListener(v -> clearHiddenRules());
         root.addView(hiddenRulesBtn, buttonParams(10));
@@ -84,6 +88,9 @@ public class SettingsActivity extends Activity {
 
         root.addView(section("Other Notices"));
         root.addView(copy("Other notices are opt-in. When enabled, non-WhatsApp notifications are saved into a separate inbox so they do not mix with WhatsApp messages."));
+
+        root.addView(section("Status Saver"));
+        root.addView(copy("Status Saver works only for statuses you have already viewed in WhatsApp. Choose the .Statuses folder once, then save photos or videos locally."));
 
         root.addView(section("Privacy Limits"));
         root.addView(copy("The app stores notification text locally on this phone. It cannot read old chats, muted WhatsApp chats, deleted messages, or anything that never appeared as a notification."));

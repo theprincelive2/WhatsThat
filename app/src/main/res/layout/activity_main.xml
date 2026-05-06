@@ -143,6 +143,19 @@
                 android:textStyle="bold" />
 
             <ImageButton
+                android:id="@+id/statusSaverBtn"
+                android:layout_width="44dp"
+                android:layout_height="38dp"
+                android:layout_marginLeft="8dp"
+                android:background="@drawable/bg_chip"
+                android:backgroundTint="@null"
+                android:contentDescription="Status Saver"
+                android:minHeight="0dp"
+                android:padding="9dp"
+                android:scaleType="center"
+                android:src="@drawable/ic_status" />
+
+            <ImageButton
                 android:id="@+id/exportBtn"
                 android:layout_width="44dp"
                 android:layout_height="38dp"
