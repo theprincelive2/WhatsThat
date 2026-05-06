@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -39,8 +40,8 @@ public class MainActivity extends Activity {
     EditText searchBox;
     Button open;
     Button modeBtn;
-    Button exportBtn;
-    Button settingsBtn;
+    ImageButton exportBtn;
+    ImageButton settingsBtn;
     Spinner retentionSpinner;
     LinearLayout accessBanner;
     String activeSender;
@@ -66,7 +67,7 @@ public class MainActivity extends Activity {
         settingsBtn = findViewById(R.id.settingsBtn);
         retentionSpinner = findViewById(R.id.retentionSpinner);
         accessBanner = findViewById(R.id.accessBanner);
-        Button clear = findViewById(R.id.clearBtn);
+        ImageButton clear = findViewById(R.id.clearBtn);
 
         open.setOnClickListener(v -> startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));
         modeBtn.setOnClickListener(v -> showInboxMode(!showingOtherNotices()));
@@ -162,6 +163,7 @@ public class MainActivity extends Activity {
             latestText.setText(count == 0 ? emptyModeText(otherMode) : "Latest: " + filtered.get(0).time);
         }
         modeBtn.setText(otherMode ? "Other notices" : "WhatsApp");
+        modeBtn.setCompoundDrawablesWithIntrinsicBounds(otherMode ? R.drawable.ic_bell : R.drawable.ic_chat, 0, 0, 0);
         emptyText.setText(emptyModeText(otherMode));
         emptyText.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
         list.setVisibility(filtered.isEmpty() ? View.GONE : View.VISIBLE);

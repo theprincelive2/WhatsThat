@@ -131,62 +131,55 @@
                 android:layout_height="38dp"
                 android:background="@drawable/bg_chip_selected"
                 android:backgroundTint="@null"
+                android:drawableLeft="@drawable/ic_chat"
+                android:drawablePadding="8dp"
                 android:minHeight="0dp"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
+                android:paddingLeft="14dp"
+                android:paddingRight="14dp"
                 android:text="WhatsApp"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/exportBtn"
-                android:layout_width="wrap_content"
+                android:layout_width="44dp"
                 android:layout_height="38dp"
                 android:layout_marginLeft="8dp"
                 android:background="@drawable/bg_chip"
                 android:backgroundTint="@null"
+                android:contentDescription="Export"
                 android:minHeight="0dp"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
-                android:text="Export"
-                android:textAllCaps="false"
-                android:textColor="@color/brand_text"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+                android:padding="9dp"
+                android:scaleType="center"
+                android:src="@drawable/ic_export" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/clearBtn"
-                android:layout_width="wrap_content"
+                android:layout_width="44dp"
                 android:layout_height="38dp"
                 android:layout_marginLeft="8dp"
                 android:background="@drawable/bg_chip"
                 android:backgroundTint="@null"
+                android:contentDescription="Clear"
                 android:minHeight="0dp"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
-                android:text="Clear"
-                android:textAllCaps="false"
-                android:textColor="@color/brand_text"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+                android:padding="9dp"
+                android:scaleType="center"
+                android:src="@drawable/ic_delete" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/settingsBtn"
-                android:layout_width="wrap_content"
+                android:layout_width="44dp"
                 android:layout_height="38dp"
                 android:layout_marginLeft="8dp"
                 android:background="@drawable/bg_chip"
                 android:backgroundTint="@null"
+                android:contentDescription="Settings"
                 android:minHeight="0dp"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
-                android:text="Settings"
-                android:textAllCaps="false"
-                android:textColor="@color/brand_text"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+                android:padding="9dp"
+                android:scaleType="center"
+                android:src="@drawable/ic_settings" />
 
             <Spinner
                 android:id="@+id/retentionSpinner"
