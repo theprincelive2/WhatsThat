@@ -1,8 +1,10 @@
 package com.theprincelive.whatsthat;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.media.MediaMetadataRetriever;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,8 +55,13 @@ class StatusAdapter extends BaseAdapter {
         if (file.isImage()) {
             preview.setImageURI(file.uri);
         } else {
-            preview.setImageResource(R.drawable.ic_video);
-            preview.setPadding(dp(18), dp(18), dp(18), dp(18));
+            Bitmap thumbnail = videoThumbnail(file);
+            if (thumbnail != null) {
+                preview.setImageBitmap(thumbnail);
+            } else {
+                preview.setImageResource(R.drawable.ic_video);
+                preview.setPadding(dp(18), dp(18), dp(18), dp(18));
+            }
         }
         row.addView(preview, new LinearLayout.LayoutParams(dp(68), dp(68)));
 
@@ -91,6 +98,21 @@ class StatusAdapter extends BaseAdapter {
         if (size <= 0) return "unknown size";
         if (size >= 1024 * 1024) return String.format(Locale.getDefault(), "%.1f MB", size / 1024f / 1024f);
         return String.format(Locale.getDefault(), "%.0f KB", size / 1024f);
+    }
+
+    Bitmap videoThumbnail(StatusFile file) {
+        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+        try {
+            retriever.setDataSource(context, file.uri);
+            return retriever.getFrameAtTime(1_000_000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+        } catch (Exception ignored) {
+            return null;
+        } finally {
+            try {
+                retriever.release();
+            } catch (Exception ignored) {
+            }
+        }
     }
 
     private int dp(int value) {

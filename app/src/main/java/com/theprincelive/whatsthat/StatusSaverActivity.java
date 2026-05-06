@@ -34,16 +34,26 @@ import java.util.List;
 public class StatusSaverActivity extends Activity {
     private static final String PREFS = "whatsthat_prefs";
     private static final String PREF_STATUS_TREE = "status_tree_uri";
+    private static final String PREF_STATUS_TREE_WHATSAPP = "status_tree_uri_whatsapp";
+    private static final String PREF_STATUS_TREE_BUSINESS = "status_tree_uri_business";
+    private static final String PREF_STATUS_MODE = "status_mode";
+    private static final String MODE_WHATSAPP = "whatsapp";
+    private static final String MODE_BUSINESS = "business";
     private static final int REQUEST_STATUS_FOLDER = 44;
     private static final int REQUEST_WRITE_STORAGE = 45;
     private static final String WHATSAPP_STATUS_DOC = "primary:Android/media/com.whatsapp/WhatsApp/Media/.Statuses";
     private static final String BUSINESS_STATUS_DOC = "primary:Android/media/com.whatsapp.w4b/WhatsApp Business/Media/.Statuses";
 
+    Button findWhatsAppBtn;
+    Button findBusinessBtn;
+    Button chooseBtn;
+    Button refreshBtn;
     TextView folderText;
     TextView emptyText;
     ListView listView;
     List<StatusFile> files = new ArrayList<>();
     StatusFile pendingSave;
+    String pendingMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,20 +77,27 @@ public class StatusSaverActivity extends Activity {
 
         LinearLayout buttonRow = new LinearLayout(this);
         buttonRow.setOrientation(LinearLayout.HORIZONTAL);
-        Button findWhatsApp = primaryButton("Find WhatsApp");
-        findWhatsApp.setOnClickListener(v -> chooseStatusFolder(WHATSAPP_STATUS_DOC));
-        buttonRow.addView(findWhatsApp, new LinearLayout.LayoutParams(0, dp(50), 1));
+        findWhatsAppBtn = primaryButton("Find WhatsApp");
+        findWhatsAppBtn.setOnClickListener(v -> selectMode(MODE_WHATSAPP));
+        buttonRow.addView(findWhatsAppBtn, new LinearLayout.LayoutParams(0, dp(50), 1));
 
-        Button findBusiness = secondaryButton("Business");
-        findBusiness.setOnClickListener(v -> chooseStatusFolder(BUSINESS_STATUS_DOC));
+        findBusinessBtn = secondaryButton("Business");
+        findBusinessBtn.setOnClickListener(v -> selectMode(MODE_BUSINESS));
         LinearLayout.LayoutParams businessParams = new LinearLayout.LayoutParams(0, dp(50), 1);
         businessParams.setMargins(dp(10), 0, 0, 0);
-        buttonRow.addView(findBusiness, businessParams);
+        buttonRow.addView(findBusinessBtn, businessParams);
         root.addView(buttonRow, buttonParams(16));
 
-        Button choose = secondaryButton("Choose Folder Manually");
-        choose.setOnClickListener(v -> chooseStatusFolder(null));
-        root.addView(choose, buttonParams(10));
+        chooseBtn = secondaryButton("Choose Folder Manually");
+        chooseBtn.setOnClickListener(v -> chooseStatusFolder(null, activeMode()));
+        root.addView(chooseBtn, buttonParams(10));
+
+        refreshBtn = secondaryButton("Refresh Statuses");
+        refreshBtn.setOnClickListener(v -> {
+            loadStatuses();
+            Toast.makeText(this, "Statuses refreshed.", Toast.LENGTH_SHORT).show();
+        });
+        root.addView(refreshBtn, buttonParams(10));
 
         folderText = copy("");
         folderText.setPadding(0, dp(10), 0, dp(6));
@@ -98,10 +115,23 @@ public class StatusSaverActivity extends Activity {
         root.addView(listView, new LinearLayout.LayoutParams(-1, 0, 1));
 
         setContentView(root);
+        migrateOldStatusFolder();
         loadStatuses();
     }
 
-    void chooseStatusFolder(String initialDocumentId) {
+    void selectMode(String mode) {
+        String previousMode = activeMode();
+        prefs().edit().putString(PREF_STATUS_MODE, mode).apply();
+        Uri saved = savedTree(mode);
+        if (saved == null || previousMode.equals(mode)) {
+            chooseStatusFolder(MODE_BUSINESS.equals(mode) ? BUSINESS_STATUS_DOC : WHATSAPP_STATUS_DOC, mode);
+        } else {
+            loadStatuses();
+        }
+    }
+
+    void chooseStatusFolder(String initialDocumentId, String mode) {
+        pendingMode = mode;
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && initialDocumentId != null) {
@@ -118,7 +148,12 @@ public class StatusSaverActivity extends Activity {
         Uri treeUri = data.getData();
         int flags = data.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION;
         getContentResolver().takePersistableUriPermission(treeUri, flags);
-        prefs().edit().putString(PREF_STATUS_TREE, treeUri.toString()).apply();
+        String mode = pendingMode == null ? activeMode() : pendingMode;
+        pendingMode = null;
+        prefs().edit()
+                .putString(PREF_STATUS_MODE, mode)
+                .putString(prefKeyForMode(mode), treeUri.toString())
+                .apply();
         String treeDocumentId = DocumentsContract.getTreeDocumentId(treeUri);
         if (findStatusDocumentId(treeUri) != null && treeDocumentId != null && !treeDocumentId.endsWith("/.Statuses")) {
             Toast.makeText(this, "Found .Statuses inside the selected folder.", Toast.LENGTH_SHORT).show();
@@ -128,14 +163,18 @@ public class StatusSaverActivity extends Activity {
 
     void loadStatuses() {
         files.clear();
-        Uri tree = savedTree();
+        updateProviderButtons();
+        String mode = activeMode();
+        Uri tree = savedTree(mode);
         if (tree == null) {
-            folderText.setText("No folder selected.");
-            emptyText.setText("Tap Find WhatsApp. If the folder picker does not open there, choose Android > media > com.whatsapp > WhatsApp > Media > .Statuses.");
+            folderText.setText(modeLabel(mode) + " status folder is not set.");
+            emptyText.setText("Tap " + modeLabel(mode) + " to approve its .Statuses folder once.");
+            emptyText.setVisibility(View.VISIBLE);
+            listView.setVisibility(View.GONE);
             listView.setAdapter(new StatusAdapter(this, files));
             return;
         }
-        folderText.setText("Folder access is enabled.");
+        folderText.setText(modeLabel(mode) + " status folder is set. Tap the same button again to change it.");
         boolean hasStatusFolder = findStatusDocumentId(tree) != null;
         files.addAll(queryStatuses(tree));
         Collections.sort(files, (a, b) -> Long.compare(b.modifiedAt, a.modifiedAt));
@@ -171,7 +210,7 @@ public class StatusSaverActivity extends Activity {
             }
         } catch (Exception e) {
             Toast.makeText(this, "Could not read that folder. Choose the .Statuses folder again.", Toast.LENGTH_LONG).show();
-            prefs().edit().remove(PREF_STATUS_TREE).apply();
+            prefs().edit().remove(prefKeyForMode(activeMode())).apply();
         }
         return out;
     }
@@ -311,8 +350,46 @@ public class StatusSaverActivity extends Activity {
     }
 
     Uri savedTree() {
-        String raw = prefs().getString(PREF_STATUS_TREE, null);
+        return savedTree(activeMode());
+    }
+
+    Uri savedTree(String mode) {
+        String raw = prefs().getString(prefKeyForMode(mode), null);
         return raw == null ? null : Uri.parse(raw);
+    }
+
+    String activeMode() {
+        return prefs().getString(PREF_STATUS_MODE, MODE_WHATSAPP);
+    }
+
+    String prefKeyForMode(String mode) {
+        return MODE_BUSINESS.equals(mode) ? PREF_STATUS_TREE_BUSINESS : PREF_STATUS_TREE_WHATSAPP;
+    }
+
+    String modeLabel(String mode) {
+        return MODE_BUSINESS.equals(mode) ? "WhatsApp Business" : "WhatsApp";
+    }
+
+    void updateProviderButtons() {
+        if (findWhatsAppBtn == null || findBusinessBtn == null || chooseBtn == null || refreshBtn == null) return;
+        String mode = activeMode();
+        boolean whatsappSet = savedTree(MODE_WHATSAPP) != null;
+        boolean businessSet = savedTree(MODE_BUSINESS) != null;
+        findWhatsAppBtn.setText(MODE_WHATSAPP.equals(mode) && whatsappSet ? "Change WhatsApp" : (whatsappSet ? "WhatsApp Set" : "Find WhatsApp"));
+        findBusinessBtn.setText(MODE_BUSINESS.equals(mode) && businessSet ? "Change Business" : (businessSet ? "Business Set" : "Business"));
+        chooseBtn.setText("Choose " + modeLabel(mode) + " Folder Manually");
+        refreshBtn.setEnabled(savedTree(mode) != null);
+    }
+
+    void migrateOldStatusFolder() {
+        SharedPreferences preferences = prefs();
+        String old = preferences.getString(PREF_STATUS_TREE, null);
+        if (old != null && preferences.getString(PREF_STATUS_TREE_WHATSAPP, null) == null) {
+            preferences.edit()
+                    .putString(PREF_STATUS_TREE_WHATSAPP, old)
+                    .remove(PREF_STATUS_TREE)
+                    .apply();
+        }
     }
 
     SharedPreferences prefs() {
