@@ -27,7 +27,7 @@ public class WhatsThatApp extends Application {
             @Override
             public void onActivityStopped(Activity activity) {
                 if (startedActivities > 0) startedActivities--;
-                if (startedActivities == 0 && AppLock.isEnabled(activity)) {
+                if (startedActivities == 0 && AppLock.isEnabled(activity) && AppLock.lockOnClose(activity)) {
                     handler.postDelayed(lockWhenBackgrounded, 700);
                 }
             }

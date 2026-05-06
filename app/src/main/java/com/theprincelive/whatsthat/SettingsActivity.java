@@ -23,6 +23,7 @@ public class SettingsActivity extends Activity {
     Button lockBtn;
     Button disableLockBtn;
     Button hiddenRulesBtn;
+    Button lockOnCloseBtn;
     MessageStore store;
 
     @Override
@@ -63,6 +64,10 @@ public class SettingsActivity extends Activity {
         lockBtn = secondaryButton("");
         lockBtn.setOnClickListener(v -> openLockSetup());
         root.addView(lockBtn, buttonParams(10));
+
+        lockOnCloseBtn = secondaryButton("");
+        lockOnCloseBtn.setOnClickListener(v -> toggleLockOnClose());
+        root.addView(lockOnCloseBtn, buttonParams(10));
 
         disableLockBtn = secondaryButton("Turn Off App Lock");
         disableLockBtn.setOnClickListener(v -> openLockDisable());
@@ -160,6 +165,13 @@ public class SettingsActivity extends Activity {
         hiddenRulesBtn.setEnabled(true);
     }
 
+    void toggleLockOnClose() {
+        boolean next = !AppLock.lockOnClose(this);
+        AppLock.setLockOnClose(this, next);
+        updateLockButtons();
+        Toast.makeText(this, next ? "PIN required when WhatsThat closes." : "PIN required after app restart only.", Toast.LENGTH_SHORT).show();
+    }
+
     void openLockSetup() {
         Intent intent = new Intent(this, LockActivity.class);
         intent.putExtra(LockActivity.MODE, AppLock.isEnabled(this) ? LockActivity.MODE_CHANGE : LockActivity.MODE_SET);
@@ -173,9 +185,11 @@ public class SettingsActivity extends Activity {
     }
 
     void updateLockButtons() {
-        if (lockBtn == null || disableLockBtn == null) return;
+        if (lockBtn == null || lockOnCloseBtn == null || disableLockBtn == null) return;
         boolean enabled = AppLock.isEnabled(this);
         lockBtn.setText(enabled ? "Change App Lock PIN" : "Set App Lock PIN");
+        lockOnCloseBtn.setText(AppLock.lockOnClose(this) ? "Lock When App Closes: On" : "Lock When App Closes: Off");
+        lockOnCloseBtn.setVisibility(enabled ? android.view.View.VISIBLE : android.view.View.GONE);
         disableLockBtn.setVisibility(enabled ? android.view.View.VISIBLE : android.view.View.GONE);
     }
 

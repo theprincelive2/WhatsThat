@@ -7,6 +7,7 @@ import java.security.MessageDigest;
 public class AppLock {
     private static final String PREFS = "whatsthat_prefs";
     private static final String PREF_PIN_HASH = "app_lock_pin_hash";
+    private static final String PREF_LOCK_ON_CLOSE = "app_lock_on_close";
     static boolean unlocked;
 
     public static boolean isEnabled(Context context) {
@@ -19,6 +20,14 @@ public class AppLock {
 
     public static void setUnlocked(boolean value) {
         unlocked = value;
+    }
+
+    public static boolean lockOnClose(Context context) {
+        return prefs(context).getBoolean(PREF_LOCK_ON_CLOSE, true);
+    }
+
+    public static void setLockOnClose(Context context, boolean value) {
+        prefs(context).edit().putBoolean(PREF_LOCK_ON_CLOSE, value).apply();
     }
 
     public static boolean setPin(Context context, String pin) {
