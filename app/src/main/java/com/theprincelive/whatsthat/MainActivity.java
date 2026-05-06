@@ -338,7 +338,7 @@ public class MainActivity extends Activity {
     void confirmDeleteApp(SavedMessage msg) {
         new AlertDialog.Builder(this)
                 .setTitle("Delete all from this app?")
-                .setMessage("Remove saved notices from " + safe(msg.packageName) + ".")
+                .setMessage("Remove saved notices from " + AppLabels.label(this, msg.packageName) + ".")
                 .setPositiveButton("Delete", (dialog, which) -> {
                     store.deletePackage(msg.packageName);
                     activeSender = null;
@@ -350,7 +350,7 @@ public class MainActivity extends Activity {
 
     void shareCsv() {
         String csv = store.exportCsv(showingOtherNotices());
-        if (csv.trim().equals("sender,message,package,received_at")) {
+        if (csv.trim().equals("sender,message,app,package,received_at")) {
             Toast.makeText(this, "No messages to export yet.", Toast.LENGTH_SHORT).show();
             return;
         }

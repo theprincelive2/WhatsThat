@@ -91,7 +91,7 @@ public class ConversationActivity extends Activity {
         store.markConversationRead(packageName, sender);
         messages.removeAllViews();
         List<SavedMessage> rows = store.getConversation(packageName, sender);
-        subtitle.setText(rows.size() + (rows.size() == 1 ? " saved notice" : " saved notices"));
+        subtitle.setText(AppLabels.label(this, packageName) + " - " + rows.size() + (rows.size() == 1 ? " saved notice" : " saved notices"));
         if (rows.isEmpty()) {
             TextView empty = new TextView(this);
             empty.setText("No saved notices remain in this conversation.");

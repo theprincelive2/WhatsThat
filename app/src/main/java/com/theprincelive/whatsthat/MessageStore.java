@@ -18,8 +18,12 @@ public class MessageStore extends SQLiteOpenHelper {
     private static final int DB_VERSION = 3;
     private static final String PKG_MAIN = "com.whatsapp";
     private static final String PKG_BUSINESS = "com.whatsapp.w4b";
+    private final Context context;
 
-    public MessageStore(Context context) { super(context, DB_NAME, null, DB_VERSION); }
+    public MessageStore(Context context) {
+        super(context, DB_NAME, null, DB_VERSION);
+        this.context = context.getApplicationContext();
+    }
 
     @Override public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE messages (id INTEGER PRIMARY KEY AUTOINCREMENT, sender TEXT, body TEXT, package_name TEXT, received_at INTEGER, read_at INTEGER DEFAULT 0)");
@@ -122,7 +126,7 @@ public class MessageStore extends SQLiteOpenHelper {
 
     public String exportCsv(boolean otherNotices) {
         StringBuilder out = new StringBuilder();
-        out.append("sender,message,package,received_at\n");
+        out.append("sender,message,app,package,received_at\n");
         String where = otherNotices ? "package_name<>? AND package_name<>?" : "(package_name=? OR package_name=?)";
         Cursor c = getReadableDatabase().rawQuery("SELECT sender, body, package_name, received_at FROM messages WHERE " + where + " ORDER BY received_at DESC", new String[]{PKG_MAIN, PKG_BUSINESS});
         SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
@@ -130,6 +134,7 @@ public class MessageStore extends SQLiteOpenHelper {
             while (c.moveToNext()) {
                 out.append(csv(c.getString(0))).append(',')
                         .append(csv(c.getString(1))).append(',')
+                        .append(csv(AppLabels.label(context, c.getString(2)))).append(',')
                         .append(csv(c.getString(2))).append(',')
                         .append(csv(fmt.format(new Date(c.getLong(3))))).append('\n');
             }

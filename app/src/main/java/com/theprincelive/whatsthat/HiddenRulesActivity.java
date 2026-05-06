@@ -89,7 +89,7 @@ public class HiddenRulesActivity extends Activity {
         row.addView(body);
 
         TextView pkg = new TextView(this);
-        pkg.setText(rule.packageName);
+        pkg.setText(AppLabels.label(this, rule.packageName));
         pkg.setTextColor(Color.rgb(0, 107, 85));
         pkg.setTextSize(12);
         pkg.setPadding(0, dp(8), 0, 0);
