@@ -89,16 +89,14 @@ public class SettingsActivity extends Activity {
     }
 
     void clearHiddenRules() {
-        NotificationRules.clear(this);
-        updateHiddenRulesButton();
-        Toast.makeText(this, "Hidden notification rules cleared.", Toast.LENGTH_SHORT).show();
+        startActivity(new Intent(this, HiddenRulesActivity.class));
     }
 
     void updateHiddenRulesButton() {
         if (hiddenRulesBtn == null) return;
         int count = NotificationRules.count(this);
-        hiddenRulesBtn.setText(count == 0 ? "No Hidden Notification Rules" : "Clear " + count + " Hidden Rules");
-        hiddenRulesBtn.setEnabled(count > 0);
+        hiddenRulesBtn.setText(count == 0 ? "Blocked Notices" : "Blocked Notices (" + count + ")");
+        hiddenRulesBtn.setEnabled(true);
     }
 
     void openLockSetup() {
