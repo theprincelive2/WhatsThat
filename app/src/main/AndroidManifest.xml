@@ -8,6 +8,7 @@
   <activity android:name=".ConversationActivity" android:exported="false" />
   <activity android:name=".SettingsActivity" android:exported="false" />
   <activity android:name=".StatusSaverActivity" android:exported="false" />
+  <activity android:name=".StatusPreviewActivity" android:exported="false" />
   <activity android:name=".HiddenRulesActivity" android:exported="false" />
   <activity android:name=".LockActivity" android:exported="false" />
 

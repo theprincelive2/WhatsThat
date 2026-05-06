@@ -94,7 +94,7 @@ public class StatusSaverActivity extends Activity {
         listView = new ListView(this);
         listView.setDividerHeight(1);
         listView.setCacheColorHint(Color.TRANSPARENT);
-        listView.setOnItemClickListener((parent, view, position, id) -> showStatusActions(files.get(position)));
+        listView.setOnItemClickListener((parent, view, position, id) -> openStatusPreview(files.get(position)));
         root.addView(listView, new LinearLayout.LayoutParams(-1, 0, 1));
 
         setContentView(root);
@@ -213,6 +213,15 @@ public class StatusSaverActivity extends Activity {
                     if (which == 1) shareStatus(file);
                 })
                 .show();
+    }
+
+    void openStatusPreview(StatusFile file) {
+        Intent intent = new Intent(this, StatusPreviewActivity.class);
+        intent.putExtra(StatusPreviewActivity.EXTRA_URI, file.uri.toString());
+        intent.putExtra(StatusPreviewActivity.EXTRA_NAME, file.name);
+        intent.putExtra(StatusPreviewActivity.EXTRA_MIME, file.mimeType);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivity(intent);
     }
 
     void saveStatus(StatusFile file) {
