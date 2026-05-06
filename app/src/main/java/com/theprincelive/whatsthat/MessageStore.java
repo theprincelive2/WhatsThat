@@ -15,17 +15,23 @@ import java.util.Locale;
 
 public class MessageStore extends SQLiteOpenHelper {
     private static final String DB_NAME = "whatsthat.db";
-    private static final int DB_VERSION = 2;
+    private static final int DB_VERSION = 3;
     private static final String PKG_MAIN = "com.whatsapp";
     private static final String PKG_BUSINESS = "com.whatsapp.w4b";
 
     public MessageStore(Context context) { super(context, DB_NAME, null, DB_VERSION); }
 
     @Override public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE messages (id INTEGER PRIMARY KEY AUTOINCREMENT, sender TEXT, body TEXT, package_name TEXT, received_at INTEGER)");
+        db.execSQL("CREATE TABLE messages (id INTEGER PRIMARY KEY AUTOINCREMENT, sender TEXT, body TEXT, package_name TEXT, received_at INTEGER, read_at INTEGER DEFAULT 0)");
     }
 
-    @Override public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) { }
+    @Override public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        if (oldVersion < 3) {
+            try {
+                db.execSQL("ALTER TABLE messages ADD COLUMN read_at INTEGER DEFAULT 0");
+            } catch (Exception ignored) { }
+        }
+    }
 
     public void saveMessage(String sender, String body, String packageName, long receivedAt) {
         if (body == null || body.trim().isEmpty()) return;
@@ -33,32 +39,33 @@ public class MessageStore extends SQLiteOpenHelper {
         String cleanSender = clean(sender);
         String cleanPackage = clean(packageName);
         SQLiteDatabase db = getWritableDatabase();
-        Cursor c = db.rawQuery("SELECT sender, body, received_at FROM messages WHERE package_name=? ORDER BY id DESC LIMIT 1", new String[]{cleanPackage});
+        long duplicateCutoff = receivedAt - 120000L;
+        Cursor c = db.rawQuery(
+                "SELECT id FROM messages WHERE package_name=? AND sender=? AND body=? AND received_at>? LIMIT 1",
+                new String[]{cleanPackage, cleanSender, cleanBody, String.valueOf(duplicateCutoff)}
+        );
         try {
-            if (c.moveToFirst()) {
-                String lastSender = c.getString(0);
-                String lastBody = c.getString(1);
-                long lastTime = c.getLong(2);
-                if (cleanSender.equals(lastSender) && cleanBody.equals(lastBody) && Math.abs(receivedAt - lastTime) < 8000) return;
-            }
+            if (c.moveToFirst()) return;
         } finally { c.close(); }
         ContentValues values = new ContentValues();
         values.put("sender", cleanSender);
         values.put("body", cleanBody);
         values.put("package_name", cleanPackage);
         values.put("received_at", receivedAt);
+        values.put("read_at", 0);
         db.insert("messages", null, values);
     }
 
     public List<SavedMessage> getRecentStructured(boolean otherNotices) {
         ArrayList<SavedMessage> rows = new ArrayList<>();
         String where = otherNotices ? "package_name<>? AND package_name<>?" : "(package_name=? OR package_name=?)";
-        Cursor c = getReadableDatabase().rawQuery("SELECT id, sender, body, package_name, received_at FROM messages WHERE " + where + " ORDER BY received_at DESC LIMIT 300", new String[]{PKG_MAIN, PKG_BUSINESS});
+        Cursor c = getReadableDatabase().rawQuery("SELECT id, sender, body, package_name, received_at, read_at FROM messages WHERE " + where + " ORDER BY received_at DESC LIMIT 300", new String[]{PKG_MAIN, PKG_BUSINESS});
         SimpleDateFormat fullFmt = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault());
         DateFormat shortFmt = DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault());
         try {
             while (c.moveToNext()) {
                 long receivedAt = c.getLong(4);
+                boolean read = c.getLong(5) > 0;
                 Date receivedDate = new Date(receivedAt);
                 rows.add(new SavedMessage(
                         c.getLong(0),
@@ -68,7 +75,10 @@ public class MessageStore extends SQLiteOpenHelper {
                         shortFmt.format(receivedDate),
                         dateLabel(receivedAt),
                         c.getString(3),
-                        receivedAt
+                        receivedAt,
+                        1,
+                        read ? 0 : 1,
+                        read
                 ));
             }
         } finally { c.close(); }
@@ -82,7 +92,7 @@ public class MessageStore extends SQLiteOpenHelper {
     public List<SavedMessage> getConversation(String packageName, String sender) {
         ArrayList<SavedMessage> rows = new ArrayList<>();
         Cursor c = getReadableDatabase().rawQuery(
-                "SELECT id, sender, body, package_name, received_at FROM messages WHERE package_name=? AND sender=? ORDER BY received_at ASC",
+                "SELECT id, sender, body, package_name, received_at, read_at FROM messages WHERE package_name=? AND sender=? ORDER BY received_at ASC",
                 new String[]{clean(packageName), clean(sender)}
         );
         SimpleDateFormat fullFmt = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault());
@@ -90,6 +100,7 @@ public class MessageStore extends SQLiteOpenHelper {
         try {
             while (c.moveToNext()) {
                 long receivedAt = c.getLong(4);
+                boolean read = c.getLong(5) > 0;
                 Date receivedDate = new Date(receivedAt);
                 rows.add(new SavedMessage(
                         c.getLong(0),
@@ -99,7 +110,10 @@ public class MessageStore extends SQLiteOpenHelper {
                         shortFmt.format(receivedDate),
                         dateLabel(receivedAt),
                         c.getString(3),
-                        receivedAt
+                        receivedAt,
+                        1,
+                        read ? 0 : 1,
+                        read
                 ));
             }
         } finally { c.close(); }
@@ -125,6 +139,30 @@ public class MessageStore extends SQLiteOpenHelper {
 
     public String exportCsv() {
         return exportCsv(false);
+    }
+
+    public int markConversationRead(String packageName, String sender) {
+        ContentValues values = new ContentValues();
+        values.put("read_at", System.currentTimeMillis());
+        return getWritableDatabase().update(
+                "messages",
+                values,
+                "package_name=? AND sender=? AND read_at=0",
+                new String[]{clean(packageName), clean(sender)}
+        );
+    }
+
+    public int markMessageRead(long id) {
+        ContentValues values = new ContentValues();
+        values.put("read_at", System.currentTimeMillis());
+        return getWritableDatabase().update("messages", values, "id=? AND read_at=0", new String[]{String.valueOf(id)});
+    }
+
+    public int markInboxRead(boolean otherNotices) {
+        ContentValues values = new ContentValues();
+        values.put("read_at", System.currentTimeMillis());
+        String where = otherNotices ? "package_name<>? AND package_name<>? AND read_at=0" : "(package_name=? OR package_name=?) AND read_at=0";
+        return getWritableDatabase().update("messages", values, where, new String[]{PKG_MAIN, PKG_BUSINESS});
     }
 
     public int deleteMessage(long id) {

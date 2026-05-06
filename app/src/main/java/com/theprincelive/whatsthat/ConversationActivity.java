@@ -88,6 +88,7 @@ public class ConversationActivity extends Activity {
     }
 
     void loadMessages() {
+        store.markConversationRead(packageName, sender);
         messages.removeAllViews();
         List<SavedMessage> rows = store.getConversation(packageName, sender);
         subtitle.setText(rows.size() + (rows.size() == 1 ? " saved notice" : " saved notices"));

@@ -74,7 +74,7 @@ public class MessageAdapter extends BaseAdapter {
         sender.setText(msg.sender == null ? "Unknown" : msg.sender);
         sender.setTextColor(Color.rgb(17, 27, 24));
         sender.setTextSize(16);
-        sender.setTypeface(Typeface.DEFAULT_BOLD);
+        sender.setTypeface(msg.unreadCount > 0 || !msg.read ? Typeface.DEFAULT_BOLD : Typeface.DEFAULT);
         sender.setSingleLine(true);
         top.addView(sender, new LinearLayout.LayoutParams(0, -2, 1));
 
@@ -88,8 +88,9 @@ public class MessageAdapter extends BaseAdapter {
 
         TextView body = new TextView(context);
         body.setText(msg.body == null ? "" : msg.body);
-        body.setTextColor(Color.rgb(100, 109, 104));
+        body.setTextColor(msg.unreadCount > 0 || !msg.read ? Color.rgb(17, 27, 24) : Color.rgb(100, 109, 104));
         body.setTextSize(14);
+        body.setTypeface(msg.unreadCount > 0 || !msg.read ? Typeface.DEFAULT_BOLD : Typeface.DEFAULT);
         body.setLineSpacing(dp(2), 1.0f);
         body.setMaxLines(1);
         body.setEllipsize(TextUtils.TruncateAt.END);
@@ -100,8 +101,8 @@ public class MessageAdapter extends BaseAdapter {
 
         TextView badge = new TextView(context);
         LinearLayout.LayoutParams badgeParams;
-        if (msg.messageCount > 1) {
-            badge.setText(String.valueOf(msg.messageCount));
+        if (msg.unreadCount > 0) {
+            badge.setText(String.valueOf(msg.unreadCount));
             badge.setTextColor(Color.WHITE);
             badge.setTextSize(11);
             badge.setTypeface(Typeface.DEFAULT_BOLD);
@@ -112,11 +113,26 @@ public class MessageAdapter extends BaseAdapter {
             badge.setBackground(badgeBg);
             badgeParams = new LinearLayout.LayoutParams(dp(24), dp(24));
             badgeParams.setMargins(dp(10), 0, dp(0), 0);
-        } else {
+        } else if (msg.messageCount > 1) {
+            badge.setText(String.valueOf(msg.messageCount));
+            badge.setTextColor(Color.rgb(91, 104, 98));
+            badge.setTextSize(11);
+            badge.setTypeface(Typeface.DEFAULT_BOLD);
+            badge.setGravity(Gravity.CENTER);
+            GradientDrawable badgeBg = new GradientDrawable();
+            badgeBg.setColor(Color.rgb(236, 240, 237));
+            badgeBg.setShape(GradientDrawable.OVAL);
+            badge.setBackground(badgeBg);
+            badgeParams = new LinearLayout.LayoutParams(dp(24), dp(24));
+            badgeParams.setMargins(dp(10), 0, dp(0), 0);
+        } else if (!msg.read) {
             GradientDrawable dotBg = new GradientDrawable();
             dotBg.setColor(Color.rgb(18, 183, 106));
             dotBg.setShape(GradientDrawable.OVAL);
             badge.setBackground(dotBg);
+            badgeParams = new LinearLayout.LayoutParams(dp(9), dp(9));
+            badgeParams.setMargins(dp(10), 0, dp(2), 0);
+        } else {
             badgeParams = new LinearLayout.LayoutParams(dp(9), dp(9));
             badgeParams.setMargins(dp(10), 0, dp(2), 0);
         }

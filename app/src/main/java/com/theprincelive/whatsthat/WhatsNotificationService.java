@@ -25,6 +25,7 @@ public class WhatsNotificationService extends NotificationListenerService {
         String text = textCs == null ? "" : textCs.toString();
         if (text.trim().isEmpty()) return;
         if (whatsapp && isWhatsAppNoise(title, text)) return;
+        if (whatsapp && isLikelyOwnReply(title, text)) return;
         if (NotificationRules.isHidden(getApplicationContext(), pkg, title, text)) return;
 
         new MessageStore(getApplicationContext()).saveMessage(title, text, pkg, System.currentTimeMillis());
@@ -42,6 +43,13 @@ public class WhatsNotificationService extends NotificationListenerService {
         if (cleanText.matches("\\d+ new messages?")) return true;
         if (cleanTitle.equals("whatsapp") && cleanText.contains("new messages")) return true;
         return cleanTitle.equals("whatsapp") && cleanText.contains("checking");
+    }
+
+    private boolean isLikelyOwnReply(String title, String text) {
+        String cleanTitle = title == null ? "" : title.trim().toLowerCase(Locale.US);
+        String cleanText = text == null ? "" : text.trim().toLowerCase(Locale.US);
+        if (cleanTitle.equals("you") || cleanTitle.equals("me")) return true;
+        return cleanText.startsWith("you:") || cleanText.startsWith("me:");
     }
 
     private String appLabel(String packageName) {

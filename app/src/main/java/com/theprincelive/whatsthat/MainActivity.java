@@ -46,6 +46,9 @@ public class MainActivity extends Activity {
     LinearLayout accessBanner;
     String activeSender;
     boolean lockStarted;
+    boolean restoreListPosition;
+    int savedListPosition;
+    int savedListTop;
 
     @Override
     protected void onCreate(Bundle b) {
@@ -73,8 +76,16 @@ public class MainActivity extends Activity {
         clear.setOnClickListener(v -> confirmClearAll());
         settingsBtn.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
         filterBtn.setOnClickListener(v -> {
+            boolean alreadyAll = activeSender == null && searchBox.getText().toString().trim().isEmpty();
+            if (alreadyAll) {
+                markAllRead();
+                return;
+            }
             activeSender = null;
+            if (searchBox.getText().length() > 0) searchBox.setText("");
             load();
+            list.setSelection(0);
+            Toast.makeText(this, "Showing all chats.", Toast.LENGTH_SHORT).show();
         });
         exportBtn.setOnClickListener(v -> shareCsv());
         searchBox.addTextChangedListener(new TextWatcher() {
@@ -85,12 +96,15 @@ public class MainActivity extends Activity {
         list.setOnItemClickListener((parent, view, position, id) -> {
             SavedMessage msg = (SavedMessage) parent.getItemAtPosition(position);
             if (activeSender == null && msg.messageCount > 1) {
+                rememberListPosition();
                 Intent intent = new Intent(this, ConversationActivity.class);
                 intent.putExtra("packageName", msg.packageName);
                 intent.putExtra("sender", msg.sender);
                 startActivity(intent);
                 return;
             }
+            rememberListPosition();
+            store.markMessageRead(msg.id);
             Intent intent = new Intent(this, MessageDetailActivity.class);
             intent.putExtra("id", msg.id);
             intent.putExtra("sender", msg.sender);
@@ -168,6 +182,7 @@ public class MainActivity extends Activity {
         emptyText.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
         list.setVisibility(filtered.isEmpty() ? View.GONE : View.VISIBLE);
         list.setAdapter(new MessageAdapter(this, filtered));
+        restoreListPositionIfNeeded(filtered.size());
     }
 
     List<SavedMessage> groupConversations(List<SavedMessage> rows) {
@@ -179,6 +194,7 @@ public class MainActivity extends Activity {
                 summaries.put(key, new ThreadSummary(row));
             } else {
                 summary.count++;
+                if (!row.read) summary.unreadCount++;
             }
         }
 
@@ -195,10 +211,26 @@ public class MainActivity extends Activity {
                     latest.dateLabel,
                     latest.packageName,
                     latest.receivedAt,
-                    summary.count
+                    summary.count,
+                    summary.unreadCount,
+                    summary.unreadCount == 0
             ));
         }
         return out;
+    }
+
+    void rememberListPosition() {
+        savedListPosition = list.getFirstVisiblePosition();
+        View top = list.getChildAt(0);
+        savedListTop = top == null ? 0 : top.getTop() - list.getPaddingTop();
+        restoreListPosition = true;
+    }
+
+    void restoreListPositionIfNeeded(int itemCount) {
+        if (!restoreListPosition) return;
+        restoreListPosition = false;
+        int position = Math.min(savedListPosition, Math.max(0, itemCount - 1));
+        list.post(() -> list.setSelectionFromTop(position, savedListTop));
     }
 
     void setupRetention() {
@@ -234,6 +266,12 @@ public class MainActivity extends Activity {
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    void markAllRead() {
+        int marked = store.markInboxRead(showingOtherNotices());
+        load();
+        Toast.makeText(this, marked == 0 ? "No unread notices." : "Marked " + marked + " notices read.", Toast.LENGTH_SHORT).show();
     }
 
     void showMessageActions(SavedMessage msg) {
@@ -391,9 +429,11 @@ public class MainActivity extends Activity {
     static class ThreadSummary {
         final SavedMessage latest;
         int count = 1;
+        int unreadCount;
 
         ThreadSummary(SavedMessage latest) {
             this.latest = latest;
+            this.unreadCount = latest.read ? 0 : 1;
         }
     }
 }
