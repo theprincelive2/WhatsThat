@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.Editable;
@@ -38,9 +39,10 @@ public class MainActivity extends Activity {
     TextView statusText;
     EditText searchBox;
     Button open;
-    Button modeBtn;
+    TextView whatsNavBtn;
+    TextView otherNavBtn;
+    TextView settingsNavBtn;
     Button exportBtn;
-    Button settingsBtn;
     Spinner retentionSpinner;
     LinearLayout accessBanner;
     String activeSender;
@@ -61,17 +63,19 @@ public class MainActivity extends Activity {
         statusText = findViewById(R.id.statusText);
         searchBox = findViewById(R.id.searchBox);
         open = findViewById(R.id.openBtn);
-        modeBtn = findViewById(R.id.modeBtn);
+        whatsNavBtn = findViewById(R.id.whatsNavBtn);
+        otherNavBtn = findViewById(R.id.otherNavBtn);
+        settingsNavBtn = findViewById(R.id.settingsNavBtn);
         exportBtn = findViewById(R.id.exportBtn);
-        settingsBtn = findViewById(R.id.settingsBtn);
         retentionSpinner = findViewById(R.id.retentionSpinner);
         accessBanner = findViewById(R.id.accessBanner);
         Button clear = findViewById(R.id.clearBtn);
 
         open.setOnClickListener(v -> startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));
-        modeBtn.setOnClickListener(v -> toggleInboxMode());
+        whatsNavBtn.setOnClickListener(v -> showInboxMode(false));
+        otherNavBtn.setOnClickListener(v -> showInboxMode(true));
+        settingsNavBtn.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
         clear.setOnClickListener(v -> confirmClearAll());
-        settingsBtn.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
         exportBtn.setOnClickListener(v -> shareCsv());
         searchBox.addTextChangedListener(new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int a, int b, int c) { }
@@ -161,7 +165,7 @@ public class MainActivity extends Activity {
         } else {
             latestText.setText(count == 0 ? emptyModeText(otherMode) : "Latest: " + filtered.get(0).time);
         }
-        modeBtn.setText(otherMode ? "Other notices" : "WhatsApp");
+        updateBottomNav(otherMode);
         emptyText.setText(emptyModeText(otherMode));
         emptyText.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
         list.setVisibility(filtered.isEmpty() ? View.GONE : View.VISIBLE);
@@ -350,8 +354,8 @@ public class MainActivity extends Activity {
         return getSharedPreferences(PREFS, MODE_PRIVATE);
     }
 
-    void toggleInboxMode() {
-        boolean nextOtherMode = !showingOtherNotices();
+    void showInboxMode(boolean nextOtherMode) {
+        if (showingOtherNotices() == nextOtherMode) return;
         prefs().edit()
                 .putBoolean(PREF_SHOW_OTHER, nextOtherMode)
                 .putBoolean(PREF_CAPTURE_OTHER, nextOtherMode || captureOtherNotices())
@@ -360,6 +364,17 @@ public class MainActivity extends Activity {
         searchBox.setText("");
         Toast.makeText(this, nextOtherMode ? "Other notifications will now be captured." : "Showing WhatsApp inbox.", Toast.LENGTH_SHORT).show();
         load();
+    }
+
+    void updateBottomNav(boolean otherMode) {
+        setNavState(whatsNavBtn, !otherMode);
+        setNavState(otherNavBtn, otherMode);
+        setNavState(settingsNavBtn, false);
+    }
+
+    void setNavState(TextView view, boolean active) {
+        view.setBackgroundResource(active ? R.drawable.bg_nav_item_active : R.drawable.bg_nav_item_idle);
+        view.setTextColor(active ? Color.rgb(255, 196, 77) : Color.rgb(166, 176, 172));
     }
 
     boolean showingOtherNotices() {
