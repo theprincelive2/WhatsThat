@@ -55,6 +55,20 @@
                 android:textColor="#FFFFFF"
                 android:textSize="13sp"
                 android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/settingsBtn"
+                android:layout_width="92dp"
+                android:layout_height="38dp"
+                android:layout_marginLeft="8dp"
+                android:background="@drawable/bg_header_search"
+                android:backgroundTint="@null"
+                android:minHeight="0dp"
+                android:text="Settings"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <EditText
@@ -128,30 +142,14 @@
                 android:id="@+id/modeBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="38dp"
-                android:background="@drawable/bg_chip_selected"
+                android:background="@drawable/bg_action_chip_selected"
                 android:backgroundTint="@null"
                 android:minHeight="0dp"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
+                android:paddingLeft="18dp"
+                android:paddingRight="18dp"
                 android:text="WhatsApp"
                 android:textAllCaps="false"
-                android:textColor="#FFFFFF"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-
-            <Button
-                android:id="@+id/filterBtn"
-                android:layout_width="wrap_content"
-                android:layout_height="38dp"
-                android:layout_marginLeft="8dp"
-                android:background="@drawable/bg_chip"
-                android:backgroundTint="@null"
-                android:minHeight="0dp"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
-                android:text="All"
-                android:textAllCaps="false"
-                android:textColor="@color/brand_text"
+                android:textColor="#101A1A"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
@@ -160,14 +158,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="38dp"
                 android:layout_marginLeft="8dp"
-                android:background="@drawable/bg_chip"
+                android:background="@drawable/bg_action_chip"
                 android:backgroundTint="@null"
                 android:minHeight="0dp"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
+                android:paddingLeft="18dp"
+                android:paddingRight="18dp"
                 android:text="Export"
                 android:textAllCaps="false"
-                android:textColor="@color/brand_text"
+                android:textColor="#F2F5F1"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
@@ -176,30 +174,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="38dp"
                 android:layout_marginLeft="8dp"
-                android:background="@drawable/bg_chip"
+                android:background="@drawable/bg_action_chip"
                 android:backgroundTint="@null"
                 android:minHeight="0dp"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
+                android:paddingLeft="18dp"
+                android:paddingRight="18dp"
                 android:text="Clear"
                 android:textAllCaps="false"
-                android:textColor="@color/brand_text"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-
-            <Button
-                android:id="@+id/settingsBtn"
-                android:layout_width="wrap_content"
-                android:layout_height="38dp"
-                android:layout_marginLeft="8dp"
-                android:background="@drawable/bg_chip"
-                android:backgroundTint="@null"
-                android:minHeight="0dp"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
-                android:text="Settings"
-                android:textAllCaps="false"
-                android:textColor="@color/brand_text"
+                android:textColor="#F2F5F1"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
@@ -208,7 +190,7 @@
                 android:layout_width="158dp"
                 android:layout_height="38dp"
                 android:layout_marginLeft="8dp"
-                android:background="@drawable/bg_chip"
+                android:background="@drawable/bg_action_chip"
                 android:entries="@array/retention_options"
                 android:paddingLeft="12dp"
                 android:paddingRight="12dp" />
@@ -222,7 +204,7 @@
         android:layout_marginLeft="14dp"
         android:layout_marginTop="10dp"
         android:layout_marginRight="14dp"
-        android:text="Tap WhatsApp to switch inboxes. Long-press a row to filter by sender."
+        android:text="Tap WhatsApp to switch inboxes. Long-press a row for cleanup actions."
         android:textColor="@color/brand_muted"
         android:textSize="12sp" />
 

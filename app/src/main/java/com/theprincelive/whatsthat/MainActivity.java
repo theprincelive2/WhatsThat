@@ -39,7 +39,6 @@ public class MainActivity extends Activity {
     EditText searchBox;
     Button open;
     Button modeBtn;
-    Button filterBtn;
     Button exportBtn;
     Button settingsBtn;
     Spinner retentionSpinner;
@@ -63,30 +62,16 @@ public class MainActivity extends Activity {
         searchBox = findViewById(R.id.searchBox);
         open = findViewById(R.id.openBtn);
         modeBtn = findViewById(R.id.modeBtn);
-        filterBtn = findViewById(R.id.filterBtn);
         exportBtn = findViewById(R.id.exportBtn);
         settingsBtn = findViewById(R.id.settingsBtn);
         retentionSpinner = findViewById(R.id.retentionSpinner);
         accessBanner = findViewById(R.id.accessBanner);
-        filterBtn.setSingleLine(true);
         Button clear = findViewById(R.id.clearBtn);
 
         open.setOnClickListener(v -> startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));
         modeBtn.setOnClickListener(v -> toggleInboxMode());
         clear.setOnClickListener(v -> confirmClearAll());
         settingsBtn.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
-        filterBtn.setOnClickListener(v -> {
-            boolean alreadyAll = activeSender == null && searchBox.getText().toString().trim().isEmpty();
-            if (alreadyAll) {
-                markAllRead();
-                return;
-            }
-            activeSender = null;
-            if (searchBox.getText().length() > 0) searchBox.setText("");
-            load();
-            list.setSelection(0);
-            Toast.makeText(this, "Showing all chats.", Toast.LENGTH_SHORT).show();
-        });
         exportBtn.setOnClickListener(v -> shareCsv());
         searchBox.addTextChangedListener(new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int a, int b, int c) { }
@@ -177,7 +162,6 @@ public class MainActivity extends Activity {
             latestText.setText(count == 0 ? emptyModeText(otherMode) : "Latest: " + filtered.get(0).time);
         }
         modeBtn.setText(otherMode ? "Other notices" : "WhatsApp");
-        filterBtn.setText(activeSender == null ? "All" : "Clear filter");
         emptyText.setText(emptyModeText(otherMode));
         emptyText.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
         list.setVisibility(filtered.isEmpty() ? View.GONE : View.VISIBLE);
@@ -228,9 +212,11 @@ public class MainActivity extends Activity {
 
     void restoreListPositionIfNeeded(int itemCount) {
         if (!restoreListPosition) return;
-        restoreListPosition = false;
         int position = Math.min(savedListPosition, Math.max(0, itemCount - 1));
-        list.post(() -> list.setSelectionFromTop(position, savedListTop));
+        list.post(() -> {
+            list.setSelectionFromTop(position, savedListTop);
+            restoreListPosition = false;
+        });
     }
 
     void setupRetention() {
@@ -268,16 +254,9 @@ public class MainActivity extends Activity {
                 .show();
     }
 
-    void markAllRead() {
-        int marked = store.markInboxRead(showingOtherNotices());
-        load();
-        Toast.makeText(this, marked == 0 ? "No unread notices." : "Marked " + marked + " notices read.", Toast.LENGTH_SHORT).show();
-    }
-
     void showMessageActions(SavedMessage msg) {
         boolean otherMode = showingOtherNotices();
         ArrayList<String> actions = new ArrayList<>();
-        actions.add("Filter by sender");
         actions.add("Delete this message");
         actions.add("Delete all from this sender");
         actions.add("Hide messages like this");
@@ -290,12 +269,7 @@ public class MainActivity extends Activity {
     }
 
     void handleMessageAction(String action, SavedMessage msg, boolean otherMode) {
-        if ("Filter by sender".equals(action)) {
-            activeSender = msg.sender;
-            searchBox.setText("");
-            load();
-            Toast.makeText(this, "Showing " + msg.sender, Toast.LENGTH_SHORT).show();
-        } else if ("Delete this message".equals(action)) {
+        if ("Delete this message".equals(action)) {
             store.deleteMessage(msg.id);
             load();
         } else if ("Delete all from this sender".equals(action)) {
