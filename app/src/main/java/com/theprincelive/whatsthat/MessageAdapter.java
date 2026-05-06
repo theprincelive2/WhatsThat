@@ -98,14 +98,29 @@ public class MessageAdapter extends BaseAdapter {
 
         row.addView(content, new LinearLayout.LayoutParams(0, -2, 1));
 
-        TextView dot = new TextView(context);
-        GradientDrawable dotBg = new GradientDrawable();
-        dotBg.setColor(Color.rgb(18, 183, 106));
-        dotBg.setShape(GradientDrawable.OVAL);
-        dot.setBackground(dotBg);
-        LinearLayout.LayoutParams dotParams = new LinearLayout.LayoutParams(dp(9), dp(9));
-        dotParams.setMargins(dp(10), 0, dp(2), 0);
-        row.addView(dot, dotParams);
+        TextView badge = new TextView(context);
+        LinearLayout.LayoutParams badgeParams;
+        if (msg.messageCount > 1) {
+            badge.setText(String.valueOf(msg.messageCount));
+            badge.setTextColor(Color.WHITE);
+            badge.setTextSize(11);
+            badge.setTypeface(Typeface.DEFAULT_BOLD);
+            badge.setGravity(Gravity.CENTER);
+            GradientDrawable badgeBg = new GradientDrawable();
+            badgeBg.setColor(Color.rgb(18, 183, 106));
+            badgeBg.setShape(GradientDrawable.OVAL);
+            badge.setBackground(badgeBg);
+            badgeParams = new LinearLayout.LayoutParams(dp(24), dp(24));
+            badgeParams.setMargins(dp(10), 0, dp(0), 0);
+        } else {
+            GradientDrawable dotBg = new GradientDrawable();
+            dotBg.setColor(Color.rgb(18, 183, 106));
+            dotBg.setShape(GradientDrawable.OVAL);
+            badge.setBackground(dotBg);
+            badgeParams = new LinearLayout.LayoutParams(dp(9), dp(9));
+            badgeParams.setMargins(dp(10), 0, dp(2), 0);
+        }
+        row.addView(badge, badgeParams);
 
         outer.addView(row, new LinearLayout.LayoutParams(-1, -2));
 

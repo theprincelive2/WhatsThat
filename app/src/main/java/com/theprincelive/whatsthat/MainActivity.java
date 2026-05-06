@@ -18,8 +18,10 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class MainActivity extends Activity {
     private static final String PREFS = "whatsthat_prefs";
@@ -82,6 +84,13 @@ public class MainActivity extends Activity {
         });
         list.setOnItemClickListener((parent, view, position, id) -> {
             SavedMessage msg = (SavedMessage) parent.getItemAtPosition(position);
+            if (activeSender == null && msg.messageCount > 1) {
+                activeSender = msg.sender;
+                searchBox.setText("");
+                load();
+                Toast.makeText(this, "Showing " + msg.messageCount + " saved notices from " + safe(msg.sender), Toast.LENGTH_SHORT).show();
+                return;
+            }
             Intent intent = new Intent(this, MessageDetailActivity.class);
             intent.putExtra("id", msg.id);
             intent.putExtra("sender", msg.sender);
@@ -134,12 +143,13 @@ public class MainActivity extends Activity {
 
         List<SavedMessage> rows = store.getRecentStructured(otherMode);
         String q = searchBox.getText().toString().toLowerCase(Locale.getDefault());
-        List<SavedMessage> filtered = new ArrayList<>();
+        List<SavedMessage> matching = new ArrayList<>();
         for (SavedMessage m : rows) {
             String v = (m.sender + " " + m.body + " " + m.time).toLowerCase(Locale.getDefault());
             boolean senderMatches = activeSender == null || activeSender.equals(m.sender);
-            if (senderMatches && (q.isEmpty() || v.contains(q))) filtered.add(m);
+            if (senderMatches && (q.isEmpty() || v.contains(q))) matching.add(m);
         }
+        List<SavedMessage> filtered = activeSender == null ? groupConversations(matching) : matching;
 
         int count = filtered.size();
         countText.setText(count + countLabel(count, otherMode));
@@ -158,6 +168,37 @@ public class MainActivity extends Activity {
         emptyText.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
         list.setVisibility(filtered.isEmpty() ? View.GONE : View.VISIBLE);
         list.setAdapter(new MessageAdapter(this, filtered));
+    }
+
+    List<SavedMessage> groupConversations(List<SavedMessage> rows) {
+        LinkedHashMap<String, ThreadSummary> summaries = new LinkedHashMap<>();
+        for (SavedMessage row : rows) {
+            String key = safe(row.packageName) + "\u001f" + safe(row.sender);
+            ThreadSummary summary = summaries.get(key);
+            if (summary == null) {
+                summaries.put(key, new ThreadSummary(row));
+            } else {
+                summary.count++;
+            }
+        }
+
+        ArrayList<SavedMessage> out = new ArrayList<>();
+        for (Map.Entry<String, ThreadSummary> entry : summaries.entrySet()) {
+            ThreadSummary summary = entry.getValue();
+            SavedMessage latest = summary.latest;
+            out.add(new SavedMessage(
+                    latest.id,
+                    latest.sender,
+                    latest.body,
+                    latest.time,
+                    latest.shortTime,
+                    latest.dateLabel,
+                    latest.packageName,
+                    latest.receivedAt,
+                    summary.count
+            ));
+        }
+        return out;
     }
 
     void setupRetention() {
@@ -345,5 +386,14 @@ public class MainActivity extends Activity {
         if (days == 30) return 2;
         if (days == 90) return 3;
         return 0;
+    }
+
+    static class ThreadSummary {
+        final SavedMessage latest;
+        int count = 1;
+
+        ThreadSummary(SavedMessage latest) {
+            this.latest = latest;
+        }
     }
 }

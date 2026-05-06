@@ -9,8 +9,13 @@ public class SavedMessage {
     public final String dateLabel;
     public final String packageName;
     public final long receivedAt;
+    public final int messageCount;
 
     public SavedMessage(long id, String sender, String body, String time, String shortTime, String dateLabel, String packageName, long receivedAt) {
+        this(id, sender, body, time, shortTime, dateLabel, packageName, receivedAt, 1);
+    }
+
+    public SavedMessage(long id, String sender, String body, String time, String shortTime, String dateLabel, String packageName, long receivedAt, int messageCount) {
         this.id = id;
         this.sender = sender;
         this.body = body;
@@ -19,5 +24,6 @@ public class SavedMessage {
         this.dateLabel = dateLabel;
         this.packageName = packageName;
         this.receivedAt = receivedAt;
+        this.messageCount = Math.max(1, messageCount);
     }
 }
