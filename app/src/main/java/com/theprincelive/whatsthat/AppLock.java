@@ -8,6 +8,7 @@ public class AppLock {
     private static final String PREFS = "whatsthat_prefs";
     private static final String PREF_PIN_HASH = "app_lock_pin_hash";
     private static final String PREF_LOCK_ON_CLOSE = "app_lock_on_close";
+    private static final String PREF_BIOMETRIC = "app_lock_biometric";
     static boolean unlocked;
 
     public static boolean isEnabled(Context context) {
@@ -30,6 +31,14 @@ public class AppLock {
         prefs(context).edit().putBoolean(PREF_LOCK_ON_CLOSE, value).apply();
     }
 
+    public static boolean biometricEnabled(Context context) {
+        return prefs(context).getBoolean(PREF_BIOMETRIC, false);
+    }
+
+    public static void setBiometricEnabled(Context context, boolean value) {
+        prefs(context).edit().putBoolean(PREF_BIOMETRIC, value).apply();
+    }
+
     public static boolean setPin(Context context, String pin) {
         if (!validPin(pin)) return false;
         prefs(context).edit().putString(PREF_PIN_HASH, hash(pin)).apply();
@@ -43,7 +52,7 @@ public class AppLock {
     }
 
     public static void disable(Context context) {
-        prefs(context).edit().remove(PREF_PIN_HASH).apply();
+        prefs(context).edit().remove(PREF_PIN_HASH).remove(PREF_BIOMETRIC).apply();
         unlocked = true;
     }
 

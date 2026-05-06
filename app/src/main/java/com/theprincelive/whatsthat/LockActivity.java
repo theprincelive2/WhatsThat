@@ -1,10 +1,15 @@
 package com.theprincelive.whatsthat;
 
 import android.app.Activity;
+import android.hardware.biometrics.BiometricPrompt;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.CancellationSignal;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.view.Gravity;
@@ -28,6 +33,9 @@ public class LockActivity extends Activity {
     TextView helper;
     EditText pinInput;
     Button actionButton;
+    Button biometricButton;
+    boolean biometricPromptShown;
+    CancellationSignal biometricSignal;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,12 +92,17 @@ public class LockActivity extends Activity {
         actionButton.setOnClickListener(v -> handleAction());
         root.addView(actionButton, params(18));
 
+        biometricButton = button("Use biometric unlock", false);
+        biometricButton.setOnClickListener(v -> showBiometricPrompt(false));
+        root.addView(biometricButton, params(10));
+
         Button cancel = button("Cancel", false);
         cancel.setOnClickListener(v -> cancelFlow());
         root.addView(cancel, params(10));
 
         refreshText();
         setContentView(root);
+        if (canUseBiometric()) pinInput.postDelayed(() -> showBiometricPrompt(true), 350);
     }
 
     void handleAction() {
@@ -150,7 +163,7 @@ public class LockActivity extends Activity {
     void refreshText() {
         if (MODE_UNLOCK.equals(mode)) {
             title.setText("Enter PIN");
-            helper.setText("Unlock WhatsThat to view saved notifications.");
+            helper.setText(canUseBiometric() ? "Use biometric unlock or enter your PIN." : "Unlock WhatsThat to view saved notifications.");
             actionButton.setText("Unlock");
         } else if (MODE_DISABLE.equals(mode)) {
             title.setText("Turn Off App Lock");
@@ -169,6 +182,50 @@ public class LockActivity extends Activity {
             helper.setText("Re-enter the same 4-digit PIN.");
             actionButton.setText("Save PIN");
         }
+        if (biometricButton != null) {
+            biometricButton.setVisibility(canUseBiometric() ? android.view.View.VISIBLE : android.view.View.GONE);
+        }
+    }
+
+    boolean canUseBiometric() {
+        return MODE_UNLOCK.equals(mode)
+                && AppLock.biometricEnabled(this)
+                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P;
+    }
+
+    void showBiometricPrompt(boolean automatic) {
+        if (!canUseBiometric()) return;
+        if (automatic && biometricPromptShown) return;
+        biometricPromptShown = true;
+        if (biometricSignal != null) biometricSignal.cancel();
+        biometricSignal = new CancellationSignal();
+
+        Handler handler = new Handler(Looper.getMainLooper());
+        java.util.concurrent.Executor executor = command -> handler.post(command);
+        BiometricPrompt prompt = new BiometricPrompt.Builder(this)
+                .setTitle("Unlock WhatsThat")
+                .setSubtitle("Confirm it is you to view saved notifications.")
+                .setNegativeButton("Use PIN", executor, (dialog, which) -> { })
+                .build();
+        prompt.authenticate(biometricSignal, executor, new BiometricPrompt.AuthenticationCallback() {
+            @Override
+            public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
+                AppLock.setUnlocked(true);
+                finish();
+            }
+
+            @Override
+            public void onAuthenticationError(int errorCode, CharSequence errString) {
+                if (!automatic && errString != null) {
+                    Toast.makeText(LockActivity.this, errString, Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onAuthenticationFailed() {
+                Toast.makeText(LockActivity.this, "Biometric not recognized. Try again or enter PIN.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     void showError() {
@@ -177,6 +234,7 @@ public class LockActivity extends Activity {
     }
 
     void cancelFlow() {
+        if (biometricSignal != null) biometricSignal.cancel();
         if (MODE_UNLOCK.equals(mode)) finishAffinity();
         else finish();
     }

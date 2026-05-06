@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.widget.Button;
@@ -24,6 +25,7 @@ public class SettingsActivity extends Activity {
     Button disableLockBtn;
     Button hiddenRulesBtn;
     Button lockOnCloseBtn;
+    Button biometricBtn;
     MessageStore store;
 
     @Override
@@ -68,6 +70,10 @@ public class SettingsActivity extends Activity {
         lockOnCloseBtn = secondaryButton("");
         lockOnCloseBtn.setOnClickListener(v -> toggleLockOnClose());
         root.addView(lockOnCloseBtn, buttonParams(10));
+
+        biometricBtn = secondaryButton("");
+        biometricBtn.setOnClickListener(v -> toggleBiometric());
+        root.addView(biometricBtn, buttonParams(10));
 
         disableLockBtn = secondaryButton("Turn Off App Lock");
         disableLockBtn.setOnClickListener(v -> openLockDisable());
@@ -172,6 +178,21 @@ public class SettingsActivity extends Activity {
         Toast.makeText(this, next ? "PIN required when WhatsThat closes." : "PIN required after app restart only.", Toast.LENGTH_SHORT).show();
     }
 
+    void toggleBiometric() {
+        if (!AppLock.isEnabled(this)) {
+            Toast.makeText(this, "Set an app lock PIN first.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            Toast.makeText(this, "Biometric unlock needs Android 9 or newer.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        boolean next = !AppLock.biometricEnabled(this);
+        AppLock.setBiometricEnabled(this, next);
+        updateLockButtons();
+        Toast.makeText(this, next ? "Biometric unlock enabled." : "Biometric unlock disabled.", Toast.LENGTH_SHORT).show();
+    }
+
     void openLockSetup() {
         Intent intent = new Intent(this, LockActivity.class);
         intent.putExtra(LockActivity.MODE, AppLock.isEnabled(this) ? LockActivity.MODE_CHANGE : LockActivity.MODE_SET);
@@ -185,11 +206,13 @@ public class SettingsActivity extends Activity {
     }
 
     void updateLockButtons() {
-        if (lockBtn == null || lockOnCloseBtn == null || disableLockBtn == null) return;
+        if (lockBtn == null || lockOnCloseBtn == null || biometricBtn == null || disableLockBtn == null) return;
         boolean enabled = AppLock.isEnabled(this);
         lockBtn.setText(enabled ? "Change App Lock PIN" : "Set App Lock PIN");
         lockOnCloseBtn.setText(AppLock.lockOnClose(this) ? "Lock When App Closes: On" : "Lock When App Closes: Off");
         lockOnCloseBtn.setVisibility(enabled ? android.view.View.VISIBLE : android.view.View.GONE);
+        biometricBtn.setText(AppLock.biometricEnabled(this) ? "Biometric Unlock: On" : "Biometric Unlock: Off");
+        biometricBtn.setVisibility(enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ? android.view.View.VISIBLE : android.view.View.GONE);
         disableLockBtn.setVisibility(enabled ? android.view.View.VISIBLE : android.view.View.GONE);
     }
 
