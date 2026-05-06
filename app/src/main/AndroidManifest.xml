@@ -2,6 +2,7 @@
  <application android:name=".WhatsThatApp" android:label="WhatsThat" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher" android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
   <activity android:name=".MessageDetailActivity" android:exported="false" />
+  <activity android:name=".ConversationActivity" android:exported="false" />
   <activity android:name=".SettingsActivity" android:exported="false" />
   <activity android:name=".HiddenRulesActivity" android:exported="false" />
   <activity android:name=".LockActivity" android:exported="false" />

@@ -85,10 +85,10 @@ public class MainActivity extends Activity {
         list.setOnItemClickListener((parent, view, position, id) -> {
             SavedMessage msg = (SavedMessage) parent.getItemAtPosition(position);
             if (activeSender == null && msg.messageCount > 1) {
-                activeSender = msg.sender;
-                searchBox.setText("");
-                load();
-                Toast.makeText(this, "Showing " + msg.messageCount + " saved notices from " + safe(msg.sender), Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(this, ConversationActivity.class);
+                intent.putExtra("packageName", msg.packageName);
+                intent.putExtra("sender", msg.sender);
+                startActivity(intent);
                 return;
             }
             Intent intent = new Intent(this, MessageDetailActivity.class);

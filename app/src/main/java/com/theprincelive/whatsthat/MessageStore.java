@@ -79,6 +79,33 @@ public class MessageStore extends SQLiteOpenHelper {
         return getRecentStructured(false);
     }
 
+    public List<SavedMessage> getConversation(String packageName, String sender) {
+        ArrayList<SavedMessage> rows = new ArrayList<>();
+        Cursor c = getReadableDatabase().rawQuery(
+                "SELECT id, sender, body, package_name, received_at FROM messages WHERE package_name=? AND sender=? ORDER BY received_at ASC",
+                new String[]{clean(packageName), clean(sender)}
+        );
+        SimpleDateFormat fullFmt = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault());
+        DateFormat shortFmt = DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault());
+        try {
+            while (c.moveToNext()) {
+                long receivedAt = c.getLong(4);
+                Date receivedDate = new Date(receivedAt);
+                rows.add(new SavedMessage(
+                        c.getLong(0),
+                        c.getString(1),
+                        c.getString(2),
+                        fullFmt.format(receivedDate),
+                        shortFmt.format(receivedDate),
+                        dateLabel(receivedAt),
+                        c.getString(3),
+                        receivedAt
+                ));
+            }
+        } finally { c.close(); }
+        return rows;
+    }
+
     public String exportCsv(boolean otherNotices) {
         StringBuilder out = new StringBuilder();
         out.append("sender,message,package,received_at\n");
@@ -115,6 +142,10 @@ public class MessageStore extends SQLiteOpenHelper {
 
     public int deletePackage(String packageName) {
         return getWritableDatabase().delete("messages", "package_name=?", new String[]{clean(packageName)});
+    }
+
+    public int deleteConversation(String packageName, String sender) {
+        return getWritableDatabase().delete("messages", "package_name=? AND sender=?", new String[]{clean(packageName), clean(sender)});
     }
 
     public int deleteSimilar(String packageName, String sender, String body) {
