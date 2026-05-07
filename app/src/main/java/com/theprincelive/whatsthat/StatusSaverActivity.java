@@ -16,9 +16,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -31,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class StatusSaverActivity extends Activity {
@@ -54,6 +58,7 @@ public class StatusSaverActivity extends Activity {
     Button chooseBtn;
     Button refreshBtn;
     Button savedStatusesBtn;
+    Button sortBtn;
     Button allFilterBtn;
     Button photosFilterBtn;
     Button videosFilterBtn;
@@ -63,6 +68,7 @@ public class StatusSaverActivity extends Activity {
     TextView sourceText;
     TextView folderText;
     TextView emptyText;
+    EditText searchBox;
     ListView listView;
     List<StatusFile> allFiles = new ArrayList<>();
     List<StatusFile> visibleFiles = new ArrayList<>();
@@ -71,6 +77,7 @@ public class StatusSaverActivity extends Activity {
     StatusFile pendingSave;
     String pendingMode;
     String activeFilter = FILTER_ALL;
+    boolean newestFirst = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,6 +126,29 @@ public class StatusSaverActivity extends Activity {
         savedStatusesBtn = secondaryButton("Saved Statuses");
         savedStatusesBtn.setOnClickListener(v -> startActivity(new Intent(this, SavedStatusesActivity.class)));
         root.addView(savedStatusesBtn, buttonParams(10));
+
+        searchBox = new EditText(this);
+        searchBox.setSingleLine(true);
+        searchBox.setHint("Search statuses");
+        searchBox.setTextSize(14);
+        searchBox.setPadding(dp(14), 0, dp(14), 0);
+        searchBox.addTextChangedListener(new TextWatcher() {
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                selectedUris.clear();
+                applyFilter();
+            }
+            public void afterTextChanged(Editable s) { }
+        });
+        root.addView(searchBox, buttonParams(10));
+
+        sortBtn = secondaryButton("Sort: Newest");
+        sortBtn.setOnClickListener(v -> {
+            newestFirst = !newestFirst;
+            sortAllFiles();
+            applyFilter();
+        });
+        root.addView(sortBtn, buttonParams(10));
 
         LinearLayout filterRow = new LinearLayout(this);
         filterRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -264,7 +294,7 @@ public class StatusSaverActivity extends Activity {
         folderText.setText(modeLabel(mode) + " status folder is set. Tap the same button again to change it.");
         boolean hasStatusFolder = findStatusDocumentId(tree) != null;
         allFiles.addAll(queryStatuses(tree));
-        Collections.sort(allFiles, (a, b) -> Long.compare(b.modifiedAt, a.modifiedAt));
+        sortAllFiles();
         markSavedStatuses();
         applyFilter(hasStatusFolder);
     }
@@ -275,11 +305,15 @@ public class StatusSaverActivity extends Activity {
 
     void applyFilter(boolean hasStatusFolder) {
         visibleFiles.clear();
+        sortAllFiles();
+        String query = searchQuery();
         for (StatusFile file : allFiles) {
             if (FILTER_PHOTOS.equals(activeFilter) && !file.isImage()) continue;
             if (FILTER_VIDEOS.equals(activeFilter) && !file.isVideo()) continue;
+            if (!query.isEmpty() && !file.name.toLowerCase(Locale.getDefault()).contains(query)) continue;
             visibleFiles.add(file);
         }
+        if (sortBtn != null) sortBtn.setText(newestFirst ? "Sort: Newest" : "Sort: Oldest");
         updateFilterButtons();
         sourceText.setText("Viewing " + modeLabel(activeMode()) + " - " + visibleFiles.size() + statusCountLabel(visibleFiles.size()) + filterSuffix());
         emptyText.setText(emptyMessage(hasStatusFolder));
@@ -317,9 +351,18 @@ public class StatusSaverActivity extends Activity {
     String emptyMessage(boolean hasStatusFolder) {
         if (!hasStatusFolder) return "That folder does not contain .Statuses. Tap Find WhatsApp or choose WhatsApp > Media > .Statuses.";
         if (allFiles.isEmpty()) return "No statuses found. Open WhatsApp Status first, view a status, then return here.";
+        if (!searchQuery().isEmpty()) return "No statuses match your search.";
         if (FILTER_PHOTOS.equals(activeFilter)) return "No photo statuses in this folder right now.";
         if (FILTER_VIDEOS.equals(activeFilter)) return "No video statuses in this folder right now.";
         return "No statuses found.";
+    }
+
+    void sortAllFiles() {
+        Collections.sort(allFiles, (a, b) -> newestFirst ? Long.compare(b.modifiedAt, a.modifiedAt) : Long.compare(a.modifiedAt, b.modifiedAt));
+    }
+
+    String searchQuery() {
+        return searchBox == null ? "" : searchBox.getText().toString().trim().toLowerCase(Locale.getDefault());
     }
 
     List<StatusFile> queryStatuses(Uri treeUri) {

@@ -11,9 +11,12 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -23,17 +26,22 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class SavedStatusesActivity extends Activity {
     LinearLayout selectionRow;
     Button deleteSelectedBtn;
     Button clearSelectionBtn;
+    Button sortBtn;
     TextView countText;
     TextView emptyText;
+    EditText searchBox;
     ListView listView;
     List<StatusFile> savedFiles = new ArrayList<>();
+    List<StatusFile> visibleFiles = new ArrayList<>();
     Set<String> selectedUris = new HashSet<>();
+    boolean newestFirst = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +71,33 @@ public class SavedStatusesActivity extends Activity {
         refresh.setTextColor(Color.rgb(0, 107, 85));
         refresh.setOnClickListener(v -> loadSavedStatuses());
         root.addView(refresh, buttonParams(14));
+
+        searchBox = new EditText(this);
+        searchBox.setSingleLine(true);
+        searchBox.setHint("Search saved statuses");
+        searchBox.setTextSize(14);
+        searchBox.setPadding(dp(14), 0, dp(14), 0);
+        searchBox.addTextChangedListener(new TextWatcher() {
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                selectedUris.clear();
+                applySearchAndSort();
+            }
+            public void afterTextChanged(Editable s) { }
+        });
+        root.addView(searchBox, buttonParams(10));
+
+        sortBtn = new Button(this);
+        sortBtn.setText("Sort: Newest");
+        sortBtn.setAllCaps(false);
+        sortBtn.setTextSize(14);
+        sortBtn.setTypeface(Typeface.DEFAULT_BOLD);
+        sortBtn.setTextColor(Color.rgb(0, 107, 85));
+        sortBtn.setOnClickListener(v -> {
+            newestFirst = !newestFirst;
+            applySearchAndSort();
+        });
+        root.addView(sortBtn, buttonParams(10));
 
         selectionRow = new LinearLayout(this);
         selectionRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -97,7 +132,7 @@ public class SavedStatusesActivity extends Activity {
         listView.setDividerHeight(1);
         listView.setCacheColorHint(Color.TRANSPARENT);
         listView.setOnItemClickListener((parent, view, position, id) -> {
-            StatusFile file = savedFiles.get(position);
+            StatusFile file = visibleFiles.get(position);
             if (!selectedUris.isEmpty()) {
                 toggleSelection(file);
             } else {
@@ -105,7 +140,7 @@ public class SavedStatusesActivity extends Activity {
             }
         });
         listView.setOnItemLongClickListener((parent, view, position, id) -> {
-            toggleSelection(savedFiles.get(position));
+            toggleSelection(visibleFiles.get(position));
             return true;
         });
         root.addView(listView, new LinearLayout.LayoutParams(-1, 0, 1));
@@ -116,16 +151,37 @@ public class SavedStatusesActivity extends Activity {
 
     void loadSavedStatuses() {
         savedFiles.clear();
+        visibleFiles.clear();
         selectedUris.clear();
         savedFiles.addAll(querySaved(false));
         savedFiles.addAll(querySaved(true));
-        Collections.sort(savedFiles, (a, b) -> Long.compare(b.modifiedAt, a.modifiedAt));
-        countText.setText(savedFiles.size() + statusCountLabel(savedFiles.size()) + " saved");
-        emptyText.setText(savedFiles.isEmpty() ? "No saved statuses yet. Save a photo or video from Status Saver first." : "");
-        emptyText.setVisibility(savedFiles.isEmpty() ? View.VISIBLE : View.GONE);
-        listView.setVisibility(savedFiles.isEmpty() ? View.GONE : View.VISIBLE);
+        applySearchAndSort();
+    }
+
+    void applySearchAndSort() {
+        visibleFiles.clear();
+        String query = searchQuery();
+        for (StatusFile file : savedFiles) {
+            if (!query.isEmpty() && !file.name.toLowerCase(Locale.getDefault()).contains(query)) continue;
+            visibleFiles.add(file);
+        }
+        Collections.sort(visibleFiles, (a, b) -> newestFirst ? Long.compare(b.modifiedAt, a.modifiedAt) : Long.compare(a.modifiedAt, b.modifiedAt));
+        if (sortBtn != null) sortBtn.setText(newestFirst ? "Sort: Newest" : "Sort: Oldest");
+        countText.setText(visibleFiles.size() + statusCountLabel(visibleFiles.size()) + " saved");
+        emptyText.setText(emptySavedMessage());
+        emptyText.setVisibility(visibleFiles.isEmpty() ? View.VISIBLE : View.GONE);
+        listView.setVisibility(visibleFiles.isEmpty() ? View.GONE : View.VISIBLE);
         updateSelectionActions();
-        listView.setAdapter(new StatusAdapter(this, savedFiles, selectedUris));
+        listView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
+    }
+
+    String emptySavedMessage() {
+        if (savedFiles.isEmpty()) return "No saved statuses yet. Save a photo or video from Status Saver first.";
+        return "No saved statuses match your search.";
+    }
+
+    String searchQuery() {
+        return searchBox == null ? "" : searchBox.getText().toString().trim().toLowerCase(Locale.getDefault());
     }
 
     void toggleSelection(StatusFile file) {
@@ -136,13 +192,13 @@ public class SavedStatusesActivity extends Activity {
             selectedUris.add(key);
         }
         updateSelectionActions();
-        listView.setAdapter(new StatusAdapter(this, savedFiles, selectedUris));
+        listView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
     }
 
     void clearSelection() {
         selectedUris.clear();
         updateSelectionActions();
-        listView.setAdapter(new StatusAdapter(this, savedFiles, selectedUris));
+        listView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
     }
 
     void updateSelectionActions() {
