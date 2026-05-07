@@ -75,14 +75,14 @@ class StatusAdapter extends BaseAdapter {
         textWrap.setPadding(dp(14), 0, 0, 0);
 
         TextView title = new TextView(context);
-        title.setText((selected ? "Selected - " : "") + (file.isVideo() ? "Video status" : "Photo status") + (file.saved ? " - Saved" : ""));
+        title.setText((selected ? "Selected - " : "") + (file.isVideo() ? "Video status" : "Photo status"));
         title.setTextColor(Color.rgb(17, 27, 24));
         title.setTextSize(15);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         textWrap.addView(title);
 
         TextView meta = new TextView(context);
-        meta.setText(file.name + " - " + sizeText(file.size) + (file.saved ? " - already saved" : ""));
+        meta.setText(file.name + " - " + sizeText(file.size));
         meta.setTextColor(Color.rgb(91, 104, 98));
         meta.setTextSize(13);
         meta.setPadding(0, dp(5), 0, 0);
@@ -96,6 +96,19 @@ class StatusAdapter extends BaseAdapter {
         textWrap.addView(time);
 
         row.addView(textWrap, new LinearLayout.LayoutParams(0, -2, 1));
+
+        if (file.saved) {
+            TextView savedBadge = new TextView(context);
+            savedBadge.setText("Saved");
+            savedBadge.setTextColor(Color.rgb(18, 108, 61));
+            savedBadge.setTextSize(12);
+            savedBadge.setTypeface(Typeface.DEFAULT_BOLD);
+            savedBadge.setGravity(Gravity.CENTER);
+            savedBadge.setBackgroundResource(R.drawable.bg_saved_badge);
+            LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(-2, -2);
+            badgeParams.setMargins(dp(10), 0, 0, 0);
+            row.addView(savedBadge, badgeParams);
+        }
         return row;
     }
 
