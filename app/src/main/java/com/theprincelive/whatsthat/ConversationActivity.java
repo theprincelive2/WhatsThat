@@ -17,14 +17,22 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ConversationActivity extends Activity {
     String packageName;
     String sender;
     MessageStore store;
     LinearLayout messages;
+    LinearLayout selectionRow;
     TextView subtitle;
+    Button deleteSelectedBtn;
+    Button hideSelectedBtn;
+    Button clearSelectionBtn;
+    Set<Long> selectedIds = new HashSet<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +83,28 @@ public class ConversationActivity extends Activity {
         header.addView(actions, new LinearLayout.LayoutParams(dp(92), dp(42)));
         root.addView(header);
 
+        selectionRow = new LinearLayout(this);
+        selectionRow.setOrientation(LinearLayout.HORIZONTAL);
+        selectionRow.setPadding(dp(14), dp(10), dp(14), dp(4));
+        selectionRow.setBackgroundColor(Color.rgb(236, 229, 221));
+
+        deleteSelectedBtn = headerButton("Delete");
+        deleteSelectedBtn.setOnClickListener(v -> confirmDeleteSelected());
+        selectionRow.addView(deleteSelectedBtn, new LinearLayout.LayoutParams(0, dp(42), 1));
+
+        hideSelectedBtn = headerButton("Hide");
+        hideSelectedBtn.setOnClickListener(v -> confirmHideSelected());
+        LinearLayout.LayoutParams hideParams = new LinearLayout.LayoutParams(0, dp(42), 1);
+        hideParams.setMargins(dp(8), 0, 0, 0);
+        selectionRow.addView(hideSelectedBtn, hideParams);
+
+        clearSelectionBtn = headerButton("Clear");
+        clearSelectionBtn.setOnClickListener(v -> clearSelection());
+        LinearLayout.LayoutParams clearParams = new LinearLayout.LayoutParams(0, dp(42), 1);
+        clearParams.setMargins(dp(8), 0, 0, 0);
+        selectionRow.addView(clearSelectionBtn, clearParams);
+        root.addView(selectionRow);
+
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
         messages = new LinearLayout(this);
@@ -84,6 +114,7 @@ public class ConversationActivity extends Activity {
         root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
 
         setContentView(root);
+        updateSelectionActions();
         loadMessages();
     }
 
@@ -108,8 +139,9 @@ public class ConversationActivity extends Activity {
                 messages.addView(dateChip(msg.dateLabel), centeredParams(0, 8));
                 lastDate = safe(msg.dateLabel);
             }
-            messages.addView(messageBubble(msg), bubbleParams());
+            messages.addView(messageBubble(msg), bubbleParams(msg));
         }
+        updateSelectionActions();
     }
 
     View dateChip(String text) {
@@ -128,11 +160,13 @@ public class ConversationActivity extends Activity {
     }
 
     View messageBubble(SavedMessage msg) {
+        boolean selected = selectedIds.contains(msg.id);
         LinearLayout bubble = new LinearLayout(this);
         bubble.setOrientation(LinearLayout.VERTICAL);
         bubble.setPadding(dp(14), dp(10), dp(14), dp(8));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.WHITE);
+        bg.setColor(selected ? Color.rgb(220, 248, 198) : Color.WHITE);
+        if (selected) bg.setStroke(dp(2), Color.rgb(18, 140, 126));
         bg.setCornerRadius(dp(10));
         bubble.setBackground(bg);
 
@@ -151,8 +185,40 @@ public class ConversationActivity extends Activity {
         time.setPadding(0, dp(6), 0, 0);
         bubble.addView(time);
 
-        bubble.setOnClickListener(v -> showMessageActions(msg));
+        bubble.setOnClickListener(v -> {
+            if (selectedIds.isEmpty()) {
+                showMessageActions(msg);
+            } else {
+                toggleSelection(msg);
+            }
+        });
+        bubble.setOnLongClickListener(v -> {
+            toggleSelection(msg);
+            return true;
+        });
         return bubble;
+    }
+
+    void toggleSelection(SavedMessage msg) {
+        if (selectedIds.contains(msg.id)) {
+            selectedIds.remove(msg.id);
+        } else {
+            selectedIds.add(msg.id);
+        }
+        loadMessages();
+    }
+
+    void clearSelection() {
+        selectedIds.clear();
+        loadMessages();
+    }
+
+    void updateSelectionActions() {
+        if (selectionRow == null || deleteSelectedBtn == null || hideSelectedBtn == null) return;
+        int count = selectedIds.size();
+        selectionRow.setVisibility(count == 0 ? View.GONE : View.VISIBLE);
+        deleteSelectedBtn.setText(count == 0 ? "Delete" : "Delete (" + count + ")");
+        hideSelectedBtn.setText(count == 0 ? "Hide" : "Hide (" + count + ")");
     }
 
     void showMessageActions(SavedMessage msg) {
@@ -231,8 +297,56 @@ public class ConversationActivity extends Activity {
                 .show();
     }
 
+    void confirmDeleteSelected() {
+        int count = selectedIds.size();
+        if (count == 0) return;
+        new AlertDialog.Builder(this)
+                .setTitle("Delete selected messages?")
+                .setMessage("This removes " + count + statusCountLabel(count) + " from this conversation.")
+                .setPositiveButton("Delete", (dialog, which) -> deleteSelectedMessages())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    void deleteSelectedMessages() {
+        int deleted = 0;
+        for (Long id : new ArrayList<>(selectedIds)) {
+            deleted += store.deleteMessage(id);
+        }
+        selectedIds.clear();
+        loadMessages();
+        Toast.makeText(this, "Deleted " + deleted + statusCountLabel(deleted) + ".", Toast.LENGTH_SHORT).show();
+    }
+
+    void confirmHideSelected() {
+        int count = selectedIds.size();
+        if (count == 0) return;
+        new AlertDialog.Builder(this)
+                .setTitle("Hide messages like these?")
+                .setMessage("Future matching notices will not be saved, and matching saved copies will be removed.")
+                .setPositiveButton("Hide", (dialog, which) -> hideSelectedMessages())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    void hideSelectedMessages() {
+        int removed = 0;
+        for (SavedMessage msg : store.getConversation(packageName, sender)) {
+            if (!selectedIds.contains(msg.id)) continue;
+            NotificationRules.hideSimilar(this, msg.packageName, msg.sender, msg.body);
+            removed += store.deleteSimilar(msg.packageName, msg.sender, msg.body);
+        }
+        selectedIds.clear();
+        loadMessages();
+        Toast.makeText(this, "Hidden selected pattern" + (removed == 1 ? "." : "s."), Toast.LENGTH_SHORT).show();
+    }
+
     String formatMessage(SavedMessage msg) {
         return safe(sender) + "\n" + safe(msg.body) + "\n" + safe(msg.time);
+    }
+
+    String statusCountLabel(int count) {
+        return count == 1 ? " message" : " messages";
     }
 
     Button headerButton(String text) {
@@ -249,9 +363,9 @@ public class ConversationActivity extends Activity {
         return button;
     }
 
-    LinearLayout.LayoutParams bubbleParams() {
+    LinearLayout.LayoutParams bubbleParams(SavedMessage msg) {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
-        params.setMargins(0, dp(6), dp(54), dp(6));
+        params.setMargins(0, dp(6), selectedIds.contains(msg.id) ? 0 : dp(54), dp(6));
         return params;
     }
 
