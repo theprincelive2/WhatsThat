@@ -29,7 +29,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class StatusSaverActivity extends Activity {
     private static final String PREFS = "whatsthat_prefs";
@@ -54,12 +56,17 @@ public class StatusSaverActivity extends Activity {
     Button allFilterBtn;
     Button photosFilterBtn;
     Button videosFilterBtn;
+    Button saveSelectedBtn;
+    Button clearSelectionBtn;
+    LinearLayout selectionRow;
     TextView sourceText;
     TextView folderText;
     TextView emptyText;
     ListView listView;
     List<StatusFile> allFiles = new ArrayList<>();
     List<StatusFile> visibleFiles = new ArrayList<>();
+    List<StatusFile> pendingBulkSave = new ArrayList<>();
+    Set<String> selectedUris = new HashSet<>();
     StatusFile pendingSave;
     String pendingMode;
     String activeFilter = FILTER_ALL;
@@ -127,6 +134,19 @@ public class StatusSaverActivity extends Activity {
         filterRow.addView(videosFilterBtn, videosParams);
         root.addView(filterRow, buttonParams(10));
 
+        selectionRow = new LinearLayout(this);
+        selectionRow.setOrientation(LinearLayout.HORIZONTAL);
+        saveSelectedBtn = primaryButton("Save selected");
+        saveSelectedBtn.setOnClickListener(v -> saveSelectedStatuses());
+        selectionRow.addView(saveSelectedBtn, new LinearLayout.LayoutParams(0, dp(44), 1));
+
+        clearSelectionBtn = secondaryButton("Clear");
+        clearSelectionBtn.setOnClickListener(v -> clearSelection());
+        LinearLayout.LayoutParams clearParams = new LinearLayout.LayoutParams(0, dp(44), 1);
+        clearParams.setMargins(dp(8), 0, 0, 0);
+        selectionRow.addView(clearSelectionBtn, clearParams);
+        root.addView(selectionRow, buttonParams(10));
+
         sourceText = copy("");
         sourceText.setTextColor(Color.rgb(0, 107, 85));
         sourceText.setTypeface(Typeface.DEFAULT_BOLD);
@@ -145,7 +165,18 @@ public class StatusSaverActivity extends Activity {
         listView = new ListView(this);
         listView.setDividerHeight(1);
         listView.setCacheColorHint(Color.TRANSPARENT);
-        listView.setOnItemClickListener((parent, view, position, id) -> openStatusPreview(visibleFiles.get(position)));
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            StatusFile file = visibleFiles.get(position);
+            if (!selectedUris.isEmpty()) {
+                toggleSelection(file);
+            } else {
+                openStatusPreview(file);
+            }
+        });
+        listView.setOnItemLongClickListener((parent, view, position, id) -> {
+            toggleSelection(visibleFiles.get(position));
+            return true;
+        });
         root.addView(listView, new LinearLayout.LayoutParams(-1, 0, 1));
 
         setContentView(root);
@@ -154,6 +185,7 @@ public class StatusSaverActivity extends Activity {
     }
 
     void setFilter(String filter) {
+        selectedUris.clear();
         activeFilter = filter;
         applyFilter();
     }
@@ -203,6 +235,7 @@ public class StatusSaverActivity extends Activity {
     void loadStatuses() {
         allFiles.clear();
         visibleFiles.clear();
+        selectedUris.clear();
         updateProviderButtons();
         updateFilterButtons();
         String mode = activeMode();
@@ -213,7 +246,8 @@ public class StatusSaverActivity extends Activity {
             emptyText.setText("Tap " + modeLabel(mode) + " to approve its .Statuses folder once.");
             emptyText.setVisibility(View.VISIBLE);
             listView.setVisibility(View.GONE);
-            listView.setAdapter(new StatusAdapter(this, visibleFiles));
+            updateSelectionActions();
+            listView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
             return;
         }
         folderText.setText(modeLabel(mode) + " status folder is set. Tap the same button again to change it.");
@@ -239,7 +273,33 @@ public class StatusSaverActivity extends Activity {
         emptyText.setText(emptyMessage(hasStatusFolder));
         emptyText.setVisibility(visibleFiles.isEmpty() ? View.VISIBLE : View.GONE);
         listView.setVisibility(visibleFiles.isEmpty() ? View.GONE : View.VISIBLE);
-        listView.setAdapter(new StatusAdapter(this, visibleFiles));
+        updateSelectionActions();
+        listView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
+    }
+
+    void toggleSelection(StatusFile file) {
+        String key = file.uri.toString();
+        if (selectedUris.contains(key)) {
+            selectedUris.remove(key);
+        } else {
+            selectedUris.add(key);
+        }
+        updateSelectionActions();
+        listView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
+    }
+
+    void clearSelection() {
+        selectedUris.clear();
+        updateSelectionActions();
+        listView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
+    }
+
+    void updateSelectionActions() {
+        if (selectionRow == null || saveSelectedBtn == null || clearSelectionBtn == null) return;
+        int count = selectedUris.size();
+        int visibility = count == 0 ? View.GONE : View.VISIBLE;
+        selectionRow.setVisibility(visibility);
+        saveSelectedBtn.setText(count == 0 ? "Save selected" : "Save selected (" + count + ")");
     }
 
     String emptyMessage(boolean hasStatusFolder) {
@@ -335,7 +395,23 @@ public class StatusSaverActivity extends Activity {
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_STORAGE);
             return;
         }
-        copyStatusToGallery(file);
+        copyStatusToGallery(file, true);
+    }
+
+    void saveSelectedStatuses() {
+        pendingBulkSave.clear();
+        for (StatusFile file : visibleFiles) {
+            if (selectedUris.contains(file.uri.toString())) pendingBulkSave.add(file);
+        }
+        if (pendingBulkSave.isEmpty()) {
+            clearSelection();
+            return;
+        }
+        if (needsLegacyWritePermission()) {
+            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_STORAGE);
+            return;
+        }
+        copySelectedToGallery();
     }
 
     boolean needsLegacyWritePermission() {
@@ -350,18 +426,35 @@ public class StatusSaverActivity extends Activity {
             StatusFile file = pendingSave;
             pendingSave = null;
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                copyStatusToGallery(file);
+                copyStatusToGallery(file, true);
             } else {
+                Toast.makeText(this, "Storage permission is needed to save on this Android version.", Toast.LENGTH_SHORT).show();
+            }
+        } else if (requestCode == REQUEST_WRITE_STORAGE && !pendingBulkSave.isEmpty()) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                copySelectedToGallery();
+            } else {
+                pendingBulkSave.clear();
                 Toast.makeText(this, "Storage permission is needed to save on this Android version.", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-    void copyStatusToGallery(StatusFile file) {
+    void copySelectedToGallery() {
+        int saved = 0;
+        for (StatusFile file : pendingBulkSave) {
+            if (copyStatusToGallery(file, false)) saved++;
+        }
+        pendingBulkSave.clear();
+        clearSelection();
+        Toast.makeText(this, "Saved " + saved + statusCountLabel(saved) + ".", Toast.LENGTH_SHORT).show();
+    }
+
+    boolean copyStatusToGallery(StatusFile file, boolean showToast) {
         Uri target = createMediaTarget(file);
         if (target == null) {
-            Toast.makeText(this, "Could not create save location.", Toast.LENGTH_SHORT).show();
-            return;
+            if (showToast) Toast.makeText(this, "Could not create save location.", Toast.LENGTH_SHORT).show();
+            return false;
         }
         try (InputStream input = getContentResolver().openInputStream(file.uri);
              OutputStream output = getContentResolver().openOutputStream(target)) {
@@ -376,9 +469,11 @@ public class StatusSaverActivity extends Activity {
                 done.put(MediaStore.MediaColumns.IS_PENDING, 0);
                 getContentResolver().update(target, done, null, null);
             }
-            Toast.makeText(this, "Status saved to gallery.", Toast.LENGTH_SHORT).show();
+            if (showToast) Toast.makeText(this, "Status saved to gallery.", Toast.LENGTH_SHORT).show();
+            return true;
         } catch (IOException e) {
-            Toast.makeText(this, "Could not save this status.", Toast.LENGTH_SHORT).show();
+            if (showToast) Toast.makeText(this, "Could not save this status.", Toast.LENGTH_SHORT).show();
+            return false;
         }
     }
 

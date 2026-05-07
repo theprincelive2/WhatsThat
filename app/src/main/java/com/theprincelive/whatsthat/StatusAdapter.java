@@ -16,14 +16,17 @@ import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 class StatusAdapter extends BaseAdapter {
     private final Context context;
     private final List<StatusFile> files;
+    private final Set<String> selectedUris;
 
-    StatusAdapter(Context context, List<StatusFile> files) {
+    StatusAdapter(Context context, List<StatusFile> files, Set<String> selectedUris) {
         this.context = context;
         this.files = files;
+        this.selectedUris = selectedUris;
     }
 
     @Override
@@ -44,10 +47,12 @@ class StatusAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         StatusFile file = files.get(position);
+        boolean selected = selectedUris != null && selectedUris.contains(file.uri.toString());
         LinearLayout row = new LinearLayout(context);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setPadding(dp(14), dp(10), dp(14), dp(10));
+        row.setBackgroundColor(selected ? Color.rgb(229, 245, 236) : Color.TRANSPARENT);
 
         ImageView preview = new ImageView(context);
         preview.setScaleType(ImageView.ScaleType.CENTER_CROP);
@@ -70,7 +75,7 @@ class StatusAdapter extends BaseAdapter {
         textWrap.setPadding(dp(14), 0, 0, 0);
 
         TextView title = new TextView(context);
-        title.setText(file.isVideo() ? "Video status" : "Photo status");
+        title.setText((selected ? "Selected - " : "") + (file.isVideo() ? "Video status" : "Photo status"));
         title.setTextColor(Color.rgb(17, 27, 24));
         title.setTextSize(15);
         title.setTypeface(Typeface.DEFAULT_BOLD);
