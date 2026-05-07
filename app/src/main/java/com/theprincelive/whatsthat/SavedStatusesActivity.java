@@ -167,7 +167,7 @@ public class SavedStatusesActivity extends Activity {
         }
         Collections.sort(visibleFiles, (a, b) -> newestFirst ? Long.compare(b.modifiedAt, a.modifiedAt) : Long.compare(a.modifiedAt, b.modifiedAt));
         if (sortBtn != null) sortBtn.setText(newestFirst ? "Sort: Newest" : "Sort: Oldest");
-        countText.setText(visibleFiles.size() + statusCountLabel(visibleFiles.size()) + " saved");
+        countText.setText(savedCountSummary());
         emptyText.setText(emptySavedMessage());
         emptyText.setVisibility(visibleFiles.isEmpty() ? View.VISIBLE : View.GONE);
         listView.setVisibility(visibleFiles.isEmpty() ? View.GONE : View.VISIBLE);
@@ -178,6 +178,21 @@ public class SavedStatusesActivity extends Activity {
     String emptySavedMessage() {
         if (savedFiles.isEmpty()) return "No saved statuses yet. Save a photo or video from Status Saver first.";
         return "No saved statuses match your search.";
+    }
+
+    String savedCountSummary() {
+        int photos = 0;
+        int videos = 0;
+        for (StatusFile file : visibleFiles) {
+            if (file.isVideo()) {
+                videos++;
+            } else if (file.isImage()) {
+                photos++;
+            }
+        }
+        return visibleFiles.size() + statusCountLabel(visibleFiles.size()) + " saved - "
+                + photos + photoCountLabel(photos) + ", "
+                + videos + videoCountLabel(videos);
     }
 
     String searchQuery() {
@@ -279,6 +294,14 @@ public class SavedStatusesActivity extends Activity {
 
     String statusCountLabel(int count) {
         return count == 1 ? " status" : " statuses";
+    }
+
+    String photoCountLabel(int count) {
+        return count == 1 ? " photo" : " photos";
+    }
+
+    String videoCountLabel(int count) {
+        return count == 1 ? " video" : " videos";
     }
 
     TextView copy(String text) {
