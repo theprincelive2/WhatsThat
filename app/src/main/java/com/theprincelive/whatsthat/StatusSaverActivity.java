@@ -628,9 +628,24 @@ public class StatusSaverActivity extends Activity {
 
     void updateFilterButtons() {
         if (allFilterBtn == null || photosFilterBtn == null || videosFilterBtn == null) return;
+        allFilterBtn.setText("All (" + countFilesForFilter(FILTER_ALL) + ")");
+        photosFilterBtn.setText("Photos (" + countFilesForFilter(FILTER_PHOTOS) + ")");
+        videosFilterBtn.setText("Videos (" + countFilesForFilter(FILTER_VIDEOS) + ")");
         styleButton(allFilterBtn, FILTER_ALL.equals(activeFilter));
         styleButton(photosFilterBtn, FILTER_PHOTOS.equals(activeFilter));
         styleButton(videosFilterBtn, FILTER_VIDEOS.equals(activeFilter));
+    }
+
+    int countFilesForFilter(String filter) {
+        String query = searchQuery();
+        int count = 0;
+        for (StatusFile file : allFiles) {
+            if (FILTER_PHOTOS.equals(filter) && !file.isImage()) continue;
+            if (FILTER_VIDEOS.equals(filter) && !file.isVideo()) continue;
+            if (!query.isEmpty() && !file.name.toLowerCase(Locale.getDefault()).contains(query)) continue;
+            count++;
+        }
+        return count;
     }
 
     void migrateOldStatusFolder() {
