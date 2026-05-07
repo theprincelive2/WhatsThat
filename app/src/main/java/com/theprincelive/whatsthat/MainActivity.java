@@ -19,10 +19,12 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public class MainActivity extends Activity {
     private static final String PREFS = "whatsthat_prefs";
@@ -40,10 +42,17 @@ public class MainActivity extends Activity {
     EditText searchBox;
     Button open;
     Button modeBtn;
+    Button deleteSelectedBtn;
+    Button readSelectedBtn;
+    Button hideSelectedBtn;
+    Button clearSelectionBtn;
     ImageButton exportBtn;
     ImageButton settingsBtn;
     Spinner retentionSpinner;
     LinearLayout accessBanner;
+    LinearLayout selectionRow;
+    List<SavedMessage> visibleRows = new ArrayList<>();
+    Set<String> selectedKeys = new HashSet<>();
     String activeSender;
     boolean lockStarted;
     boolean restoreListPosition;
@@ -63,6 +72,11 @@ public class MainActivity extends Activity {
         searchBox = findViewById(R.id.searchBox);
         open = findViewById(R.id.openBtn);
         modeBtn = findViewById(R.id.modeBtn);
+        selectionRow = findViewById(R.id.selectionRow);
+        deleteSelectedBtn = findViewById(R.id.deleteSelectedBtn);
+        readSelectedBtn = findViewById(R.id.readSelectedBtn);
+        hideSelectedBtn = findViewById(R.id.hideSelectedBtn);
+        clearSelectionBtn = findViewById(R.id.clearSelectionBtn);
         ImageButton statusSaverBtn = findViewById(R.id.statusSaverBtn);
         exportBtn = findViewById(R.id.exportBtn);
         settingsBtn = findViewById(R.id.settingsBtn);
@@ -76,13 +90,24 @@ public class MainActivity extends Activity {
         clear.setOnClickListener(v -> confirmClearAll());
         settingsBtn.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
         exportBtn.setOnClickListener(v -> shareCsv());
+        deleteSelectedBtn.setOnClickListener(v -> confirmDeleteSelected());
+        readSelectedBtn.setOnClickListener(v -> markSelectedRead());
+        hideSelectedBtn.setOnClickListener(v -> confirmHideSelected());
+        clearSelectionBtn.setOnClickListener(v -> clearSelection());
         searchBox.addTextChangedListener(new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int a, int b, int c) { }
-            public void onTextChanged(CharSequence s, int a, int b, int c) { load(); }
+            public void onTextChanged(CharSequence s, int a, int b, int c) {
+                selectedKeys.clear();
+                load();
+            }
             public void afterTextChanged(Editable e) { }
         });
         list.setOnItemClickListener((parent, view, position, id) -> {
             SavedMessage msg = (SavedMessage) parent.getItemAtPosition(position);
+            if (!selectedKeys.isEmpty()) {
+                toggleSelection(msg);
+                return;
+            }
             if (activeSender == null && msg.messageCount > 1) {
                 rememberListPosition();
                 Intent intent = new Intent(this, ConversationActivity.class);
@@ -102,7 +127,7 @@ public class MainActivity extends Activity {
         });
         list.setOnItemLongClickListener((parent, view, position, id) -> {
             SavedMessage msg = (SavedMessage) parent.getItemAtPosition(position);
-            showMessageActions(msg);
+            toggleSelection(msg);
             return true;
         });
         setupRetention();
@@ -152,6 +177,9 @@ public class MainActivity extends Activity {
             if (senderMatches && (q.isEmpty() || v.contains(q))) matching.add(m);
         }
         List<SavedMessage> filtered = activeSender == null ? groupConversations(matching) : matching;
+        visibleRows.clear();
+        visibleRows.addAll(filtered);
+        pruneSelection();
 
         int count = filtered.size();
         countText.setText(count + countLabel(count, otherMode));
@@ -169,7 +197,8 @@ public class MainActivity extends Activity {
         emptyText.setText(emptyModeText(otherMode));
         emptyText.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
         list.setVisibility(filtered.isEmpty() ? View.GONE : View.VISIBLE);
-        list.setAdapter(new MessageAdapter(this, filtered));
+        updateSelectionActions();
+        list.setAdapter(new MessageAdapter(this, filtered, selectedKeys));
         restoreListPositionIfNeeded(filtered.size());
     }
 
@@ -256,6 +285,100 @@ public class MainActivity extends Activity {
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    void toggleSelection(SavedMessage msg) {
+        String key = selectionKey(msg);
+        if (selectedKeys.contains(key)) {
+            selectedKeys.remove(key);
+        } else {
+            selectedKeys.add(key);
+        }
+        updateSelectionActions();
+        list.setAdapter(new MessageAdapter(this, visibleRows, selectedKeys));
+    }
+
+    void clearSelection() {
+        selectedKeys.clear();
+        updateSelectionActions();
+        list.setAdapter(new MessageAdapter(this, visibleRows, selectedKeys));
+    }
+
+    void pruneSelection() {
+        HashSet<String> visibleKeys = new HashSet<>();
+        for (SavedMessage msg : visibleRows) visibleKeys.add(selectionKey(msg));
+        selectedKeys.retainAll(visibleKeys);
+    }
+
+    void updateSelectionActions() {
+        if (selectionRow == null || deleteSelectedBtn == null || readSelectedBtn == null || hideSelectedBtn == null) return;
+        int count = selectedKeys.size();
+        selectionRow.setVisibility(count == 0 ? View.GONE : View.VISIBLE);
+        deleteSelectedBtn.setText(count == 0 ? "Delete" : "Delete (" + count + ")");
+        readSelectedBtn.setText(count == 0 ? "Read" : "Read (" + count + ")");
+        hideSelectedBtn.setText(count == 0 ? "Hide" : "Hide (" + count + ")");
+    }
+
+    void confirmDeleteSelected() {
+        int count = selectedKeys.size();
+        if (count == 0) return;
+        new AlertDialog.Builder(this)
+                .setTitle("Delete selected?")
+                .setMessage("This removes selected saved items from the current inbox.")
+                .setPositiveButton("Delete", (dialog, which) -> deleteSelected())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    void deleteSelected() {
+        int deleted = 0;
+        for (SavedMessage msg : selectedMessages()) {
+            deleted += store.deleteConversation(msg.packageName, msg.sender);
+        }
+        selectedKeys.clear();
+        activeSender = null;
+        load();
+        Toast.makeText(this, "Deleted " + deleted + itemCountLabel(deleted) + ".", Toast.LENGTH_SHORT).show();
+    }
+
+    void markSelectedRead() {
+        int updated = 0;
+        for (SavedMessage msg : selectedMessages()) {
+            updated += store.markConversationRead(msg.packageName, msg.sender);
+        }
+        selectedKeys.clear();
+        load();
+        Toast.makeText(this, "Marked " + updated + itemCountLabel(updated) + " read.", Toast.LENGTH_SHORT).show();
+    }
+
+    void confirmHideSelected() {
+        int count = selectedKeys.size();
+        if (count == 0) return;
+        new AlertDialog.Builder(this)
+                .setTitle("Hide selected patterns?")
+                .setMessage("Future matching notices will not be saved, and matching saved copies will be removed.")
+                .setPositiveButton("Hide", (dialog, which) -> hideSelected())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    void hideSelected() {
+        int removed = 0;
+        for (SavedMessage msg : selectedMessages()) {
+            NotificationRules.hideSimilar(this, msg.packageName, msg.sender, msg.body);
+            removed += store.deleteSimilar(msg.packageName, msg.sender, msg.body);
+        }
+        selectedKeys.clear();
+        load();
+        Toast.makeText(this, "Hidden selected pattern" + (removed == 1 ? "." : "s."), Toast.LENGTH_SHORT).show();
+    }
+
+    List<SavedMessage> selectedMessages() {
+        ArrayList<SavedMessage> selected = new ArrayList<>();
+        for (SavedMessage msg : visibleRows) {
+            if (selectedKeys.contains(selectionKey(msg))) selected.add(msg);
+        }
+        return selected;
     }
 
     void showMessageActions(SavedMessage msg) {
@@ -362,6 +485,7 @@ public class MainActivity extends Activity {
                 .apply();
         activeSender = null;
         searchBox.setText("");
+        selectedKeys.clear();
         Toast.makeText(this, nextOtherMode ? "Other notifications will now be captured." : "Showing WhatsApp inbox.", Toast.LENGTH_SHORT).show();
         load();
     }
@@ -381,6 +505,18 @@ public class MainActivity extends Activity {
 
     String safe(String value) {
         return value == null || value.trim().isEmpty() ? "Unknown" : value;
+    }
+
+    String selectionKey(SavedMessage msg) {
+        return keyPart(msg.packageName) + "\u001f" + keyPart(msg.sender);
+    }
+
+    String itemCountLabel(int count) {
+        return count == 1 ? " item" : " items";
+    }
+
+    String keyPart(String value) {
+        return value == null ? "" : value;
     }
 
     String emptyModeText(boolean otherMode) {

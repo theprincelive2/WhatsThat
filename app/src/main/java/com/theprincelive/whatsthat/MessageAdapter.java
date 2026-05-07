@@ -12,14 +12,21 @@ import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import java.util.List;
+import java.util.Set;
 
 public class MessageAdapter extends BaseAdapter {
     private final Context context;
     private final List<SavedMessage> items;
+    private final Set<String> selectedKeys;
 
     public MessageAdapter(Context context, List<SavedMessage> items) {
+        this(context, items, null);
+    }
+
+    public MessageAdapter(Context context, List<SavedMessage> items, Set<String> selectedKeys) {
         this.context = context;
         this.items = items;
+        this.selectedKeys = selectedKeys;
     }
 
     public int getCount() { return items.size(); }
@@ -28,10 +35,12 @@ public class MessageAdapter extends BaseAdapter {
 
     public View getView(int position, View convertView, ViewGroup parent) {
         SavedMessage msg = items.get(position);
+        boolean selected = selectedKeys != null && selectedKeys.contains(selectionKey(msg));
 
         LinearLayout outer = new LinearLayout(context);
         outer.setOrientation(LinearLayout.VERTICAL);
         outer.setPadding(dp(12), 0, dp(12), 0);
+        if (selected) outer.setBackgroundColor(Color.rgb(229, 245, 236));
 
         if (position == 0 || !safe(items.get(position - 1).dateLabel).equals(safe(msg.dateLabel))) {
             TextView group = new TextView(context);
@@ -155,6 +164,10 @@ public class MessageAdapter extends BaseAdapter {
 
     private String safe(String value) {
         return value == null ? "" : value;
+    }
+
+    private String selectionKey(SavedMessage msg) {
+        return safe(msg.packageName) + "\u001f" + safe(msg.sender);
     }
 
     private int avatarColor(int position) {

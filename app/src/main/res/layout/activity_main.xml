@@ -206,6 +206,76 @@
         </LinearLayout>
     </HorizontalScrollView>
 
+    <LinearLayout
+        android:id="@+id/selectionRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="14dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="14dp"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/deleteSelectedBtn"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_secondary"
+            android:backgroundTint="@null"
+            android:minHeight="0dp"
+            android:text="Delete"
+            android:textAllCaps="false"
+            android:textColor="@color/brand_text"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/readSelectedBtn"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_secondary"
+            android:backgroundTint="@null"
+            android:minHeight="0dp"
+            android:text="Read"
+            android:textAllCaps="false"
+            android:textColor="@color/brand_text"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/hideSelectedBtn"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_secondary"
+            android:backgroundTint="@null"
+            android:minHeight="0dp"
+            android:text="Hide"
+            android:textAllCaps="false"
+            android:textColor="@color/brand_text"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/clearSelectionBtn"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_secondary"
+            android:backgroundTint="@null"
+            android:minHeight="0dp"
+            android:text="Clear"
+            android:textAllCaps="false"
+            android:textColor="@color/brand_text"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
     <TextView
         android:id="@+id/privacyText"
         android:layout_width="match_parent"
