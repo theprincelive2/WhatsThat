@@ -53,6 +53,7 @@ public class StatusSaverActivity extends Activity {
     Button findBusinessBtn;
     Button chooseBtn;
     Button refreshBtn;
+    Button savedStatusesBtn;
     Button allFilterBtn;
     Button photosFilterBtn;
     Button videosFilterBtn;
@@ -114,6 +115,10 @@ public class StatusSaverActivity extends Activity {
             Toast.makeText(this, "Statuses refreshed.", Toast.LENGTH_SHORT).show();
         });
         root.addView(refreshBtn, buttonParams(10));
+
+        savedStatusesBtn = secondaryButton("Saved Statuses");
+        savedStatusesBtn.setOnClickListener(v -> startActivity(new Intent(this, SavedStatusesActivity.class)));
+        root.addView(savedStatusesBtn, buttonParams(10));
 
         LinearLayout filterRow = new LinearLayout(this);
         filterRow.setOrientation(LinearLayout.HORIZONTAL);
