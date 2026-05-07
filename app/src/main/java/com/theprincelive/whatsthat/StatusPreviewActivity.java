@@ -34,6 +34,7 @@ public class StatusPreviewActivity extends Activity {
     Uri statusUri;
     String statusName;
     String statusMime;
+    Button saveButton;
     boolean pendingSave;
 
     @Override
@@ -87,9 +88,9 @@ public class StatusPreviewActivity extends Activity {
         actions.setOrientation(LinearLayout.HORIZONTAL);
         actions.setPadding(0, dp(14), 0, 0);
 
-        Button save = primaryButton("Save");
-        save.setOnClickListener(v -> saveStatus());
-        actions.addView(save, new LinearLayout.LayoutParams(0, dp(50), 1));
+        saveButton = primaryButton(alreadySaved() ? "Save again" : "Save");
+        saveButton.setOnClickListener(v -> saveStatus());
+        actions.addView(saveButton, new LinearLayout.LayoutParams(0, dp(50), 1));
 
         Button share = secondaryButton("Share");
         share.setOnClickListener(v -> shareStatus());
@@ -147,6 +148,7 @@ public class StatusPreviewActivity extends Activity {
                 done.put(MediaStore.MediaColumns.IS_PENDING, 0);
                 getContentResolver().update(target, done, null, null);
             }
+            if (saveButton != null) saveButton.setText("Save again");
             Toast.makeText(this, "Status saved.", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             Toast.makeText(this, "Could not save this status.", Toast.LENGTH_SHORT).show();
@@ -180,6 +182,10 @@ public class StatusPreviewActivity extends Activity {
 
     boolean isVideo() {
         return statusMime != null && statusMime.startsWith("video/");
+    }
+
+    boolean alreadySaved() {
+        return SavedStatusIndex.isSaved(SavedStatusIndex.load(this), statusName);
     }
 
     String uniqueName(String name) {

@@ -52,7 +52,7 @@ class StatusAdapter extends BaseAdapter {
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setPadding(dp(14), dp(10), dp(14), dp(10));
-        row.setBackgroundColor(selected ? Color.rgb(229, 245, 236) : Color.TRANSPARENT);
+        row.setBackgroundColor(selected ? Color.rgb(229, 245, 236) : (file.saved ? Color.rgb(247, 248, 246) : Color.TRANSPARENT));
 
         ImageView preview = new ImageView(context);
         preview.setScaleType(ImageView.ScaleType.CENTER_CROP);
@@ -75,14 +75,14 @@ class StatusAdapter extends BaseAdapter {
         textWrap.setPadding(dp(14), 0, 0, 0);
 
         TextView title = new TextView(context);
-        title.setText((selected ? "Selected - " : "") + (file.isVideo() ? "Video status" : "Photo status"));
+        title.setText((selected ? "Selected - " : "") + (file.isVideo() ? "Video status" : "Photo status") + (file.saved ? " - Saved" : ""));
         title.setTextColor(Color.rgb(17, 27, 24));
         title.setTextSize(15);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         textWrap.addView(title);
 
         TextView meta = new TextView(context);
-        meta.setText(file.name + " - " + sizeText(file.size));
+        meta.setText(file.name + " - " + sizeText(file.size) + (file.saved ? " - already saved" : ""));
         meta.setTextColor(Color.rgb(91, 104, 98));
         meta.setTextSize(13);
         meta.setPadding(0, dp(5), 0, 0);

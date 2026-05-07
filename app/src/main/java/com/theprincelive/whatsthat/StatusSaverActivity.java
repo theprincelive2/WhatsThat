@@ -189,6 +189,12 @@ public class StatusSaverActivity extends Activity {
         loadStatuses();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (listView != null) loadStatuses();
+    }
+
     void setFilter(String filter) {
         selectedUris.clear();
         activeFilter = filter;
@@ -259,6 +265,7 @@ public class StatusSaverActivity extends Activity {
         boolean hasStatusFolder = findStatusDocumentId(tree) != null;
         allFiles.addAll(queryStatuses(tree));
         Collections.sort(allFiles, (a, b) -> Long.compare(b.modifiedAt, a.modifiedAt));
+        markSavedStatuses();
         applyFilter(hasStatusFolder);
     }
 
@@ -405,11 +412,19 @@ public class StatusSaverActivity extends Activity {
 
     void saveSelectedStatuses() {
         pendingBulkSave.clear();
+        int skipped = 0;
         for (StatusFile file : visibleFiles) {
-            if (selectedUris.contains(file.uri.toString())) pendingBulkSave.add(file);
+            if (selectedUris.contains(file.uri.toString())) {
+                if (file.saved) {
+                    skipped++;
+                } else {
+                    pendingBulkSave.add(file);
+                }
+            }
         }
         if (pendingBulkSave.isEmpty()) {
             clearSelection();
+            Toast.makeText(this, skipped == 0 ? "No statuses selected." : "Selected statuses are already saved.", Toast.LENGTH_SHORT).show();
             return;
         }
         if (needsLegacyWritePermission()) {
@@ -451,6 +466,7 @@ public class StatusSaverActivity extends Activity {
             if (copyStatusToGallery(file, false)) saved++;
         }
         pendingBulkSave.clear();
+        markSavedStatuses();
         clearSelection();
         Toast.makeText(this, "Saved " + saved + statusCountLabel(saved) + ".", Toast.LENGTH_SHORT).show();
     }
@@ -475,6 +491,7 @@ public class StatusSaverActivity extends Activity {
                 getContentResolver().update(target, done, null, null);
             }
             if (showToast) Toast.makeText(this, "Status saved to gallery.", Toast.LENGTH_SHORT).show();
+            file.saved = true;
             return true;
         } catch (IOException e) {
             if (showToast) Toast.makeText(this, "Could not save this status.", Toast.LENGTH_SHORT).show();
@@ -513,6 +530,13 @@ public class StatusSaverActivity extends Activity {
         String base = dot > 0 ? safe.substring(0, dot) : safe;
         String ext = dot > 0 ? safe.substring(dot) : "";
         return base + "_whatsthat_" + System.currentTimeMillis() + ext;
+    }
+
+    void markSavedStatuses() {
+        Set<String> savedNames = SavedStatusIndex.load(this);
+        for (StatusFile file : allFiles) {
+            file.saved = SavedStatusIndex.isSaved(savedNames, file.name);
+        }
     }
 
     Uri savedTree() {

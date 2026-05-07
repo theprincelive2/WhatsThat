@@ -8,6 +8,7 @@ class StatusFile {
     final Uri uri;
     final long size;
     final long modifiedAt;
+    boolean saved;
 
     StatusFile(String name, String mimeType, Uri uri, long size, long modifiedAt) {
         this.name = name;
@@ -15,6 +16,7 @@ class StatusFile {
         this.uri = uri;
         this.size = size;
         this.modifiedAt = modifiedAt;
+        this.saved = false;
     }
 
     boolean isVideo() {
