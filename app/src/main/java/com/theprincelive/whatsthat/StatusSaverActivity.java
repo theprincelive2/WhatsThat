@@ -39,6 +39,9 @@ public class StatusSaverActivity extends Activity {
     private static final String PREF_STATUS_MODE = "status_mode";
     private static final String MODE_WHATSAPP = "whatsapp";
     private static final String MODE_BUSINESS = "business";
+    private static final String FILTER_ALL = "all";
+    private static final String FILTER_PHOTOS = "photos";
+    private static final String FILTER_VIDEOS = "videos";
     private static final int REQUEST_STATUS_FOLDER = 44;
     private static final int REQUEST_WRITE_STORAGE = 45;
     private static final String WHATSAPP_STATUS_DOC = "primary:Android/media/com.whatsapp/WhatsApp/Media/.Statuses";
@@ -48,13 +51,18 @@ public class StatusSaverActivity extends Activity {
     Button findBusinessBtn;
     Button chooseBtn;
     Button refreshBtn;
+    Button allFilterBtn;
+    Button photosFilterBtn;
+    Button videosFilterBtn;
     TextView sourceText;
     TextView folderText;
     TextView emptyText;
     ListView listView;
-    List<StatusFile> files = new ArrayList<>();
+    List<StatusFile> allFiles = new ArrayList<>();
+    List<StatusFile> visibleFiles = new ArrayList<>();
     StatusFile pendingSave;
     String pendingMode;
+    String activeFilter = FILTER_ALL;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,6 +108,25 @@ public class StatusSaverActivity extends Activity {
         });
         root.addView(refreshBtn, buttonParams(10));
 
+        LinearLayout filterRow = new LinearLayout(this);
+        filterRow.setOrientation(LinearLayout.HORIZONTAL);
+        allFilterBtn = primaryButton("All");
+        allFilterBtn.setOnClickListener(v -> setFilter(FILTER_ALL));
+        filterRow.addView(allFilterBtn, new LinearLayout.LayoutParams(0, dp(42), 1));
+
+        photosFilterBtn = secondaryButton("Photos");
+        photosFilterBtn.setOnClickListener(v -> setFilter(FILTER_PHOTOS));
+        LinearLayout.LayoutParams photosParams = new LinearLayout.LayoutParams(0, dp(42), 1);
+        photosParams.setMargins(dp(8), 0, 0, 0);
+        filterRow.addView(photosFilterBtn, photosParams);
+
+        videosFilterBtn = secondaryButton("Videos");
+        videosFilterBtn.setOnClickListener(v -> setFilter(FILTER_VIDEOS));
+        LinearLayout.LayoutParams videosParams = new LinearLayout.LayoutParams(0, dp(42), 1);
+        videosParams.setMargins(dp(8), 0, 0, 0);
+        filterRow.addView(videosFilterBtn, videosParams);
+        root.addView(filterRow, buttonParams(10));
+
         sourceText = copy("");
         sourceText.setTextColor(Color.rgb(0, 107, 85));
         sourceText.setTypeface(Typeface.DEFAULT_BOLD);
@@ -118,12 +145,17 @@ public class StatusSaverActivity extends Activity {
         listView = new ListView(this);
         listView.setDividerHeight(1);
         listView.setCacheColorHint(Color.TRANSPARENT);
-        listView.setOnItemClickListener((parent, view, position, id) -> openStatusPreview(files.get(position)));
+        listView.setOnItemClickListener((parent, view, position, id) -> openStatusPreview(visibleFiles.get(position)));
         root.addView(listView, new LinearLayout.LayoutParams(-1, 0, 1));
 
         setContentView(root);
         migrateOldStatusFolder();
         loadStatuses();
+    }
+
+    void setFilter(String filter) {
+        activeFilter = filter;
+        applyFilter();
     }
 
     void selectMode(String mode) {
@@ -169,8 +201,10 @@ public class StatusSaverActivity extends Activity {
     }
 
     void loadStatuses() {
-        files.clear();
+        allFiles.clear();
+        visibleFiles.clear();
         updateProviderButtons();
+        updateFilterButtons();
         String mode = activeMode();
         Uri tree = savedTree(mode);
         if (tree == null) {
@@ -179,18 +213,41 @@ public class StatusSaverActivity extends Activity {
             emptyText.setText("Tap " + modeLabel(mode) + " to approve its .Statuses folder once.");
             emptyText.setVisibility(View.VISIBLE);
             listView.setVisibility(View.GONE);
-            listView.setAdapter(new StatusAdapter(this, files));
+            listView.setAdapter(new StatusAdapter(this, visibleFiles));
             return;
         }
         folderText.setText(modeLabel(mode) + " status folder is set. Tap the same button again to change it.");
         boolean hasStatusFolder = findStatusDocumentId(tree) != null;
-        files.addAll(queryStatuses(tree));
-        Collections.sort(files, (a, b) -> Long.compare(b.modifiedAt, a.modifiedAt));
-        sourceText.setText("Viewing " + modeLabel(mode) + " - " + files.size() + statusCountLabel(files.size()));
-        emptyText.setText(files.isEmpty() ? (hasStatusFolder ? "No statuses found. Open WhatsApp Status first, view a status, then return here." : "That folder does not contain .Statuses. Tap Find WhatsApp or choose WhatsApp > Media > .Statuses.") : "");
-        emptyText.setVisibility(files.isEmpty() ? View.VISIBLE : View.GONE);
-        listView.setVisibility(files.isEmpty() ? View.GONE : View.VISIBLE);
-        listView.setAdapter(new StatusAdapter(this, files));
+        allFiles.addAll(queryStatuses(tree));
+        Collections.sort(allFiles, (a, b) -> Long.compare(b.modifiedAt, a.modifiedAt));
+        applyFilter(hasStatusFolder);
+    }
+
+    void applyFilter() {
+        applyFilter(findStatusDocumentId(savedTree(activeMode())) != null);
+    }
+
+    void applyFilter(boolean hasStatusFolder) {
+        visibleFiles.clear();
+        for (StatusFile file : allFiles) {
+            if (FILTER_PHOTOS.equals(activeFilter) && !file.isImage()) continue;
+            if (FILTER_VIDEOS.equals(activeFilter) && !file.isVideo()) continue;
+            visibleFiles.add(file);
+        }
+        updateFilterButtons();
+        sourceText.setText("Viewing " + modeLabel(activeMode()) + " - " + visibleFiles.size() + statusCountLabel(visibleFiles.size()) + filterSuffix());
+        emptyText.setText(emptyMessage(hasStatusFolder));
+        emptyText.setVisibility(visibleFiles.isEmpty() ? View.VISIBLE : View.GONE);
+        listView.setVisibility(visibleFiles.isEmpty() ? View.GONE : View.VISIBLE);
+        listView.setAdapter(new StatusAdapter(this, visibleFiles));
+    }
+
+    String emptyMessage(boolean hasStatusFolder) {
+        if (!hasStatusFolder) return "That folder does not contain .Statuses. Tap Find WhatsApp or choose WhatsApp > Media > .Statuses.";
+        if (allFiles.isEmpty()) return "No statuses found. Open WhatsApp Status first, view a status, then return here.";
+        if (FILTER_PHOTOS.equals(activeFilter)) return "No photo statuses in this folder right now.";
+        if (FILTER_VIDEOS.equals(activeFilter)) return "No video statuses in this folder right now.";
+        return "No statuses found.";
     }
 
     List<StatusFile> queryStatuses(Uri treeUri) {
@@ -383,6 +440,12 @@ public class StatusSaverActivity extends Activity {
         return count == 1 ? " status" : " statuses";
     }
 
+    String filterSuffix() {
+        if (FILTER_PHOTOS.equals(activeFilter)) return " - Photos";
+        if (FILTER_VIDEOS.equals(activeFilter)) return " - Videos";
+        return "";
+    }
+
     void updateProviderButtons() {
         if (findWhatsAppBtn == null || findBusinessBtn == null || chooseBtn == null || refreshBtn == null) return;
         String mode = activeMode();
@@ -394,6 +457,13 @@ public class StatusSaverActivity extends Activity {
         styleButton(findBusinessBtn, MODE_BUSINESS.equals(mode));
         chooseBtn.setText("Choose " + modeLabel(mode) + " Folder Manually");
         refreshBtn.setEnabled(savedTree(mode) != null);
+    }
+
+    void updateFilterButtons() {
+        if (allFilterBtn == null || photosFilterBtn == null || videosFilterBtn == null) return;
+        styleButton(allFilterBtn, FILTER_ALL.equals(activeFilter));
+        styleButton(photosFilterBtn, FILTER_PHOTOS.equals(activeFilter));
+        styleButton(videosFilterBtn, FILTER_VIDEOS.equals(activeFilter));
     }
 
     void migrateOldStatusFolder() {
