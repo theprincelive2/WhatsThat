@@ -74,6 +74,7 @@ public class StatusSaverActivity extends Activity {
     List<StatusFile> visibleFiles = new ArrayList<>();
     List<StatusFile> pendingBulkSave = new ArrayList<>();
     Set<String> selectedUris = new HashSet<>();
+    int pendingBulkSkipped = 0;
     StatusFile pendingSave;
     String pendingMode;
     String activeFilter = FILTER_ALL;
@@ -445,6 +446,10 @@ public class StatusSaverActivity extends Activity {
     }
 
     void saveStatus(StatusFile file) {
+        if (file.saved) {
+            Toast.makeText(this, "This status is already saved.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         if (needsLegacyWritePermission()) {
             pendingSave = file;
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_STORAGE);
@@ -455,6 +460,7 @@ public class StatusSaverActivity extends Activity {
 
     void saveSelectedStatuses() {
         pendingBulkSave.clear();
+        pendingBulkSkipped = 0;
         int skipped = 0;
         for (StatusFile file : visibleFiles) {
             if (selectedUris.contains(file.uri.toString())) {
@@ -465,8 +471,10 @@ public class StatusSaverActivity extends Activity {
                 }
             }
         }
+        pendingBulkSkipped = skipped;
         if (pendingBulkSave.isEmpty()) {
             clearSelection();
+            pendingBulkSkipped = 0;
             Toast.makeText(this, skipped == 0 ? "No statuses selected." : "Selected statuses are already saved.", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -498,6 +506,7 @@ public class StatusSaverActivity extends Activity {
                 copySelectedToGallery();
             } else {
                 pendingBulkSave.clear();
+                pendingBulkSkipped = 0;
                 Toast.makeText(this, "Storage permission is needed to save on this Android version.", Toast.LENGTH_SHORT).show();
             }
         }
@@ -511,7 +520,15 @@ public class StatusSaverActivity extends Activity {
         pendingBulkSave.clear();
         markSavedStatuses();
         clearSelection();
-        Toast.makeText(this, "Saved " + saved + statusCountLabel(saved) + ".", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, saveSummary(saved, pendingBulkSkipped), Toast.LENGTH_SHORT).show();
+        pendingBulkSkipped = 0;
+    }
+
+    String saveSummary(int saved, int skipped) {
+        if (skipped > 0) {
+            return "Saved " + saved + statusCountLabel(saved) + ". " + skipped + " already saved.";
+        }
+        return "Saved " + saved + statusCountLabel(saved) + ".";
     }
 
     boolean copyStatusToGallery(StatusFile file, boolean showToast) {
