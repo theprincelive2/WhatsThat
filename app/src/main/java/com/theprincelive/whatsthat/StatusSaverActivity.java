@@ -48,6 +48,7 @@ public class StatusSaverActivity extends Activity {
     Button findBusinessBtn;
     Button chooseBtn;
     Button refreshBtn;
+    TextView sourceText;
     TextView folderText;
     TextView emptyText;
     ListView listView;
@@ -99,8 +100,14 @@ public class StatusSaverActivity extends Activity {
         });
         root.addView(refreshBtn, buttonParams(10));
 
+        sourceText = copy("");
+        sourceText.setTextColor(Color.rgb(0, 107, 85));
+        sourceText.setTypeface(Typeface.DEFAULT_BOLD);
+        sourceText.setPadding(0, dp(14), 0, 0);
+        root.addView(sourceText);
+
         folderText = copy("");
-        folderText.setPadding(0, dp(10), 0, dp(6));
+        folderText.setPadding(0, dp(6), 0, dp(6));
         root.addView(folderText);
 
         emptyText = copy("");
@@ -167,6 +174,7 @@ public class StatusSaverActivity extends Activity {
         String mode = activeMode();
         Uri tree = savedTree(mode);
         if (tree == null) {
+            sourceText.setText("Viewing " + modeLabel(mode) + " statuses");
             folderText.setText(modeLabel(mode) + " status folder is not set.");
             emptyText.setText("Tap " + modeLabel(mode) + " to approve its .Statuses folder once.");
             emptyText.setVisibility(View.VISIBLE);
@@ -178,6 +186,7 @@ public class StatusSaverActivity extends Activity {
         boolean hasStatusFolder = findStatusDocumentId(tree) != null;
         files.addAll(queryStatuses(tree));
         Collections.sort(files, (a, b) -> Long.compare(b.modifiedAt, a.modifiedAt));
+        sourceText.setText("Viewing " + modeLabel(mode) + " - " + files.size() + statusCountLabel(files.size()));
         emptyText.setText(files.isEmpty() ? (hasStatusFolder ? "No statuses found. Open WhatsApp Status first, view a status, then return here." : "That folder does not contain .Statuses. Tap Find WhatsApp or choose WhatsApp > Media > .Statuses.") : "");
         emptyText.setVisibility(files.isEmpty() ? View.VISIBLE : View.GONE);
         listView.setVisibility(files.isEmpty() ? View.GONE : View.VISIBLE);
@@ -370,6 +379,10 @@ public class StatusSaverActivity extends Activity {
         return MODE_BUSINESS.equals(mode) ? "WhatsApp Business" : "WhatsApp";
     }
 
+    String statusCountLabel(int count) {
+        return count == 1 ? " status" : " statuses";
+    }
+
     void updateProviderButtons() {
         if (findWhatsAppBtn == null || findBusinessBtn == null || chooseBtn == null || refreshBtn == null) return;
         String mode = activeMode();
@@ -377,6 +390,8 @@ public class StatusSaverActivity extends Activity {
         boolean businessSet = savedTree(MODE_BUSINESS) != null;
         findWhatsAppBtn.setText(MODE_WHATSAPP.equals(mode) && whatsappSet ? "Change WhatsApp" : (whatsappSet ? "WhatsApp Set" : "Find WhatsApp"));
         findBusinessBtn.setText(MODE_BUSINESS.equals(mode) && businessSet ? "Change Business" : (businessSet ? "Business Set" : "Business"));
+        styleButton(findWhatsAppBtn, MODE_WHATSAPP.equals(mode));
+        styleButton(findBusinessBtn, MODE_BUSINESS.equals(mode));
         chooseBtn.setText("Choose " + modeLabel(mode) + " Folder Manually");
         refreshBtn.setEnabled(savedTree(mode) != null);
     }
@@ -412,11 +427,7 @@ public class StatusSaverActivity extends Activity {
         button.setAllCaps(false);
         button.setTextSize(14);
         button.setTypeface(Typeface.DEFAULT_BOLD);
-        button.setTextColor(Color.WHITE);
-        GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.rgb(0, 107, 85));
-        bg.setCornerRadius(dp(18));
-        button.setBackground(bg);
+        styleButton(button, true);
         return button;
     }
 
@@ -426,13 +437,17 @@ public class StatusSaverActivity extends Activity {
         button.setAllCaps(false);
         button.setTextSize(14);
         button.setTypeface(Typeface.DEFAULT_BOLD);
-        button.setTextColor(Color.rgb(0, 107, 85));
-        GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.rgb(247, 248, 246));
-        bg.setCornerRadius(dp(18));
-        bg.setStroke(dp(1), Color.rgb(231, 234, 230));
-        button.setBackground(bg);
+        styleButton(button, false);
         return button;
+    }
+
+    void styleButton(Button button, boolean primary) {
+        button.setTextColor(primary ? Color.WHITE : Color.rgb(0, 107, 85));
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(primary ? Color.rgb(0, 107, 85) : Color.rgb(247, 248, 246));
+        bg.setCornerRadius(dp(18));
+        if (!primary) bg.setStroke(dp(1), Color.rgb(231, 234, 230));
+        button.setBackground(bg);
     }
 
     LinearLayout.LayoutParams buttonParams(int topMargin) {
