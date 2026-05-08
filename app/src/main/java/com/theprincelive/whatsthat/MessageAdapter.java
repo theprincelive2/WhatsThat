@@ -18,15 +18,21 @@ public class MessageAdapter extends BaseAdapter {
     private final Context context;
     private final List<SavedMessage> items;
     private final Set<String> selectedKeys;
+    private final Set<String> systemKeys;
 
     public MessageAdapter(Context context, List<SavedMessage> items) {
-        this(context, items, null);
+        this(context, items, null, null);
     }
 
     public MessageAdapter(Context context, List<SavedMessage> items, Set<String> selectedKeys) {
+        this(context, items, selectedKeys, null);
+    }
+
+    public MessageAdapter(Context context, List<SavedMessage> items, Set<String> selectedKeys, Set<String> systemKeys) {
         this.context = context;
         this.items = items;
         this.selectedKeys = selectedKeys;
+        this.systemKeys = systemKeys;
     }
 
     public int getCount() { return items.size(); }
@@ -36,6 +42,7 @@ public class MessageAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         SavedMessage msg = items.get(position);
         boolean selected = selectedKeys != null && selectedKeys.contains(selectionKey(msg));
+        boolean system = systemKeys != null && systemKeys.contains(selectionKey(msg));
 
         LinearLayout outer = new LinearLayout(context);
         outer.setOrientation(LinearLayout.VERTICAL);
@@ -86,6 +93,13 @@ public class MessageAdapter extends BaseAdapter {
         sender.setTypeface(msg.unreadCount > 0 || !msg.read ? Typeface.DEFAULT_BOLD : Typeface.DEFAULT);
         sender.setSingleLine(true);
         top.addView(sender, new LinearLayout.LayoutParams(0, -2, 1));
+
+        if (system) {
+            TextView systemBadge = systemBadge();
+            LinearLayout.LayoutParams systemParams = new LinearLayout.LayoutParams(-2, dp(22));
+            systemParams.setMargins(dp(8), 0, dp(8), 0);
+            top.addView(systemBadge, systemParams);
+        }
 
         TextView time = new TextView(context);
         time.setText(msg.shortTime == null ? "" : msg.shortTime);
@@ -168,6 +182,21 @@ public class MessageAdapter extends BaseAdapter {
 
     private String selectionKey(SavedMessage msg) {
         return safe(msg.packageName) + "\u001f" + safe(msg.sender);
+    }
+
+    private TextView systemBadge() {
+        TextView badge = new TextView(context);
+        badge.setText("System");
+        badge.setTextColor(Color.rgb(91, 104, 98));
+        badge.setTextSize(10);
+        badge.setTypeface(Typeface.DEFAULT_BOLD);
+        badge.setGravity(Gravity.CENTER);
+        badge.setPadding(dp(8), 0, dp(8), 0);
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.rgb(236, 240, 237));
+        bg.setCornerRadius(dp(11));
+        badge.setBackground(bg);
+        return badge;
     }
 
     private int avatarColor(int position) {

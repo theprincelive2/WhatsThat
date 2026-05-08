@@ -55,6 +55,7 @@ public class MainActivity extends Activity {
     LinearLayout selectionRow;
     List<SavedMessage> visibleRows = new ArrayList<>();
     Set<String> selectedKeys = new HashSet<>();
+    Set<String> systemKeys = new HashSet<>();
     String activeSender;
     boolean lockStarted;
     boolean restoreListPosition;
@@ -188,6 +189,7 @@ public class MainActivity extends Activity {
         List<SavedMessage> filtered = activeSender == null ? groupConversations(matching) : collapseRepeatedMessages(matching);
         visibleRows.clear();
         visibleRows.addAll(filtered);
+        updateSystemKeys(filtered);
         pruneSelection();
 
         int count = filtered.size();
@@ -210,7 +212,7 @@ public class MainActivity extends Activity {
         emptyText.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
         list.setVisibility(filtered.isEmpty() ? View.GONE : View.VISIBLE);
         updateSelectionActions();
-        list.setAdapter(new MessageAdapter(this, filtered, selectedKeys));
+        list.setAdapter(new MessageAdapter(this, filtered, selectedKeys, systemKeys));
         restoreListPositionIfNeeded(filtered.size());
     }
 
@@ -347,19 +349,27 @@ public class MainActivity extends Activity {
             selectedKeys.add(key);
         }
         updateSelectionActions();
-        list.setAdapter(new MessageAdapter(this, visibleRows, selectedKeys));
+        list.setAdapter(new MessageAdapter(this, visibleRows, selectedKeys, systemKeys));
     }
 
     void clearSelection() {
         selectedKeys.clear();
         updateSelectionActions();
-        list.setAdapter(new MessageAdapter(this, visibleRows, selectedKeys));
+        list.setAdapter(new MessageAdapter(this, visibleRows, selectedKeys, systemKeys));
     }
 
     void pruneSelection() {
         HashSet<String> visibleKeys = new HashSet<>();
         for (SavedMessage msg : visibleRows) visibleKeys.add(selectionKey(msg));
         selectedKeys.retainAll(visibleKeys);
+    }
+
+    void updateSystemKeys(List<SavedMessage> rows) {
+        systemKeys.clear();
+        if (filteringSystemGenerated()) return;
+        for (SavedMessage msg : rows) {
+            if (isSystemGenerated(msg)) systemKeys.add(selectionKey(msg));
+        }
     }
 
     void updateSelectionActions() {
