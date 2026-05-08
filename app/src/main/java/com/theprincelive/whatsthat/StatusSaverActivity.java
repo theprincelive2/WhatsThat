@@ -68,6 +68,7 @@ public class StatusSaverActivity extends Activity {
     TextView sourceText;
     TextView folderText;
     TextView emptyText;
+    Button openWhatsAppBtn;
     EditText searchBox;
     ListView listView;
     List<StatusFile> allFiles = new ArrayList<>();
@@ -198,6 +199,10 @@ public class StatusSaverActivity extends Activity {
         emptyText.setPadding(dp(16), dp(28), dp(16), dp(28));
         root.addView(emptyText, new LinearLayout.LayoutParams(-1, -2));
 
+        openWhatsAppBtn = primaryButton("Open WhatsApp");
+        openWhatsAppBtn.setOnClickListener(v -> openActiveWhatsApp());
+        root.addView(openWhatsAppBtn, buttonParams(4));
+
         listView = new ListView(this);
         listView.setDividerHeight(1);
         listView.setCacheColorHint(Color.TRANSPARENT);
@@ -287,6 +292,7 @@ public class StatusSaverActivity extends Activity {
             folderText.setText(modeLabel(mode) + " status folder is not set.");
             emptyText.setText("Tap " + modeLabel(mode) + " to approve its .Statuses folder once.");
             emptyText.setVisibility(View.VISIBLE);
+            updateOpenWhatsAppButton(false);
             listView.setVisibility(View.GONE);
             updateSelectionActions();
             listView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
@@ -319,6 +325,7 @@ public class StatusSaverActivity extends Activity {
         sourceText.setText("Viewing " + modeLabel(activeMode()) + " - " + visibleFiles.size() + statusCountLabel(visibleFiles.size()) + filterSuffix());
         emptyText.setText(emptyMessage(hasStatusFolder));
         emptyText.setVisibility(visibleFiles.isEmpty() ? View.VISIBLE : View.GONE);
+        updateOpenWhatsAppButton(shouldShowOpenWhatsAppButton(hasStatusFolder));
         listView.setVisibility(visibleFiles.isEmpty() ? View.GONE : View.VISIBLE);
         updateSelectionActions();
         listView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
@@ -351,11 +358,31 @@ public class StatusSaverActivity extends Activity {
 
     String emptyMessage(boolean hasStatusFolder) {
         if (!hasStatusFolder) return "That folder does not contain .Statuses. Tap Find WhatsApp or choose WhatsApp > Media > .Statuses.";
-        if (allFiles.isEmpty()) return "No statuses found. Open WhatsApp Status first, view a status, then return here.";
+        if (allFiles.isEmpty()) return "No statuses found. Open WhatsApp, view a status, then return here and tap Refresh.";
         if (!searchQuery().isEmpty()) return "No statuses match your search.";
         if (FILTER_PHOTOS.equals(activeFilter)) return "No photo statuses in this folder right now.";
         if (FILTER_VIDEOS.equals(activeFilter)) return "No video statuses in this folder right now.";
         return "No statuses found.";
+    }
+
+    boolean shouldShowOpenWhatsAppButton(boolean hasStatusFolder) {
+        return hasStatusFolder && allFiles.isEmpty() && visibleFiles.isEmpty() && searchQuery().isEmpty();
+    }
+
+    void updateOpenWhatsAppButton(boolean show) {
+        if (openWhatsAppBtn == null) return;
+        openWhatsAppBtn.setText("Open " + modeLabel(activeMode()));
+        openWhatsAppBtn.setVisibility(show ? View.VISIBLE : View.GONE);
+    }
+
+    void openActiveWhatsApp() {
+        String pkg = MODE_BUSINESS.equals(activeMode()) ? "com.whatsapp.w4b" : "com.whatsapp";
+        Intent launch = getPackageManager().getLaunchIntentForPackage(pkg);
+        if (launch == null) {
+            Toast.makeText(this, modeLabel(activeMode()) + " is not installed on this phone.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        startActivity(launch);
     }
 
     void sortAllFiles() {
