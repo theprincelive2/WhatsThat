@@ -175,8 +175,12 @@ public class MainActivity extends Activity {
         List<SavedMessage> rows = store.getRecentStructured(otherMode);
         String q = searchBox.getText().toString().toLowerCase(Locale.getDefault());
         List<SavedMessage> matching = new ArrayList<>();
+        int hiddenSystemCount = 0;
         for (SavedMessage m : rows) {
-            if (filteringSystemGenerated() && isSystemGenerated(m)) continue;
+            if (filteringSystemGenerated() && isSystemGenerated(m)) {
+                hiddenSystemCount++;
+                continue;
+            }
             String v = (m.sender + " " + m.body + " " + m.time).toLowerCase(Locale.getDefault());
             boolean senderMatches = activeSender == null || activeSender.equals(m.sender);
             if (senderMatches && (q.isEmpty() || v.contains(q))) matching.add(m);
@@ -194,6 +198,8 @@ public class MainActivity extends Activity {
             latestText.setText("Other notices are off. Tap Other notices to start capturing non-WhatsApp notifications.");
         } else if (activeSender != null) {
             latestText.setText("Showing saved alerts from " + activeSender + ".");
+        } else if (filteringSystemGenerated() && hiddenSystemCount > 0) {
+            latestText.setText(filterSummary(hiddenSystemCount, count == 0 ? "" : " Latest: " + filtered.get(0).time));
         } else {
             latestText.setText(count == 0 ? emptyModeText(otherMode) : "Latest: " + filtered.get(0).time);
         }
@@ -580,6 +586,10 @@ public class MainActivity extends Activity {
 
     String itemCountLabel(int count) {
         return count == 1 ? " item" : " items";
+    }
+
+    String filterSummary(int hiddenCount, String suffix) {
+        return "Filter hiding " + hiddenCount + (hiddenCount == 1 ? " system notice." : " system notices.") + suffix;
     }
 
     String keyPart(String value) {
