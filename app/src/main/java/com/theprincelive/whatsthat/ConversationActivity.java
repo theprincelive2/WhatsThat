@@ -19,7 +19,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class ConversationActivity extends Activity {
@@ -33,6 +35,7 @@ public class ConversationActivity extends Activity {
     Button hideSelectedBtn;
     Button clearSelectionBtn;
     Set<Long> selectedIds = new HashSet<>();
+    Map<Long, List<Long>> groupedMessageIds = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,9 +124,10 @@ public class ConversationActivity extends Activity {
     void loadMessages() {
         store.markConversationRead(packageName, sender);
         messages.removeAllViews();
-        List<SavedMessage> rows = store.getConversation(packageName, sender);
-        subtitle.setText(AppLabels.label(this, packageName) + " - " + rows.size() + (rows.size() == 1 ? " saved notice" : " saved notices"));
-        if (rows.isEmpty()) {
+        List<SavedMessage> rawRows = store.getConversation(packageName, sender);
+        List<SavedMessage> rows = collapseRepeatedMessages(rawRows);
+        subtitle.setText(AppLabels.label(this, packageName) + " - " + rawRows.size() + (rawRows.size() == 1 ? " saved notice" : " saved notices"));
+        if (rawRows.isEmpty()) {
             TextView empty = new TextView(this);
             empty.setText("No saved notices remain in this conversation.");
             empty.setTextColor(Color.rgb(91, 104, 98));
@@ -178,7 +182,7 @@ public class ConversationActivity extends Activity {
         bubble.addView(body);
 
         TextView time = new TextView(this);
-        time.setText(safe(msg.shortTime));
+        time.setText(msg.messageCount > 1 ? safe(msg.shortTime) + " - x" + msg.messageCount : safe(msg.shortTime));
         time.setTextColor(Color.rgb(91, 104, 98));
         time.setTextSize(11);
         time.setGravity(Gravity.RIGHT);
@@ -275,10 +279,10 @@ public class ConversationActivity extends Activity {
 
     void confirmDeleteMessage(SavedMessage msg) {
         new AlertDialog.Builder(this)
-                .setTitle("Delete this message?")
-                .setMessage("This only removes the local copy saved in WhatsThat.")
+                .setTitle(msg.messageCount > 1 ? "Delete repeated messages?" : "Delete this message?")
+                .setMessage(msg.messageCount > 1 ? "This removes the repeated local copies in this group." : "This only removes the local copy saved in WhatsThat.")
                 .setPositiveButton("Delete", (dialog, which) -> {
-                    store.deleteMessage(msg.id);
+                    deleteMessageGroup(msg);
                     loadMessages();
                 })
                 .setNegativeButton("Cancel", null)
@@ -311,7 +315,12 @@ public class ConversationActivity extends Activity {
     void deleteSelectedMessages() {
         int deleted = 0;
         for (Long id : new ArrayList<>(selectedIds)) {
-            deleted += store.deleteMessage(id);
+            List<Long> ids = groupedMessageIds.get(id);
+            if (ids == null || ids.isEmpty()) {
+                deleted += store.deleteMessage(id);
+            } else {
+                for (Long groupedId : ids) deleted += store.deleteMessage(groupedId);
+            }
         }
         selectedIds.clear();
         loadMessages();
@@ -339,6 +348,61 @@ public class ConversationActivity extends Activity {
         selectedIds.clear();
         loadMessages();
         Toast.makeText(this, "Hidden selected pattern" + (removed == 1 ? "." : "s."), Toast.LENGTH_SHORT).show();
+    }
+
+    void deleteMessageGroup(SavedMessage msg) {
+        List<Long> ids = groupedMessageIds.get(msg.id);
+        if (ids == null || ids.isEmpty()) {
+            store.deleteMessage(msg.id);
+            return;
+        }
+        for (Long id : ids) store.deleteMessage(id);
+    }
+
+    List<SavedMessage> collapseRepeatedMessages(List<SavedMessage> rows) {
+        groupedMessageIds.clear();
+        ArrayList<SavedMessage> collapsed = new ArrayList<>();
+        SavedMessage previous = null;
+        ArrayList<Long> currentIds = new ArrayList<>();
+        int count = 0;
+        for (SavedMessage row : rows) {
+            if (previous != null && sameMessage(previous, row)) {
+                currentIds.add(row.id);
+                count++;
+            } else {
+                addCollapsedMessage(collapsed, previous, currentIds, count);
+                previous = row;
+                currentIds = new ArrayList<>();
+                currentIds.add(row.id);
+                count = 1;
+            }
+        }
+        addCollapsedMessage(collapsed, previous, currentIds, count);
+        return collapsed;
+    }
+
+    void addCollapsedMessage(List<SavedMessage> out, SavedMessage msg, List<Long> ids, int count) {
+        if (msg == null) return;
+        groupedMessageIds.put(msg.id, new ArrayList<>(ids));
+        out.add(new SavedMessage(
+                msg.id,
+                msg.sender,
+                msg.body,
+                msg.time,
+                msg.shortTime,
+                msg.dateLabel,
+                msg.packageName,
+                msg.receivedAt,
+                count,
+                msg.unreadCount,
+                msg.read
+        ));
+    }
+
+    boolean sameMessage(SavedMessage a, SavedMessage b) {
+        return safe(a.packageName).equals(safe(b.packageName))
+                && safe(a.sender).equals(safe(b.sender))
+                && safe(a.body).equals(safe(b.body));
     }
 
     String formatMessage(SavedMessage msg) {

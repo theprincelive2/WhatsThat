@@ -181,7 +181,7 @@ public class MainActivity extends Activity {
             boolean senderMatches = activeSender == null || activeSender.equals(m.sender);
             if (senderMatches && (q.isEmpty() || v.contains(q))) matching.add(m);
         }
-        List<SavedMessage> filtered = activeSender == null ? groupConversations(matching) : matching;
+        List<SavedMessage> filtered = activeSender == null ? groupConversations(matching) : collapseRepeatedMessages(matching);
         visibleRows.clear();
         visibleRows.addAll(filtered);
         pruneSelection();
@@ -240,6 +240,46 @@ public class MainActivity extends Activity {
             ));
         }
         return out;
+    }
+
+    List<SavedMessage> collapseRepeatedMessages(List<SavedMessage> rows) {
+        ArrayList<SavedMessage> collapsed = new ArrayList<>();
+        SavedMessage previous = null;
+        int count = 0;
+        for (SavedMessage row : rows) {
+            if (previous != null && sameMessage(previous, row)) {
+                count++;
+            } else {
+                addCollapsedMessage(collapsed, previous, count);
+                previous = row;
+                count = 1;
+            }
+        }
+        addCollapsedMessage(collapsed, previous, count);
+        return collapsed;
+    }
+
+    void addCollapsedMessage(List<SavedMessage> out, SavedMessage msg, int count) {
+        if (msg == null) return;
+        out.add(new SavedMessage(
+                msg.id,
+                msg.sender,
+                msg.body,
+                msg.time,
+                msg.shortTime,
+                msg.dateLabel,
+                msg.packageName,
+                msg.receivedAt,
+                count,
+                msg.unreadCount,
+                msg.read
+        ));
+    }
+
+    boolean sameMessage(SavedMessage a, SavedMessage b) {
+        return keyPart(a.packageName).equals(keyPart(b.packageName))
+                && keyPart(a.sender).equals(keyPart(b.sender))
+                && keyPart(a.body).equals(keyPart(b.body));
     }
 
     void rememberListPosition() {
