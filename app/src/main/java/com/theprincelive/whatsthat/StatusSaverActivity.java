@@ -96,7 +96,7 @@ public class StatusSaverActivity extends Activity {
         title.setIncludeFontPadding(false);
         root.addView(title);
 
-        TextView intro = copy("Use Find WhatsApp first. Android still needs you to approve folder access once, but WhatsThat will open the picker near the usual Status folder.");
+        TextView intro = copy("1. View a status in WhatsApp.\n2. Approve the .Statuses folder once.\n3. Return here to preview and save.");
         root.addView(intro);
 
         LinearLayout buttonRow = new LinearLayout(this);
