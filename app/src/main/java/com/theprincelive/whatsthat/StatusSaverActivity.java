@@ -78,6 +78,7 @@ public class StatusSaverActivity extends Activity {
     String pendingMode;
     String activeFilter = FILTER_ALL;
     boolean newestFirst = true;
+    boolean refreshAfterWhatsAppLaunch = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -220,7 +221,13 @@ public class StatusSaverActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (listView != null) loadStatuses();
+        if (listView != null) {
+            loadStatuses();
+            if (refreshAfterWhatsAppLaunch) {
+                refreshAfterWhatsAppLaunch = false;
+                Toast.makeText(this, "Statuses refreshed.", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     void setFilter(String filter) {
@@ -395,6 +402,7 @@ public class StatusSaverActivity extends Activity {
             Toast.makeText(this, modeLabel(activeMode()) + " is not installed on this phone.", Toast.LENGTH_SHORT).show();
             return;
         }
+        refreshAfterWhatsAppLaunch = true;
         startActivity(launch);
     }
 
