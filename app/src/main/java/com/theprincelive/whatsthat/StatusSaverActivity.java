@@ -57,8 +57,6 @@ public class StatusSaverActivity extends Activity {
     Button findBusinessBtn;
     Button chooseBtn;
     Button refreshBtn;
-    Button savedStatusesBtn;
-    Button sortBtn;
     Button allFilterBtn;
     Button photosFilterBtn;
     Button videosFilterBtn;
@@ -114,20 +112,22 @@ public class StatusSaverActivity extends Activity {
         buttonRow.addView(findBusinessBtn, businessParams);
         root.addView(buttonRow, buttonParams(16));
 
-        chooseBtn = secondaryButton("Choose Folder Manually");
-        chooseBtn.setOnClickListener(v -> chooseStatusFolder(null, activeMode()));
-        root.addView(chooseBtn, buttonParams(10));
+        LinearLayout actionRow = new LinearLayout(this);
+        actionRow.setOrientation(LinearLayout.HORIZONTAL);
 
-        refreshBtn = secondaryButton("Refresh Statuses");
+        refreshBtn = primaryButton("Refresh");
         refreshBtn.setOnClickListener(v -> {
             loadStatuses();
             Toast.makeText(this, "Statuses refreshed.", Toast.LENGTH_SHORT).show();
         });
-        root.addView(refreshBtn, buttonParams(10));
+        actionRow.addView(refreshBtn, new LinearLayout.LayoutParams(0, dp(46), 1));
 
-        savedStatusesBtn = secondaryButton("Saved Statuses");
-        savedStatusesBtn.setOnClickListener(v -> startActivity(new Intent(this, SavedStatusesActivity.class)));
-        root.addView(savedStatusesBtn, buttonParams(10));
+        chooseBtn = secondaryButton("More");
+        chooseBtn.setOnClickListener(v -> showMoreActions());
+        LinearLayout.LayoutParams moreParams = new LinearLayout.LayoutParams(0, dp(46), 1);
+        moreParams.setMargins(dp(10), 0, 0, 0);
+        actionRow.addView(chooseBtn, moreParams);
+        root.addView(actionRow, buttonParams(10));
 
         searchBox = new EditText(this);
         searchBox.setSingleLine(true);
@@ -143,14 +143,6 @@ public class StatusSaverActivity extends Activity {
             public void afterTextChanged(Editable s) { }
         });
         root.addView(searchBox, buttonParams(10));
-
-        sortBtn = secondaryButton("Sort: Newest");
-        sortBtn.setOnClickListener(v -> {
-            newestFirst = !newestFirst;
-            sortAllFiles();
-            applyFilter();
-        });
-        root.addView(sortBtn, buttonParams(10));
 
         LinearLayout filterRow = new LinearLayout(this);
         filterRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -248,6 +240,28 @@ public class StatusSaverActivity extends Activity {
         }
     }
 
+    void showMoreActions() {
+        String[] actions = {
+                "Saved Statuses",
+                "Choose " + modeLabel(activeMode()) + " Folder Manually",
+                newestFirst ? "Sort: Oldest First" : "Sort: Newest First"
+        };
+        new AlertDialog.Builder(this)
+                .setTitle("Status Saver")
+                .setItems(actions, (dialog, which) -> {
+                    if (which == 0) {
+                        startActivity(new Intent(this, SavedStatusesActivity.class));
+                    } else if (which == 1) {
+                        chooseStatusFolder(null, activeMode());
+                    } else {
+                        newestFirst = !newestFirst;
+                        sortAllFiles();
+                        applyFilter();
+                    }
+                })
+                .show();
+    }
+
     void chooseStatusFolder(String initialDocumentId, String mode) {
         pendingMode = mode;
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
@@ -320,7 +334,6 @@ public class StatusSaverActivity extends Activity {
             if (!query.isEmpty() && !file.name.toLowerCase(Locale.getDefault()).contains(query)) continue;
             visibleFiles.add(file);
         }
-        if (sortBtn != null) sortBtn.setText(newestFirst ? "Sort: Newest" : "Sort: Oldest");
         updateFilterButtons();
         sourceText.setText("Viewing " + modeLabel(activeMode()) + " - " + visibleFiles.size() + statusCountLabel(visibleFiles.size()) + filterSuffix());
         emptyText.setText(emptyMessage(hasStatusFolder));
@@ -666,7 +679,7 @@ public class StatusSaverActivity extends Activity {
         findBusinessBtn.setText(MODE_BUSINESS.equals(mode) && businessSet ? "Change Business" : (businessSet ? "Business Set" : "Business"));
         styleButton(findWhatsAppBtn, MODE_WHATSAPP.equals(mode));
         styleButton(findBusinessBtn, MODE_BUSINESS.equals(mode));
-        chooseBtn.setText("Choose " + modeLabel(mode) + " Folder Manually");
+        chooseBtn.setText("More");
         refreshBtn.setEnabled(savedTree(mode) != null);
     }
 
