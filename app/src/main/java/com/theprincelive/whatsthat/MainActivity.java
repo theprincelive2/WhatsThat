@@ -32,6 +32,7 @@ public class MainActivity extends Activity {
     private static final String PREF_ONBOARDED = "onboarded";
     private static final String PREF_CAPTURE_OTHER = "capture_other_notices";
     private static final String PREF_SHOW_OTHER = "show_other_notices";
+    private static final String PREF_FILTER_SYSTEM = "filter_system_generated";
 
     MessageStore store;
     ListView list;
@@ -42,6 +43,7 @@ public class MainActivity extends Activity {
     EditText searchBox;
     Button open;
     Button modeBtn;
+    Button filterBtn;
     Button deleteSelectedBtn;
     Button readSelectedBtn;
     Button hideSelectedBtn;
@@ -72,6 +74,7 @@ public class MainActivity extends Activity {
         searchBox = findViewById(R.id.searchBox);
         open = findViewById(R.id.openBtn);
         modeBtn = findViewById(R.id.modeBtn);
+        filterBtn = findViewById(R.id.filterBtn);
         selectionRow = findViewById(R.id.selectionRow);
         deleteSelectedBtn = findViewById(R.id.deleteSelectedBtn);
         readSelectedBtn = findViewById(R.id.readSelectedBtn);
@@ -86,6 +89,7 @@ public class MainActivity extends Activity {
 
         open.setOnClickListener(v -> startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));
         modeBtn.setOnClickListener(v -> showInboxMode(!showingOtherNotices()));
+        filterBtn.setOnClickListener(v -> toggleSystemFilter());
         statusSaverBtn.setOnClickListener(v -> startActivity(new Intent(this, StatusSaverActivity.class)));
         clear.setOnClickListener(v -> confirmClearAll());
         settingsBtn.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
@@ -172,6 +176,7 @@ public class MainActivity extends Activity {
         String q = searchBox.getText().toString().toLowerCase(Locale.getDefault());
         List<SavedMessage> matching = new ArrayList<>();
         for (SavedMessage m : rows) {
+            if (filteringSystemGenerated() && isSystemGenerated(m)) continue;
             String v = (m.sender + " " + m.body + " " + m.time).toLowerCase(Locale.getDefault());
             boolean senderMatches = activeSender == null || activeSender.equals(m.sender);
             if (senderMatches && (q.isEmpty() || v.contains(q))) matching.add(m);
@@ -194,6 +199,7 @@ public class MainActivity extends Activity {
         }
         modeBtn.setText(otherMode ? "Other notices" : "WhatsApp");
         modeBtn.setCompoundDrawablesWithIntrinsicBounds(otherMode ? R.drawable.ic_bell : R.drawable.ic_chat, 0, 0, 0);
+        updateFilterButton();
         emptyText.setText(emptyModeText(otherMode));
         emptyText.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
         list.setVisibility(filtered.isEmpty() ? View.GONE : View.VISIBLE);
@@ -490,12 +496,33 @@ public class MainActivity extends Activity {
         load();
     }
 
+    void toggleSystemFilter() {
+        boolean next = !filteringSystemGenerated();
+        prefs().edit().putBoolean(PREF_FILTER_SYSTEM, next).apply();
+        selectedKeys.clear();
+        activeSender = null;
+        Toast.makeText(this, next ? "System notifications hidden." : "Showing all saved notifications.", Toast.LENGTH_SHORT).show();
+        load();
+    }
+
     boolean showingOtherNotices() {
         return prefs().getBoolean(PREF_SHOW_OTHER, false);
     }
 
+    boolean filteringSystemGenerated() {
+        return prefs().getBoolean(PREF_FILTER_SYSTEM, false);
+    }
+
     boolean captureOtherNotices() {
         return prefs().getBoolean(PREF_CAPTURE_OTHER, false);
+    }
+
+    void updateFilterButton() {
+        if (filterBtn == null) return;
+        boolean active = filteringSystemGenerated();
+        filterBtn.setText(active ? "Filter on" : "Filter");
+        filterBtn.setTextColor(active ? android.graphics.Color.WHITE : getResources().getColor(R.color.brand_text));
+        filterBtn.setBackgroundResource(active ? R.drawable.bg_chip_selected : R.drawable.bg_chip);
     }
 
     String countLabel(int count, boolean otherMode) {
@@ -520,10 +547,44 @@ public class MainActivity extends Activity {
     }
 
     String emptyModeText(boolean otherMode) {
+        if (filteringSystemGenerated()) return otherMode
+                ? "No human-to-human notices match this view.\nTap Filter to show system notifications too."
+                : "No human-to-human WhatsApp messages match this view.\nTap Filter to show system notifications too.";
         if (otherMode) return captureOtherNotices()
                 ? "No other notices yet.\nNew non-WhatsApp notifications will appear here."
                 : "Tap Other notices to start capturing non-WhatsApp notifications.";
         return "No WhatsApp messages yet.\nNew WhatsApp alerts will appear here like chats.";
+    }
+
+    boolean isSystemGenerated(SavedMessage msg) {
+        String sender = normalizeForFilter(msg.sender);
+        String body = normalizeForFilter(msg.body);
+        String pkg = normalizeForFilter(msg.packageName);
+
+        if (isSystemBody(body)) return true;
+        if ((pkg.equals("com.whatsapp") || pkg.equals("com.whatsapp.w4b")) && sender.equals("whatsapp")) return true;
+        if (pkg.startsWith("android") || pkg.contains("systemui") || pkg.contains("launcher")) return true;
+        if (pkg.contains("packageinstaller") || pkg.contains("permissioncontroller")) return true;
+        if (pkg.contains("download") || pkg.contains("updater") || pkg.contains("settings")) return true;
+        if (pkg.equals("com.google.android.gms") || pkg.equals("com.android.vending")) return true;
+        return false;
+    }
+
+    boolean isSystemBody(String body) {
+        if (body.isEmpty()) return true;
+        if (body.equals("checking for new messages")) return true;
+        if (body.matches("\\d+ new messages?")) return true;
+        if (body.matches("\\d+ messages? from \\d+ chats?")) return true;
+        if (body.contains("checking for new messages")) return true;
+        if (body.contains("backup in progress") || body.contains("backup complete")) return true;
+        if (body.contains("whatsapp web is currently active")) return true;
+        if (body.contains("you may have new messages")) return true;
+        if (body.contains("new messages from")) return true;
+        return body.equals("new message") || body.equals("new messages");
+    }
+
+    String normalizeForFilter(String value) {
+        return value == null ? "" : value.trim().replaceAll("\\s+", " ").toLowerCase(Locale.US);
     }
 
     int daysForPosition(int position) {
