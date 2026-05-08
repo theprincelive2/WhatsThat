@@ -446,6 +446,7 @@ public class MainActivity extends Activity {
     void showMessageActions(SavedMessage msg) {
         boolean otherMode = showingOtherNotices();
         ArrayList<String> actions = new ArrayList<>();
+        if (isSystemGenerated(msg)) actions.add("Ignore system notices like this");
         actions.add("Delete this message");
         actions.add("Delete all from this sender");
         actions.add("Hide messages like this");
@@ -458,7 +459,9 @@ public class MainActivity extends Activity {
     }
 
     void handleMessageAction(String action, SavedMessage msg, boolean otherMode) {
-        if ("Delete this message".equals(action)) {
+        if ("Ignore system notices like this".equals(action)) {
+            confirmIgnoreSystemLikeThis(msg);
+        } else if ("Delete this message".equals(action)) {
             store.deleteMessage(msg.id);
             load();
         } else if ("Delete all from this sender".equals(action)) {
@@ -493,6 +496,21 @@ public class MainActivity extends Activity {
                     activeSender = null;
                     load();
                     Toast.makeText(this, "Hidden rule saved. Removed " + removed + " items.", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    void confirmIgnoreSystemLikeThis(SavedMessage msg) {
+        new AlertDialog.Builder(this)
+                .setTitle("Ignore system notices like this?")
+                .setMessage("Future matching system notices will not be saved, and existing matching copies will be removed.")
+                .setPositiveButton("Ignore", (dialog, which) -> {
+                    NotificationRules.hideSimilar(this, msg.packageName, msg.sender, msg.body);
+                    int removed = store.deleteSimilar(msg.packageName, msg.sender, msg.body);
+                    activeSender = null;
+                    load();
+                    Toast.makeText(this, "Ignored system notice. Removed " + removed + " items.", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
