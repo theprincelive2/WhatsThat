@@ -8,9 +8,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,6 +24,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -30,8 +33,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -63,6 +68,14 @@ public class StatusSaverActivity extends Activity {
     Button saveSelectedBtn;
     Button clearSelectionBtn;
     LinearLayout selectionRow;
+    LinearLayout previewCard;
+    ImageView previewImage;
+    TextView previewLabel;
+    TextView previewMeta;
+    TextView previewHint;
+    Button previewOpenBtn;
+    Button previewSaveBtn;
+    TextView listHeading;
     TextView sourceText;
     TextView folderText;
     TextView emptyText;
@@ -79,6 +92,7 @@ public class StatusSaverActivity extends Activity {
     String activeFilter = FILTER_ALL;
     boolean newestFirst = true;
     boolean refreshAfterWhatsAppLaunch = false;
+    StatusFile featuredFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -187,6 +201,17 @@ public class StatusSaverActivity extends Activity {
         folderText.setPadding(0, dp(6), 0, dp(6));
         root.addView(folderText);
 
+        previewCard = buildPreviewCard();
+        LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(-1, -2);
+        previewParams.setMargins(0, dp(10), 0, 0);
+        root.removeView(searchBox);
+        root.removeView(filterRow);
+        root.removeView(selectionRow);
+        root.addView(previewCard, previewParams);
+        root.addView(searchBox, buttonParams(10));
+        root.addView(filterRow, buttonParams(10));
+        root.addView(selectionRow, buttonParams(10));
+
         emptyText = copy("");
         emptyText.setGravity(Gravity.CENTER);
         emptyText.setPadding(dp(16), dp(28), dp(16), dp(28));
@@ -204,13 +229,20 @@ public class StatusSaverActivity extends Activity {
             if (!selectedUris.isEmpty()) {
                 toggleSelection(file);
             } else {
-                openStatusPreview(file);
+                featuredFile = file;
+                updateFeaturedStatus(findStatusDocumentId(savedTree(activeMode())) != null);
             }
         });
         listView.setOnItemLongClickListener((parent, view, position, id) -> {
             toggleSelection(visibleFiles.get(position));
             return true;
         });
+
+        listHeading = copy("Recent statuses");
+        listHeading.setTextColor(Color.rgb(17, 27, 24));
+        listHeading.setTypeface(Typeface.DEFAULT_BOLD);
+        listHeading.setPadding(0, dp(10), 0, dp(4));
+        root.addView(listHeading);
         root.addView(listView, new LinearLayout.LayoutParams(-1, 0, 1));
 
         setContentView(root);
@@ -314,6 +346,8 @@ public class StatusSaverActivity extends Activity {
             emptyText.setVisibility(View.VISIBLE);
             updateOpenWhatsAppButton(false);
             listView.setVisibility(View.GONE);
+            if (listHeading != null) listHeading.setVisibility(View.GONE);
+            updateFeaturedStatus(false);
             updateSelectionActions();
             listView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
             return;
@@ -346,8 +380,130 @@ public class StatusSaverActivity extends Activity {
         emptyText.setVisibility(visibleFiles.isEmpty() ? View.VISIBLE : View.GONE);
         updateOpenWhatsAppButton(shouldShowOpenWhatsAppButton(hasStatusFolder));
         listView.setVisibility(visibleFiles.isEmpty() ? View.GONE : View.VISIBLE);
+        if (listHeading != null) {
+            listHeading.setText(visibleFiles.size() <= 1 ? "Recent status" : "Recent statuses");
+            listHeading.setVisibility(visibleFiles.isEmpty() ? View.GONE : View.VISIBLE);
+        }
+        updateFeaturedStatus(hasStatusFolder);
         updateSelectionActions();
         listView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
+    }
+
+    LinearLayout buildPreviewCard() {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(dp(14), dp(14), dp(14), dp(14));
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.rgb(247, 250, 248));
+        bg.setCornerRadius(dp(22));
+        bg.setStroke(dp(1), Color.rgb(225, 232, 227));
+        card.setBackground(bg);
+
+        previewImage = new ImageView(this);
+        previewImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        previewImage.setBackgroundColor(Color.rgb(17, 27, 24));
+        card.addView(previewImage, new LinearLayout.LayoutParams(-1, dp(170)));
+
+        previewLabel = new TextView(this);
+        previewLabel.setTextColor(Color.rgb(17, 27, 24));
+        previewLabel.setTextSize(18);
+        previewLabel.setTypeface(Typeface.DEFAULT_BOLD);
+        previewLabel.setPadding(0, dp(12), 0, 0);
+        card.addView(previewLabel);
+
+        previewMeta = copy("");
+        previewMeta.setPadding(0, dp(5), 0, 0);
+        card.addView(previewMeta);
+
+        previewHint = copy("");
+        previewHint.setPadding(0, dp(5), 0, 0);
+        card.addView(previewHint);
+
+        LinearLayout actions = new LinearLayout(this);
+        actions.setOrientation(LinearLayout.HORIZONTAL);
+        actions.setPadding(0, dp(12), 0, 0);
+
+        previewOpenBtn = primaryButton("Preview");
+        previewOpenBtn.setOnClickListener(v -> {
+            if (featuredFile != null) openStatusPreview(featuredFile);
+        });
+        actions.addView(previewOpenBtn, new LinearLayout.LayoutParams(0, dp(46), 1));
+
+        previewSaveBtn = secondaryButton("Save");
+        previewSaveBtn.setOnClickListener(v -> {
+            if (featuredFile != null) saveStatus(featuredFile);
+        });
+        LinearLayout.LayoutParams saveParams = new LinearLayout.LayoutParams(0, dp(46), 1);
+        saveParams.setMargins(dp(10), 0, 0, 0);
+        actions.addView(previewSaveBtn, saveParams);
+        card.addView(actions);
+
+        card.setOnClickListener(v -> {
+            if (featuredFile != null) openStatusPreview(featuredFile);
+        });
+        return card;
+    }
+
+    void updateFeaturedStatus(boolean hasStatusFolder) {
+        if (previewCard == null) return;
+        if (!hasStatusFolder || visibleFiles.isEmpty()) {
+            featuredFile = null;
+            previewCard.setVisibility(View.GONE);
+            return;
+        }
+        if (featuredFile == null || !containsVisibleFile(featuredFile)) {
+            featuredFile = visibleFiles.get(0);
+        }
+        previewCard.setVisibility(View.VISIBLE);
+        previewImage.setPadding(0, 0, 0, 0);
+        if (featuredFile.isImage()) {
+            previewImage.setImageURI(featuredFile.uri);
+        } else {
+            Bitmap thumbnail = videoThumbnail(featuredFile);
+            if (thumbnail != null) {
+                previewImage.setImageBitmap(thumbnail);
+            } else {
+                previewImage.setImageResource(R.drawable.ic_video);
+                previewImage.setPadding(dp(54), dp(54), dp(54), dp(54));
+            }
+        }
+        previewLabel.setText(featuredFile.isVideo() ? "Video status" : "Photo status");
+        previewMeta.setText(featuredFile.name + " - " + sizeText(featuredFile.size));
+        previewHint.setText(featuredFile.modifiedAt > 0
+                ? DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, Locale.getDefault()).format(new Date(featuredFile.modifiedAt))
+                : "Tap another status below to preview it here.");
+        previewSaveBtn.setText(featuredFile.saved ? "Saved" : "Save");
+        previewSaveBtn.setEnabled(!featuredFile.saved);
+        styleButton(previewSaveBtn, false);
+    }
+
+    boolean containsVisibleFile(StatusFile file) {
+        String key = file.uri.toString();
+        for (StatusFile visible : visibleFiles) {
+            if (visible.uri.toString().equals(key)) return true;
+        }
+        return false;
+    }
+
+    String sizeText(long size) {
+        if (size <= 0) return "unknown size";
+        if (size >= 1024 * 1024) return String.format(Locale.getDefault(), "%.1f MB", size / 1024f / 1024f);
+        return String.format(Locale.getDefault(), "%.0f KB", size / 1024f);
+    }
+
+    Bitmap videoThumbnail(StatusFile file) {
+        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+        try {
+            retriever.setDataSource(this, file.uri);
+            return retriever.getFrameAtTime(1_000_000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+        } catch (Exception ignored) {
+            return null;
+        } finally {
+            try {
+                retriever.release();
+            } catch (Exception ignored) {
+            }
+        }
     }
 
     void toggleSelection(StatusFile file) {
