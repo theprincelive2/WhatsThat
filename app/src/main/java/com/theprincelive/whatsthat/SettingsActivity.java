@@ -35,12 +35,12 @@ public class SettingsActivity extends Activity {
 
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
-        scroll.setBackgroundColor(Color.rgb(245, 245, 247));
+        scroll.setBackgroundColor(Color.WHITE);
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(dp(22), dp(28), dp(22), dp(22));
-        root.setBackgroundColor(Color.rgb(245, 245, 247));
+        root.setBackgroundColor(Color.WHITE);
         scroll.addView(root, new ScrollView.LayoutParams(-1, -2));
 
         TextView title = title("Settings");
@@ -234,7 +234,7 @@ public class SettingsActivity extends Activity {
     TextView title(String text) {
         TextView view = new TextView(this);
         view.setText(text);
-        view.setTextColor(Color.rgb(29, 29, 31));
+        view.setTextColor(Color.rgb(17, 27, 24));
         view.setTextSize(28);
         view.setTypeface(Typeface.DEFAULT_BOLD);
         view.setIncludeFontPadding(false);
@@ -244,7 +244,7 @@ public class SettingsActivity extends Activity {
     TextView section(String text) {
         TextView view = new TextView(this);
         view.setText(text);
-        view.setTextColor(Color.rgb(10, 132, 255));
+        view.setTextColor(Color.rgb(0, 107, 85));
         view.setTextSize(15);
         view.setTypeface(Typeface.DEFAULT_BOLD);
         view.setPadding(0, dp(22), 0, dp(6));
@@ -265,7 +265,7 @@ public class SettingsActivity extends Activity {
         Button button = baseButton(text);
         button.setTextColor(Color.WHITE);
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.rgb(10, 132, 255));
+        bg.setColor(Color.rgb(0, 107, 85));
         bg.setCornerRadius(dp(18));
         button.setBackground(bg);
         return button;
@@ -273,11 +273,11 @@ public class SettingsActivity extends Activity {
 
     Button secondaryButton(String text) {
         Button button = baseButton(text);
-        button.setTextColor(Color.rgb(10, 132, 255));
+        button.setTextColor(Color.rgb(0, 107, 85));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.WHITE);
+        bg.setColor(Color.rgb(247, 248, 246));
         bg.setCornerRadius(dp(18));
-        bg.setStroke(dp(1), Color.rgb(216, 216, 222));
+        bg.setStroke(dp(1), Color.rgb(231, 234, 230));
         button.setBackground(bg);
         return button;
     }
