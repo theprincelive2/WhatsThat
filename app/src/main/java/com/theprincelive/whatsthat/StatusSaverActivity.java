@@ -601,6 +601,7 @@ public class StatusSaverActivity extends Activity {
             file.saved = true;
             return true;
         } catch (IOException e) {
+            getContentResolver().delete(target, null, null);
             if (showToast) Toast.makeText(this, "Could not save this status.", Toast.LENGTH_SHORT).show();
             return false;
         }

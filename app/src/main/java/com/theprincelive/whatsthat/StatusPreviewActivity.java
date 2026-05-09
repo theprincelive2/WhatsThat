@@ -151,6 +151,7 @@ public class StatusPreviewActivity extends Activity {
             if (saveButton != null) saveButton.setText("Save again");
             Toast.makeText(this, "Status saved.", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
+            getContentResolver().delete(target, null, null);
             Toast.makeText(this, "Could not save this status.", Toast.LENGTH_SHORT).show();
         }
     }
