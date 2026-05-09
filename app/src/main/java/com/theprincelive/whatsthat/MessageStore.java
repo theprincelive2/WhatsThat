@@ -199,6 +199,27 @@ public class MessageStore extends SQLiteOpenHelper {
         );
     }
 
+    public int deleteHiddenByRules() {
+        ArrayList<Long> ids = new ArrayList<>();
+        Cursor c = getReadableDatabase().rawQuery("SELECT id, sender, body, package_name FROM messages", null);
+        try {
+            while (c.moveToNext()) {
+                long id = c.getLong(0);
+                String sender = c.getString(1);
+                String body = c.getString(2);
+                String packageName = c.getString(3);
+                if (NotificationRules.isHidden(context, packageName, sender, body)) ids.add(id);
+            }
+        } finally { c.close(); }
+
+        int deleted = 0;
+        SQLiteDatabase db = getWritableDatabase();
+        for (Long id : ids) {
+            deleted += db.delete("messages", "id=?", new String[]{String.valueOf(id)});
+        }
+        return deleted;
+    }
+
     public int deleteOlderThanDays(int days) {
         if (days <= 0) return 0;
         long cutoff = System.currentTimeMillis() - (days * 24L * 60L * 60L * 1000L);

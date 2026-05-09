@@ -177,6 +177,7 @@ public class MainActivity extends Activity {
         statusText.setText(otherMode ? "Other notification inbox" : "WhatsApp notification inbox");
         applyRetention();
         store.deleteWhatsAppNoise();
+        store.deleteHiddenByRules();
 
         List<SavedMessage> rows = store.getRecentStructured(otherMode);
         String q = searchBox.getText().toString().toLowerCase(Locale.getDefault());
