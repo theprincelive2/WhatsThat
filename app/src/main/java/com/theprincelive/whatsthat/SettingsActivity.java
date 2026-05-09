@@ -19,8 +19,10 @@ import android.widget.Toast;
 public class SettingsActivity extends Activity {
     private static final String PREFS = "whatsthat_prefs";
     private static final String PREF_CAPTURE_OTHER = "capture_other_notices";
+    private static final String PREF_RETENTION_DAYS = "retention_days";
 
     Button otherCaptureBtn;
+    Button retentionBtn;
     Button lockBtn;
     Button disableLockBtn;
     Button hiddenRulesBtn;
@@ -54,6 +56,10 @@ public class SettingsActivity extends Activity {
         otherCaptureBtn = secondaryButton("");
         otherCaptureBtn.setOnClickListener(v -> toggleOtherCapture());
         root.addView(otherCaptureBtn, buttonParams(10));
+
+        retentionBtn = secondaryButton("");
+        retentionBtn.setOnClickListener(v -> showRetentionOptions());
+        root.addView(retentionBtn, buttonParams(10));
 
         Button statusSaverBtn = secondaryButton("WhatsApp Status Saver");
         statusSaverBtn.setOnClickListener(v -> startActivity(new Intent(this, StatusSaverActivity.class)));
@@ -96,6 +102,7 @@ public class SettingsActivity extends Activity {
         root.addView(copy("The app stores notification text locally on this phone. It cannot read old chats, muted WhatsApp chats, deleted messages, or anything that never appeared as a notification."));
 
         updateOtherButton();
+        updateRetentionButton();
         updateLockButtons();
         updateHiddenRulesButton();
         setContentView(scroll);
@@ -117,6 +124,49 @@ public class SettingsActivity extends Activity {
 
     void updateOtherButton() {
         otherCaptureBtn.setText(captureOther() ? "Stop Capturing Other Notices" : "Capture Other Notices");
+    }
+
+    void showRetentionOptions() {
+        String[] options = {"Keep forever", "Delete after 7 days", "Delete after 30 days", "Delete after 90 days"};
+        int current = positionForDays(prefs().getInt(PREF_RETENTION_DAYS, 0));
+        new AlertDialog.Builder(this)
+                .setTitle("Message Retention")
+                .setSingleChoiceItems(options, current, (dialog, which) -> {
+                    int days = daysForPosition(which);
+                    prefs().edit().putInt(PREF_RETENTION_DAYS, days).apply();
+                    if (days > 0) store.deleteOlderThanDays(days);
+                    updateRetentionButton();
+                    dialog.dismiss();
+                    Toast.makeText(this, retentionSummary(days), Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    void updateRetentionButton() {
+        if (retentionBtn == null) return;
+        retentionBtn.setText("Message Retention: " + retentionSummary(prefs().getInt(PREF_RETENTION_DAYS, 0)));
+    }
+
+    String retentionSummary(int days) {
+        if (days == 7) return "7 days";
+        if (days == 30) return "30 days";
+        if (days == 90) return "90 days";
+        return "Keep forever";
+    }
+
+    int daysForPosition(int position) {
+        if (position == 1) return 7;
+        if (position == 2) return 30;
+        if (position == 3) return 90;
+        return 0;
+    }
+
+    int positionForDays(int days) {
+        if (days == 7) return 1;
+        if (days == 30) return 2;
+        if (days == 90) return 3;
+        return 0;
     }
 
     void clearHiddenRules() {

@@ -9,12 +9,10 @@ import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.util.ArrayList;
@@ -51,7 +49,6 @@ public class MainActivity extends Activity {
     Button blockedRulesBtn;
     View exportBtn;
     View settingsBtn;
-    Spinner retentionSpinner;
     LinearLayout accessBanner;
     LinearLayout selectionRow;
     List<SavedMessage> visibleRows = new ArrayList<>();
@@ -87,7 +84,6 @@ public class MainActivity extends Activity {
         View statusSaverBtn = findViewById(R.id.statusSaverBtn);
         exportBtn = findViewById(R.id.exportBtn);
         settingsBtn = findViewById(R.id.settingsBtn);
-        retentionSpinner = findViewById(R.id.retentionSpinner);
         accessBanner = findViewById(R.id.accessBanner);
         View clear = findViewById(R.id.clearBtn);
 
@@ -139,7 +135,6 @@ public class MainActivity extends Activity {
             toggleSelection(msg);
             return true;
         });
-        setupRetention();
         requireUnlock();
         load();
         showOnboardingIfNeeded();
@@ -309,23 +304,6 @@ public class MainActivity extends Activity {
         list.post(() -> {
             list.setSelectionFromTop(position, savedListTop);
             restoreListPosition = false;
-        });
-    }
-
-    void setupRetention() {
-        int days = prefs().getInt(PREF_RETENTION_DAYS, 0);
-        retentionSpinner.setSelection(positionForDays(days));
-        retentionSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                int selectedDays = daysForPosition(position);
-                if (selectedDays != prefs().getInt(PREF_RETENTION_DAYS, 0)) {
-                    prefs().edit().putInt(PREF_RETENTION_DAYS, selectedDays).apply();
-                    applyRetention();
-                    load();
-                }
-            }
-
-            public void onNothingSelected(AdapterView<?> parent) { }
         });
     }
 
@@ -687,20 +665,6 @@ public class MainActivity extends Activity {
 
     String normalizeForFilter(String value) {
         return value == null ? "" : value.trim().replaceAll("\\s+", " ").toLowerCase(Locale.US);
-    }
-
-    int daysForPosition(int position) {
-        if (position == 1) return 7;
-        if (position == 2) return 30;
-        if (position == 3) return 90;
-        return 0;
-    }
-
-    int positionForDays(int days) {
-        if (days == 7) return 1;
-        if (days == 30) return 2;
-        if (days == 90) return 3;
-        return 0;
     }
 
     static class ThreadSummary {

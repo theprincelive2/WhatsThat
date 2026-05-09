@@ -184,15 +184,6 @@
                 android:textSize="11sp"
                 android:textStyle="bold" />
 
-            <Spinner
-                android:id="@+id/retentionSpinner"
-                android:layout_width="158dp"
-                android:layout_height="62dp"
-                android:layout_marginLeft="8dp"
-                android:background="@drawable/bg_chip"
-                android:entries="@array/retention_options"
-                android:paddingLeft="12dp"
-                android:paddingRight="12dp" />
         </LinearLayout>
     </HorizontalScrollView>
 

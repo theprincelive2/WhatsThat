@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844">
+  <rect width="390" height="844" rx="32" fill="#ffffff"/>
+  <rect width="390" height="190" fill="#006B55"/>
+  <text x="24" y="58" fill="#ffffff" font-family="Arial" font-size="28" font-weight="700">WhatsThat</text>
+  <text x="24" y="88" fill="#CDEDE3" font-family="Arial" font-size="15">WhatsApp notification inbox</text>
+  <rect x="24" y="112" width="342" height="50" rx="25" fill="#2C8C77"/>
+  <text x="60" y="144" fill="#D5EEE8" font-family="Arial" font-size="17">Search messages</text>
+  <text x="22" y="216" fill="#6F756C" font-family="Arial" font-size="12" font-weight="700">INBOX FILTERS</text>
+  <rect x="20" y="232" width="112" height="42" rx="21" fill="#006B55"/>
+  <rect x="140" y="232" width="104" height="42" rx="21" fill="#EFF1EF" stroke="#E7EAE6"/>
+  <rect x="252" y="232" width="118" height="42" rx="21" fill="#EFF1EF" stroke="#E7EAE6"/>
+  <text x="48" y="258" fill="#ffffff" font-family="Arial" font-size="13" font-weight="700">WhatsApp</text>
+  <text x="166" y="258" fill="#25302B" font-family="Arial" font-size="13" font-weight="700">Clean</text>
+  <text x="284" y="258" fill="#25302B" font-family="Arial" font-size="13" font-weight="700">Blocked</text>
+  <text x="22" y="306" fill="#6F756C" font-family="Arial" font-size="12">Small pills, more room for messages.</text>
+  <g fill="#ffffff" stroke="#E7EAE6">
+    <rect x="18" y="332" width="354" height="74" rx="18"/>
+    <rect x="18" y="418" width="354" height="74" rx="18"/>
+    <rect x="18" y="504" width="354" height="74" rx="18"/>
+  </g>
+  <g fill="#006B55"><circle cx="55" cy="369" r="24"/><circle cx="55" cy="455" r="24"/><circle cx="55" cy="541" r="24"/></g>
+  <g font-family="Arial"><text x="92" y="364" font-size="17" font-weight="700" fill="#171B18">Barima Amoaning</text><text x="92" y="388" font-size="14" fill="#6F756C">2 new messages</text><text x="318" y="364" font-size="13" fill="#006B55">18:12</text><text x="92" y="450" font-size="17" font-weight="700" fill="#171B18">Ama</text><text x="92" y="474" font-size="14" fill="#6F756C">Are you around?</text><text x="318" y="450" font-size="13" fill="#006B55">17:45</text><text x="92" y="536" font-size="17" font-weight="700" fill="#171B18">Kwame</text><text x="92" y="560" font-size="14" fill="#6F756C">Call me when free</text><text x="318" y="536" font-size="13" fill="#006B55">16:08</text></g>
+  <rect x="18" y="744" width="354" height="74" rx="24" fill="#FFFFFF" stroke="#E7EAE6"/>
+  <g fill="#25302B" font-family="Arial" font-size="11" font-weight="700"><text x="55" y="793">Status</text><text x="139" y="793">Export</text><text x="227" y="793">Clear</text><text x="305" y="793">Settings</text></g>
+  <text x="24" y="700" fill="#006B55" font-family="Arial" font-size="16" font-weight="700">Option C: Compact pills</text>
+</svg>
