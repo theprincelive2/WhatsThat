@@ -40,6 +40,7 @@ public class MainActivity extends Activity {
     TextView emptyText;
     TextView latestText;
     TextView statusText;
+    TextView privacyText;
     EditText searchBox;
     Button open;
     Button modeBtn;
@@ -72,6 +73,7 @@ public class MainActivity extends Activity {
         emptyText = findViewById(R.id.emptyText);
         latestText = findViewById(R.id.latestText);
         statusText = findViewById(R.id.statusText);
+        privacyText = findViewById(R.id.privacyText);
         searchBox = findViewById(R.id.searchBox);
         open = findViewById(R.id.openBtn);
         modeBtn = findViewById(R.id.modeBtn);
@@ -575,7 +577,7 @@ public class MainActivity extends Activity {
         prefs().edit().putBoolean(PREF_FILTER_SYSTEM, next).apply();
         selectedKeys.clear();
         activeSender = null;
-        Toast.makeText(this, next ? "System notifications hidden." : "Showing all saved notifications.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, next ? "Clean view hides system notices." : "Showing all saved notices.", Toast.LENGTH_SHORT).show();
         load();
     }
 
@@ -594,9 +596,15 @@ public class MainActivity extends Activity {
     void updateFilterButton() {
         if (filterBtn == null) return;
         boolean active = filteringSystemGenerated();
-        filterBtn.setText(active ? "Filter on" : "Filter");
+        filterBtn.setText(active ? "Clean view" : "All notices");
         filterBtn.setTextColor(active ? android.graphics.Color.WHITE : getResources().getColor(R.color.brand_text));
         filterBtn.setBackgroundResource(active ? R.drawable.bg_chip_selected : R.drawable.bg_chip);
+        filterBtn.setContentDescription(active ? "Clean view is hiding system notices" : "All notices are visible");
+        if (privacyText != null) {
+            privacyText.setText(active
+                    ? "Clean view hides system notices. Long-press a row for cleanup actions."
+                    : "All notices are visible, including system notices. Long-press a row for cleanup actions.");
+        }
     }
 
     String countLabel(int count, boolean otherMode) {
@@ -617,7 +625,7 @@ public class MainActivity extends Activity {
     }
 
     String filterSummary(int hiddenCount, String suffix) {
-        return "Filter hiding " + hiddenCount + (hiddenCount == 1 ? " system notice." : " system notices.") + suffix;
+        return "Clean view hiding " + hiddenCount + (hiddenCount == 1 ? " system notice." : " system notices.") + suffix;
     }
 
     String keyPart(String value) {
@@ -626,8 +634,8 @@ public class MainActivity extends Activity {
 
     String emptyModeText(boolean otherMode) {
         if (filteringSystemGenerated()) return otherMode
-                ? "No human-to-human notices match this view.\nTap Filter to show system notifications too."
-                : "No human-to-human WhatsApp messages match this view.\nTap Filter to show system notifications too.";
+                ? "No human-to-human notices match this view.\nTap Clean view to show system notifications too."
+                : "No human-to-human WhatsApp messages match this view.\nTap Clean view to show system notifications too.";
         if (otherMode) return captureOtherNotices()
                 ? "No other notices yet.\nNew non-WhatsApp notifications will appear here."
                 : "Tap Other notices to start capturing non-WhatsApp notifications.";

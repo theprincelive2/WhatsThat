@@ -152,7 +152,7 @@
                 android:minHeight="0dp"
                 android:paddingLeft="14dp"
                 android:paddingRight="14dp"
-                android:text="Filter"
+                android:text="Clean view"
                 android:textAllCaps="false"
                 android:textColor="@color/brand_text"
                 android:textSize="13sp"
@@ -299,7 +299,7 @@
         android:layout_marginLeft="14dp"
         android:layout_marginTop="10dp"
         android:layout_marginRight="14dp"
-        android:text="Tap Filter to hide system notices. Long-press a row for cleanup actions."
+        android:text="Clean view hides system notices. Long-press a row for cleanup actions."
         android:textColor="@color/brand_muted"
         android:textSize="12sp" />
 
