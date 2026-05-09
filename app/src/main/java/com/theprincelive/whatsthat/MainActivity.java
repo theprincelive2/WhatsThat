@@ -50,7 +50,7 @@ public class MainActivity extends Activity {
     Button hideSelectedBtn;
     Button clearSelectionBtn;
     Button blockedRulesBtn;
-    View exportBtn;
+    ImageButton exportBtn;
     ImageButton settingsBtn;
     Spinner retentionSpinner;
     LinearLayout accessBanner;
@@ -85,12 +85,12 @@ public class MainActivity extends Activity {
         hideSelectedBtn = findViewById(R.id.hideSelectedBtn);
         clearSelectionBtn = findViewById(R.id.clearSelectionBtn);
         blockedRulesBtn = findViewById(R.id.blockedRulesBtn);
-        View statusSaverBtn = findViewById(R.id.statusSaverBtn);
+        ImageButton statusSaverBtn = findViewById(R.id.statusSaverBtn);
         exportBtn = findViewById(R.id.exportBtn);
         settingsBtn = findViewById(R.id.settingsBtn);
         retentionSpinner = findViewById(R.id.retentionSpinner);
         accessBanner = findViewById(R.id.accessBanner);
-        View clear = findViewById(R.id.clearBtn);
+        ImageButton clear = findViewById(R.id.clearBtn);
 
         open.setOnClickListener(v -> startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));
         modeBtn.setOnClickListener(v -> showInboxMode(!showingOtherNotices()));

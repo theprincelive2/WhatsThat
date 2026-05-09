@@ -58,41 +58,21 @@
 
         </LinearLayout>
 
-        <LinearLayout
+        <EditText
+            android:id="@+id/searchBox"
             android:layout_width="match_parent"
             android:layout_height="46dp"
             android:layout_marginTop="18dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <EditText
-                android:id="@+id/searchBox"
-                android:layout_width="0dp"
-                android:layout_height="46dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_header_search"
-                android:drawableLeft="@drawable/ic_search"
-                android:drawablePadding="10dp"
-                android:hint="Search messages"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
-                android:singleLine="true"
-                android:textColor="@color/brand_ink"
-                android:textColorHint="@color/brand_muted"
-                android:textSize="15sp" />
-
-            <ImageButton
-                android:id="@+id/settingsBtn"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
-                android:layout_marginLeft="10dp"
-                android:background="@drawable/bg_chip"
-                android:backgroundTint="@null"
-                android:contentDescription="Settings"
-                android:padding="12dp"
-                android:scaleType="center"
-                android:src="@drawable/ic_settings" />
-        </LinearLayout>
+            android:background="@drawable/bg_header_search"
+            android:drawableLeft="@drawable/ic_search"
+            android:drawablePadding="10dp"
+            android:hint="Search messages"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:singleLine="true"
+            android:textColor="@color/brand_ink"
+            android:textColorHint="@color/brand_muted"
+            android:textSize="15sp" />
     </LinearLayout>
 
     <LinearLayout
@@ -130,31 +110,32 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-    <LinearLayout
+    <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:fillViewport="false"
+        android:overScrollMode="never"
         android:paddingLeft="16dp"
         android:paddingTop="12dp"
-        android:paddingRight="16dp">
+        android:paddingRight="16dp"
+        android:scrollbars="none">
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="46dp"
-            android:background="@drawable/bg_chip"
-            android:gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:orientation="horizontal">
 
             <Button
                 android:id="@+id/modeBtn"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
                 android:background="@drawable/bg_chip_selected"
                 android:backgroundTint="@null"
                 android:drawableLeft="@drawable/ic_chat"
                 android:drawablePadding="8dp"
                 android:minHeight="0dp"
+                android:paddingLeft="14dp"
+                android:paddingRight="14dp"
                 android:text="WhatsApp"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
@@ -163,13 +144,14 @@
 
             <Button
                 android:id="@+id/filterBtn"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="6dp"
-                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:layout_marginLeft="8dp"
                 android:background="@drawable/bg_chip"
                 android:backgroundTint="@null"
                 android:minHeight="0dp"
+                android:paddingLeft="14dp"
+                android:paddingRight="14dp"
                 android:text="Clean view"
                 android:textAllCaps="false"
                 android:textColor="@color/brand_text"
@@ -178,30 +160,83 @@
 
             <Button
                 android:id="@+id/blockedRulesBtn"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="6dp"
-                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:layout_marginLeft="8dp"
                 android:background="@drawable/bg_chip"
                 android:backgroundTint="@null"
                 android:minHeight="0dp"
+                android:paddingLeft="14dp"
+                android:paddingRight="14dp"
                 android:text="Blocked"
                 android:textAllCaps="false"
                 android:textColor="@color/brand_text"
                 android:textSize="13sp"
                 android:textStyle="bold" />
-        </LinearLayout>
 
-        <Spinner
-            android:id="@+id/retentionSpinner"
-            android:layout_width="match_parent"
-            android:layout_height="42dp"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/bg_chip"
-            android:entries="@array/retention_options"
-            android:paddingLeft="12dp"
-            android:paddingRight="12dp" />
-    </LinearLayout>
+            <ImageButton
+                android:id="@+id/statusSaverBtn"
+                android:layout_width="44dp"
+                android:layout_height="38dp"
+                android:layout_marginLeft="8dp"
+                android:background="@drawable/bg_chip"
+                android:backgroundTint="@null"
+                android:contentDescription="Status Saver"
+                android:minHeight="0dp"
+                android:padding="9dp"
+                android:scaleType="center"
+                android:src="@drawable/ic_status" />
+
+            <ImageButton
+                android:id="@+id/exportBtn"
+                android:layout_width="44dp"
+                android:layout_height="38dp"
+                android:layout_marginLeft="8dp"
+                android:background="@drawable/bg_chip"
+                android:backgroundTint="@null"
+                android:contentDescription="Export"
+                android:minHeight="0dp"
+                android:padding="9dp"
+                android:scaleType="center"
+                android:src="@drawable/ic_export" />
+
+            <ImageButton
+                android:id="@+id/clearBtn"
+                android:layout_width="44dp"
+                android:layout_height="38dp"
+                android:layout_marginLeft="8dp"
+                android:background="@drawable/bg_chip"
+                android:backgroundTint="@null"
+                android:contentDescription="Clear"
+                android:minHeight="0dp"
+                android:padding="9dp"
+                android:scaleType="center"
+                android:src="@drawable/ic_delete" />
+
+            <ImageButton
+                android:id="@+id/settingsBtn"
+                android:layout_width="44dp"
+                android:layout_height="38dp"
+                android:layout_marginLeft="8dp"
+                android:background="@drawable/bg_chip"
+                android:backgroundTint="@null"
+                android:contentDescription="Settings"
+                android:minHeight="0dp"
+                android:padding="9dp"
+                android:scaleType="center"
+                android:src="@drawable/ic_settings" />
+
+            <Spinner
+                android:id="@+id/retentionSpinner"
+                android:layout_width="158dp"
+                android:layout_height="38dp"
+                android:layout_marginLeft="8dp"
+                android:background="@drawable/bg_chip"
+                android:entries="@array/retention_options"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp" />
+        </LinearLayout>
+    </HorizontalScrollView>
 
     <LinearLayout
         android:id="@+id/selectionRow"
@@ -312,69 +347,5 @@
         android:paddingLeft="12dp"
         android:paddingRight="12dp"
         android:paddingBottom="16dp" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="82dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginBottom="10dp"
-        android:background="@drawable/bg_bottom_nav"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:paddingLeft="8dp"
-        android:paddingRight="8dp">
-
-        <Button
-            android:id="@+id/statusSaverBtn"
-            android:layout_width="0dp"
-            android:layout_height="66dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_nav_item"
-            android:backgroundTint="@null"
-            android:drawableTop="@drawable/ic_status"
-            android:drawablePadding="4dp"
-            android:minHeight="0dp"
-            android:paddingTop="7dp"
-            android:text="Status"
-            android:textAllCaps="false"
-            android:textColor="@color/brand_muted"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-
-        <Button
-            android:id="@+id/exportBtn"
-            android:layout_width="0dp"
-            android:layout_height="66dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_nav_item"
-            android:backgroundTint="@null"
-            android:drawableTop="@drawable/ic_export"
-            android:drawablePadding="4dp"
-            android:minHeight="0dp"
-            android:paddingTop="7dp"
-            android:text="Export"
-            android:textAllCaps="false"
-            android:textColor="@color/brand_muted"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-
-        <Button
-            android:id="@+id/clearBtn"
-            android:layout_width="0dp"
-            android:layout_height="66dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_nav_item"
-            android:backgroundTint="@null"
-            android:drawableTop="@drawable/ic_delete"
-            android:drawablePadding="4dp"
-            android:minHeight="0dp"
-            android:paddingTop="7dp"
-            android:text="Clear"
-            android:textAllCaps="false"
-            android:textColor="@color/brand_muted"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-    </LinearLayout>
 
 </LinearLayout>
