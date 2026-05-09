@@ -13,6 +13,12 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v3
+      - name: Build summary
+        run: |
+          VERSION_NAME=$(grep -m1 "versionName" app/build.gradle | awk '{ print $2 }' | tr -d "'\"")
+          VERSION_CODE=$(grep -m1 "versionCode" app/build.gradle | awk '{ print $2 }')
+          echo "WhatsThat $VERSION_NAME ($VERSION_CODE)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Debug APK is for testing. Release APK and AAB are built only when signing secrets are configured." >> "$GITHUB_STEP_SUMMARY"
       - name: Build debug APK
         run: ./gradlew assembleDebug --stacktrace
       - name: Build signed release APK and Play Store bundle
@@ -28,10 +34,22 @@ jobs:
           fi
           echo "$KEYSTORE_B64" | base64 -d > whats_that_keystore.jks
           ./gradlew assembleRelease bundleRelease -PWHATS_THAT_KEYSTORE=../whats_that_keystore.jks -PWHATS_THAT_STORE_PASSWORD="$STORE_PASSWORD" -PWHATS_THAT_KEY_ALIAS="$KEY_ALIAS" -PWHATS_THAT_KEY_PASSWORD="$KEY_PASSWORD" --stacktrace
-      - uses: actions/upload-artifact@v4
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
         with:
-          name: WhatsThat-V6-builds
-          path: |
-            app/build/outputs/apk/debug/*.apk
-            app/build/outputs/apk/release/*.apk
-            app/build/outputs/bundle/release/*.aab
+          name: WhatsThat-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+
+      - name: Upload signed release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: WhatsThat-release-apk
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: ignore
+
+      - name: Upload Play Store bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: WhatsThat-play-store-aab
+          path: app/build/outputs/bundle/release/*.aab
+          if-no-files-found: ignore
