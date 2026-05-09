@@ -2,29 +2,40 @@
 
 WhatsThat is a personal Android notification history app for saving WhatsApp notifications on the device after the phone owner grants Notification Access.
 
-## What it does
+## What It Does
 
-- Listens for WhatsApp notifications using Android NotificationListenerService
+- Listens for WhatsApp and WhatsApp Business notifications using Android NotificationListenerService
 - Saves sender, message text, package name, and timestamp locally
-- Shows captured messages in the app
-- Allows the user to clear saved history
+- Groups saved notices into a WhatsApp-style inbox and conversation view
+- Hides common system-generated notification noise with Clean view
+- Lets the user block, unblock, delete, export, and mark saved notices
+- Saves viewed WhatsApp statuses to local photo and video folders after folder approval
 
-## Privacy note
+## Privacy Note
 
-This app is intended only for the phone owner’s own device with clear permission. It cannot read old WhatsApp chats, muted chats that do not create notifications, or messages that never appeared in notifications.
+This app is intended only for the phone owner's own device with clear permission. It cannot read old WhatsApp chats, muted chats that do not create notifications, deleted messages, or messages that never appeared in notifications.
 
-## Build APK on GitHub
+## Build On GitHub
 
 1. Push the code to GitHub.
 2. Open the repository.
 3. Go to **Actions**.
-4. Run **Build Android APK**.
-5. Download the APK from the workflow artifacts.
+4. Run **Build Android**.
+5. Download one of the workflow artifacts:
+   - `WhatsThat-debug-apk` for testing.
+   - `WhatsThat-release-apk` for signed release APKs when signing secrets are configured.
+   - `WhatsThat-play-store-aab` for Play Store upload when signing secrets are configured.
 
-## Local build
+## Local Build
 
 ```bash
-gradle assembleDebug
+./gradlew assembleDebug
+```
+
+On Windows, use:
+
+```powershell
+.\gradlew.bat assembleDebug
 ```
 
 The debug APK will be generated at:
