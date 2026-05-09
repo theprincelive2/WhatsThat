@@ -363,6 +363,24 @@
         android:paddingRight="6dp">
 
         <Button
+            android:id="@+id/whatsappBtn"
+            android:layout_width="0dp"
+            android:layout_height="64dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_nav_item"
+            android:backgroundTint="@null"
+            android:contentDescription="WhatsApp inbox"
+            android:drawableTop="@drawable/ic_chat"
+            android:drawablePadding="4dp"
+            android:minHeight="0dp"
+            android:paddingTop="7dp"
+            android:text="WhatsApp"
+            android:textAllCaps="false"
+            android:textColor="@color/brand_text"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <Button
             android:id="@+id/statusSaverBtn"
             android:layout_width="0dp"
             android:layout_height="64dp"

@@ -84,6 +84,7 @@ public class MainActivity extends Activity {
         hideSelectedBtn = findViewById(R.id.hideSelectedBtn);
         clearSelectionBtn = findViewById(R.id.clearSelectionBtn);
         blockedRulesBtn = findViewById(R.id.blockedRulesBtn);
+        View whatsappBtn = findViewById(R.id.whatsappBtn);
         View statusSaverBtn = findViewById(R.id.statusSaverBtn);
         settingsBtn = findViewById(R.id.settingsBtn);
         accessBanner = findViewById(R.id.accessBanner);
@@ -93,6 +94,7 @@ public class MainActivity extends Activity {
         modeBtn.setOnClickListener(v -> showInboxMode(!showingOtherNotices()));
         filterBtn.setOnClickListener(v -> toggleSystemFilter());
         blockedRulesBtn.setOnClickListener(v -> startActivity(new Intent(this, HiddenRulesActivity.class)));
+        whatsappBtn.setOnClickListener(v -> showWhatsAppInbox());
         statusSaverBtn.setOnClickListener(v -> startActivity(new Intent(this, StatusSaverActivity.class)));
         clear.setOnClickListener(v -> confirmClearAll());
         settingsBtn.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
@@ -540,6 +542,15 @@ public class MainActivity extends Activity {
         searchBox.setText("");
         selectedKeys.clear();
         Toast.makeText(this, nextOtherMode ? "Other notifications will now be captured." : "Showing WhatsApp inbox.", Toast.LENGTH_SHORT).show();
+        load();
+    }
+
+    void showWhatsAppInbox() {
+        prefs().edit().putBoolean(PREF_SHOW_OTHER, false).apply();
+        activeSender = null;
+        selectedKeys.clear();
+        searchBox.setText("");
+        Toast.makeText(this, "Showing WhatsApp inbox.", Toast.LENGTH_SHORT).show();
         load();
     }
 
