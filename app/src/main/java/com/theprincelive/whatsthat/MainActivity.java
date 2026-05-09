@@ -49,6 +49,7 @@ public class MainActivity extends Activity {
     Button readSelectedBtn;
     Button hideSelectedBtn;
     Button clearSelectionBtn;
+    Button blockedRulesBtn;
     ImageButton exportBtn;
     ImageButton settingsBtn;
     Spinner retentionSpinner;
@@ -83,6 +84,7 @@ public class MainActivity extends Activity {
         readSelectedBtn = findViewById(R.id.readSelectedBtn);
         hideSelectedBtn = findViewById(R.id.hideSelectedBtn);
         clearSelectionBtn = findViewById(R.id.clearSelectionBtn);
+        blockedRulesBtn = findViewById(R.id.blockedRulesBtn);
         ImageButton statusSaverBtn = findViewById(R.id.statusSaverBtn);
         exportBtn = findViewById(R.id.exportBtn);
         settingsBtn = findViewById(R.id.settingsBtn);
@@ -93,6 +95,7 @@ public class MainActivity extends Activity {
         open.setOnClickListener(v -> startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));
         modeBtn.setOnClickListener(v -> showInboxMode(!showingOtherNotices()));
         filterBtn.setOnClickListener(v -> toggleSystemFilter());
+        blockedRulesBtn.setOnClickListener(v -> startActivity(new Intent(this, HiddenRulesActivity.class)));
         statusSaverBtn.setOnClickListener(v -> startActivity(new Intent(this, StatusSaverActivity.class)));
         clear.setOnClickListener(v -> confirmClearAll());
         settingsBtn.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
@@ -210,6 +213,7 @@ public class MainActivity extends Activity {
         modeBtn.setText(otherMode ? "Other notices" : "WhatsApp");
         modeBtn.setCompoundDrawablesWithIntrinsicBounds(otherMode ? R.drawable.ic_bell : R.drawable.ic_chat, 0, 0, 0);
         updateFilterButton();
+        updateBlockedRulesButton();
         emptyText.setText(emptyModeText(otherMode));
         emptyText.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
         list.setVisibility(filtered.isEmpty() ? View.GONE : View.VISIBLE);
@@ -605,6 +609,13 @@ public class MainActivity extends Activity {
                     ? "Clean view hides system notices. Long-press a row for cleanup actions."
                     : "All notices are visible, including system notices. Long-press a row for cleanup actions.");
         }
+    }
+
+    void updateBlockedRulesButton() {
+        if (blockedRulesBtn == null) return;
+        int count = NotificationRules.count(this);
+        blockedRulesBtn.setText(count == 0 ? "Blocked" : "Blocked (" + count + ")");
+        blockedRulesBtn.setContentDescription(count == 0 ? "Blocked notices" : count + " blocked notice rules");
     }
 
     String countLabel(int count, boolean otherMode) {
