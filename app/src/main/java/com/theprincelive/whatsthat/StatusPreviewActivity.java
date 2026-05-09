@@ -46,12 +46,12 @@ public class StatusPreviewActivity extends Activity {
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(Color.WHITE);
+        root.setBackgroundColor(Color.rgb(245, 245, 247));
         root.setPadding(dp(18), dp(24), dp(18), dp(18));
 
         TextView title = new TextView(this);
         title.setText(isVideo() ? "Video Status" : "Photo Status");
-        title.setTextColor(Color.rgb(17, 27, 24));
+        title.setTextColor(Color.rgb(29, 29, 31));
         title.setTextSize(24);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         title.setIncludeFontPadding(false);
@@ -201,7 +201,7 @@ public class StatusPreviewActivity extends Activity {
         Button button = baseButton(text);
         button.setTextColor(Color.WHITE);
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.rgb(0, 107, 85));
+        bg.setColor(Color.rgb(10, 132, 255));
         bg.setCornerRadius(dp(18));
         button.setBackground(bg);
         return button;
@@ -209,11 +209,11 @@ public class StatusPreviewActivity extends Activity {
 
     Button secondaryButton(String text) {
         Button button = baseButton(text);
-        button.setTextColor(Color.rgb(0, 107, 85));
+        button.setTextColor(Color.rgb(10, 132, 255));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.rgb(247, 248, 246));
+        bg.setColor(Color.WHITE);
         bg.setCornerRadius(dp(18));
-        bg.setStroke(dp(1), Color.rgb(231, 234, 230));
+        bg.setStroke(dp(1), Color.rgb(216, 216, 222));
         button.setBackground(bg);
         return button;
     }

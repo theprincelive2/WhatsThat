@@ -86,12 +86,12 @@ public class StatusSaverActivity extends Activity {
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(Color.WHITE);
+        root.setBackgroundColor(Color.rgb(245, 245, 247));
         root.setPadding(dp(18), dp(24), dp(18), dp(18));
 
         TextView title = new TextView(this);
         title.setText("Status Saver");
-        title.setTextColor(Color.rgb(17, 27, 24));
+        title.setTextColor(Color.rgb(29, 29, 31));
         title.setTextSize(26);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         title.setIncludeFontPadding(false);
@@ -178,7 +178,7 @@ public class StatusSaverActivity extends Activity {
         root.addView(selectionRow, buttonParams(10));
 
         sourceText = copy("");
-        sourceText.setTextColor(Color.rgb(0, 107, 85));
+        sourceText.setTextColor(Color.rgb(10, 132, 255));
         sourceText.setTypeface(Typeface.DEFAULT_BOLD);
         sourceText.setPadding(0, dp(14), 0, 0);
         root.addView(sourceText);
@@ -765,11 +765,11 @@ public class StatusSaverActivity extends Activity {
     }
 
     void styleButton(Button button, boolean primary) {
-        button.setTextColor(primary ? Color.WHITE : Color.rgb(0, 107, 85));
+        button.setTextColor(primary ? Color.WHITE : Color.rgb(10, 132, 255));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(primary ? Color.rgb(0, 107, 85) : Color.rgb(247, 248, 246));
+        bg.setColor(primary ? Color.rgb(10, 132, 255) : Color.WHITE);
         bg.setCornerRadius(dp(18));
-        if (!primary) bg.setStroke(dp(1), Color.rgb(231, 234, 230));
+        if (!primary) bg.setStroke(dp(1), Color.rgb(216, 216, 222));
         button.setBackground(bg);
     }
 

@@ -46,17 +46,17 @@ public class ConversationActivity extends Activity {
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(Color.rgb(236, 229, 221));
+        root.setBackgroundColor(Color.rgb(245, 245, 247));
 
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setGravity(Gravity.CENTER_VERTICAL);
-        header.setPadding(dp(14), dp(18), dp(14), dp(14));
-        header.setBackgroundColor(Color.rgb(0, 107, 85));
+        header.setPadding(dp(14), dp(20), dp(14), dp(14));
+        header.setBackgroundColor(Color.rgb(245, 245, 247));
 
         TextView back = new TextView(this);
         back.setText("<");
-        back.setTextColor(Color.WHITE);
+        back.setTextColor(Color.rgb(10, 132, 255));
         back.setTextSize(28);
         back.setGravity(Gravity.CENTER);
         back.setOnClickListener(v -> finish());
@@ -68,14 +68,14 @@ public class ConversationActivity extends Activity {
 
         TextView title = new TextView(this);
         title.setText(safe(sender));
-        title.setTextColor(Color.WHITE);
+        title.setTextColor(Color.rgb(29, 29, 31));
         title.setTextSize(19);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         title.setSingleLine(true);
         titleBlock.addView(title);
 
         subtitle = new TextView(this);
-        subtitle.setTextColor(Color.rgb(207, 234, 225));
+        subtitle.setTextColor(Color.rgb(110, 110, 115));
         subtitle.setTextSize(13);
         subtitle.setSingleLine(true);
         titleBlock.addView(subtitle);
@@ -89,7 +89,7 @@ public class ConversationActivity extends Activity {
         selectionRow = new LinearLayout(this);
         selectionRow.setOrientation(LinearLayout.HORIZONTAL);
         selectionRow.setPadding(dp(14), dp(10), dp(14), dp(4));
-        selectionRow.setBackgroundColor(Color.rgb(236, 229, 221));
+        selectionRow.setBackgroundColor(Color.rgb(245, 245, 247));
 
         deleteSelectedBtn = headerButton("Delete");
         deleteSelectedBtn.setOnClickListener(v -> confirmDeleteSelected());
@@ -157,8 +157,8 @@ public class ConversationActivity extends Activity {
         chip.setGravity(Gravity.CENTER);
         chip.setPadding(dp(12), dp(6), dp(12), dp(6));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.rgb(248, 249, 247));
-        bg.setCornerRadius(dp(12));
+        bg.setColor(Color.rgb(232, 232, 237));
+        bg.setCornerRadius(dp(14));
         chip.setBackground(bg);
         return chip;
     }
@@ -169,21 +169,21 @@ public class ConversationActivity extends Activity {
         bubble.setOrientation(LinearLayout.VERTICAL);
         bubble.setPadding(dp(14), dp(10), dp(14), dp(8));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(selected ? Color.rgb(220, 248, 198) : Color.WHITE);
-        if (selected) bg.setStroke(dp(2), Color.rgb(18, 140, 126));
-        bg.setCornerRadius(dp(10));
+        bg.setColor(selected ? Color.rgb(232, 244, 255) : Color.WHITE);
+        if (selected) bg.setStroke(dp(2), Color.rgb(10, 132, 255));
+        bg.setCornerRadius(dp(18));
         bubble.setBackground(bg);
 
         TextView body = new TextView(this);
         body.setText(safe(msg.body));
-        body.setTextColor(Color.rgb(17, 27, 24));
+        body.setTextColor(Color.rgb(29, 29, 31));
         body.setTextSize(16);
         body.setLineSpacing(dp(4), 1.0f);
         bubble.addView(body);
 
         TextView time = new TextView(this);
         time.setText(msg.messageCount > 1 ? safe(msg.shortTime) + " - x" + msg.messageCount : safe(msg.shortTime));
-        time.setTextColor(Color.rgb(91, 104, 98));
+        time.setTextColor(Color.rgb(110, 110, 115));
         time.setTextSize(11);
         time.setGravity(Gravity.RIGHT);
         time.setPadding(0, dp(6), 0, 0);
@@ -421,8 +421,8 @@ public class ConversationActivity extends Activity {
         button.setTypeface(Typeface.DEFAULT_BOLD);
         button.setTextColor(Color.WHITE);
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.rgb(18, 140, 126));
-        bg.setCornerRadius(dp(16));
+        bg.setColor(Color.rgb(10, 132, 255));
+        bg.setCornerRadius(dp(18));
         button.setBackground(bg);
         return button;
     }

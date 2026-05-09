@@ -47,18 +47,18 @@ public class LockActivity extends Activity {
         root.setOrientation(LinearLayout.VERTICAL);
         root.setGravity(Gravity.CENTER_HORIZONTAL);
         root.setPadding(dp(28), dp(56), dp(28), dp(28));
-        root.setBackgroundColor(Color.WHITE);
+        root.setBackgroundColor(Color.rgb(245, 245, 247));
 
         TextView brand = new TextView(this);
         brand.setText("WhatsThat");
-        brand.setTextColor(Color.rgb(0, 107, 85));
+        brand.setTextColor(Color.rgb(10, 132, 255));
         brand.setTextSize(30);
         brand.setTypeface(Typeface.DEFAULT_BOLD);
         brand.setIncludeFontPadding(false);
         root.addView(brand);
 
         title = new TextView(this);
-        title.setTextColor(Color.rgb(17, 27, 24));
+        title.setTextColor(Color.rgb(29, 29, 31));
         title.setTextSize(22);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         title.setGravity(Gravity.CENTER);
@@ -66,7 +66,7 @@ public class LockActivity extends Activity {
         root.addView(title);
 
         helper = new TextView(this);
-        helper.setTextColor(Color.rgb(91, 104, 98));
+        helper.setTextColor(Color.rgb(110, 110, 115));
         helper.setTextSize(14);
         helper.setGravity(Gravity.CENTER);
         helper.setLineSpacing(dp(4), 1.0f);
@@ -78,13 +78,14 @@ public class LockActivity extends Activity {
         pinInput.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
         pinInput.setFilters(new InputFilter[]{new InputFilter.LengthFilter(4)});
         pinInput.setTextSize(24);
-        pinInput.setTextColor(Color.rgb(17, 27, 24));
+        pinInput.setTextColor(Color.rgb(29, 29, 31));
+        pinInput.setHintTextColor(Color.rgb(174, 174, 178));
         pinInput.setHint("0000");
         pinInput.setSingleLine(true);
         GradientDrawable inputBg = new GradientDrawable();
-        inputBg.setColor(Color.rgb(247, 248, 246));
+        inputBg.setColor(Color.WHITE);
         inputBg.setCornerRadius(dp(18));
-        inputBg.setStroke(dp(1), Color.rgb(231, 234, 230));
+        inputBg.setStroke(dp(1), Color.rgb(216, 216, 222));
         pinInput.setBackground(inputBg);
         root.addView(pinInput, new LinearLayout.LayoutParams(-1, dp(58)));
 
@@ -250,11 +251,11 @@ public class LockActivity extends Activity {
         button.setAllCaps(false);
         button.setTextSize(14);
         button.setTypeface(Typeface.DEFAULT_BOLD);
-        button.setTextColor(primary ? Color.WHITE : Color.rgb(0, 107, 85));
+        button.setTextColor(primary ? Color.WHITE : Color.rgb(10, 132, 255));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(primary ? Color.rgb(0, 107, 85) : Color.WHITE);
+        bg.setColor(primary ? Color.rgb(10, 132, 255) : Color.WHITE);
         bg.setCornerRadius(dp(18));
-        if (!primary) bg.setStroke(dp(1), Color.rgb(231, 234, 230));
+        if (!primary) bg.setStroke(dp(1), Color.rgb(216, 216, 222));
         button.setBackground(bg);
         return button;
     }

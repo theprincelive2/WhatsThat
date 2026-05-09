@@ -1,3 +1,3 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <gradient android:startColor="@color/brand_header" android:endColor="@color/brand_header_dark" android:angle="135" />
+    <solid android:color="@color/brand_header" />
 </shape>

@@ -25,7 +25,7 @@ public class HiddenRulesActivity extends Activity {
 
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
-        scroll.setBackgroundColor(Color.WHITE);
+        scroll.setBackgroundColor(Color.rgb(245, 245, 247));
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -71,14 +71,14 @@ public class HiddenRulesActivity extends Activity {
         row.setOrientation(LinearLayout.VERTICAL);
         row.setPadding(dp(16), dp(14), dp(16), dp(14));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.rgb(247, 248, 246));
-        bg.setCornerRadius(dp(8));
-        bg.setStroke(dp(1), Color.rgb(231, 234, 230));
+        bg.setColor(Color.WHITE);
+        bg.setCornerRadius(dp(18));
+        bg.setStroke(dp(1), Color.rgb(216, 216, 222));
         row.setBackground(bg);
 
         TextView sender = new TextView(this);
         sender.setText(rule.sender);
-        sender.setTextColor(Color.rgb(17, 27, 24));
+        sender.setTextColor(Color.rgb(29, 29, 31));
         sender.setTextSize(16);
         sender.setTypeface(Typeface.DEFAULT_BOLD);
         sender.setSingleLine(true);
@@ -90,7 +90,7 @@ public class HiddenRulesActivity extends Activity {
 
         TextView pkg = new TextView(this);
         pkg.setText(AppLabels.label(this, rule.packageName));
-        pkg.setTextColor(Color.rgb(0, 107, 85));
+        pkg.setTextColor(Color.rgb(10, 132, 255));
         pkg.setTextSize(12);
         pkg.setPadding(0, dp(8), 0, 0);
         row.addView(pkg);
@@ -121,7 +121,7 @@ public class HiddenRulesActivity extends Activity {
     TextView title(String text) {
         TextView view = new TextView(this);
         view.setText(text);
-        view.setTextColor(Color.rgb(17, 27, 24));
+        view.setTextColor(Color.rgb(29, 29, 31));
         view.setTextSize(28);
         view.setTypeface(Typeface.DEFAULT_BOLD);
         view.setIncludeFontPadding(false);
@@ -144,11 +144,11 @@ public class HiddenRulesActivity extends Activity {
         button.setAllCaps(false);
         button.setTextSize(14);
         button.setTypeface(Typeface.DEFAULT_BOLD);
-        button.setTextColor(Color.rgb(0, 107, 85));
+        button.setTextColor(Color.rgb(10, 132, 255));
         GradientDrawable bg = new GradientDrawable();
         bg.setColor(Color.WHITE);
         bg.setCornerRadius(dp(18));
-        bg.setStroke(dp(1), Color.rgb(231, 234, 230));
+        bg.setStroke(dp(1), Color.rgb(216, 216, 222));
         button.setBackground(bg);
         return button;
     }

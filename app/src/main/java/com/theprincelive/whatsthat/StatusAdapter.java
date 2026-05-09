@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.media.MediaMetadataRetriever;
 import android.view.Gravity;
 import android.view.View;
@@ -51,12 +52,16 @@ class StatusAdapter extends BaseAdapter {
         LinearLayout row = new LinearLayout(context);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(dp(14), dp(10), dp(14), dp(10));
-        row.setBackgroundColor(selected ? Color.rgb(229, 245, 236) : (file.saved ? Color.rgb(247, 248, 246) : Color.TRANSPARENT));
+        row.setPadding(dp(12), dp(12), dp(12), dp(12));
+        GradientDrawable rowBg = new GradientDrawable();
+        rowBg.setColor(selected ? Color.rgb(232, 244, 255) : Color.WHITE);
+        rowBg.setCornerRadius(dp(18));
+        rowBg.setStroke(dp(1), file.saved ? Color.rgb(198, 226, 255) : Color.rgb(228, 228, 234));
+        row.setBackground(rowBg);
 
         ImageView preview = new ImageView(context);
         preview.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        preview.setBackgroundColor(Color.rgb(239, 241, 239));
+        preview.setBackgroundColor(Color.rgb(232, 232, 237));
         if (file.isImage()) {
             preview.setImageURI(file.uri);
         } else {
@@ -76,21 +81,21 @@ class StatusAdapter extends BaseAdapter {
 
         TextView title = new TextView(context);
         title.setText((selected ? "Selected - " : "") + (file.isVideo() ? "Video status" : "Photo status"));
-        title.setTextColor(Color.rgb(17, 27, 24));
+        title.setTextColor(Color.rgb(29, 29, 31));
         title.setTextSize(15);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         textWrap.addView(title);
 
         TextView meta = new TextView(context);
         meta.setText(file.name + " - " + sizeText(file.size));
-        meta.setTextColor(Color.rgb(91, 104, 98));
+        meta.setTextColor(Color.rgb(99, 99, 104));
         meta.setTextSize(13);
         meta.setPadding(0, dp(5), 0, 0);
         textWrap.addView(meta);
 
         TextView time = new TextView(context);
         time.setText(file.modifiedAt > 0 ? DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, Locale.getDefault()).format(new Date(file.modifiedAt)) : "");
-        time.setTextColor(Color.rgb(111, 117, 108));
+        time.setTextColor(Color.rgb(110, 110, 115));
         time.setTextSize(12);
         time.setPadding(0, dp(5), 0, 0);
         textWrap.addView(time);
@@ -100,7 +105,7 @@ class StatusAdapter extends BaseAdapter {
         if (file.saved) {
             TextView savedBadge = new TextView(context);
             savedBadge.setText("Saved");
-            savedBadge.setTextColor(Color.rgb(18, 108, 61));
+            savedBadge.setTextColor(Color.rgb(10, 132, 255));
             savedBadge.setTextSize(12);
             savedBadge.setTypeface(Typeface.DEFAULT_BOLD);
             savedBadge.setGravity(Gravity.CENTER);
@@ -109,7 +114,11 @@ class StatusAdapter extends BaseAdapter {
             badgeParams.setMargins(dp(10), 0, 0, 0);
             row.addView(savedBadge, badgeParams);
         }
-        return row;
+        LinearLayout outer = new LinearLayout(context);
+        outer.setOrientation(LinearLayout.VERTICAL);
+        outer.setPadding(0, 0, 0, dp(8));
+        outer.addView(row, new LinearLayout.LayoutParams(-1, -2));
+        return outer;
     }
 
     String sizeText(long size) {

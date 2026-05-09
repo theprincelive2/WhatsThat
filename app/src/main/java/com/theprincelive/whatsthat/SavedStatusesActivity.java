@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -49,12 +50,12 @@ public class SavedStatusesActivity extends Activity {
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(Color.WHITE);
+        root.setBackgroundColor(Color.rgb(245, 245, 247));
         root.setPadding(dp(18), dp(24), dp(18), dp(18));
 
         TextView title = new TextView(this);
         title.setText("Saved Statuses");
-        title.setTextColor(Color.rgb(17, 27, 24));
+        title.setTextColor(Color.rgb(29, 29, 31));
         title.setTextSize(26);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         title.setIncludeFontPadding(false);
@@ -68,7 +69,7 @@ public class SavedStatusesActivity extends Activity {
         refresh.setAllCaps(false);
         refresh.setTextSize(14);
         refresh.setTypeface(Typeface.DEFAULT_BOLD);
-        refresh.setTextColor(Color.rgb(0, 107, 85));
+        styleButton(refresh, false);
         refresh.setOnClickListener(v -> loadSavedStatuses());
         root.addView(refresh, buttonParams(14));
 
@@ -76,7 +77,10 @@ public class SavedStatusesActivity extends Activity {
         searchBox.setSingleLine(true);
         searchBox.setHint("Search saved statuses");
         searchBox.setTextSize(14);
+        searchBox.setTextColor(Color.rgb(29, 29, 31));
+        searchBox.setHintTextColor(Color.rgb(110, 110, 115));
         searchBox.setPadding(dp(14), 0, dp(14), 0);
+        searchBox.setBackground(inputBackground());
         searchBox.addTextChangedListener(new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -92,7 +96,7 @@ public class SavedStatusesActivity extends Activity {
         sortBtn.setAllCaps(false);
         sortBtn.setTextSize(14);
         sortBtn.setTypeface(Typeface.DEFAULT_BOLD);
-        sortBtn.setTextColor(Color.rgb(0, 107, 85));
+        styleButton(sortBtn, false);
         sortBtn.setOnClickListener(v -> {
             newestFirst = !newestFirst;
             applySearchAndSort();
@@ -110,7 +114,7 @@ public class SavedStatusesActivity extends Activity {
         clearSelectionBtn.setAllCaps(false);
         clearSelectionBtn.setTextSize(14);
         clearSelectionBtn.setTypeface(Typeface.DEFAULT_BOLD);
-        clearSelectionBtn.setTextColor(Color.rgb(0, 107, 85));
+        styleButton(clearSelectionBtn, false);
         clearSelectionBtn.setOnClickListener(v -> clearSelection());
         LinearLayout.LayoutParams clearParams = new LinearLayout.LayoutParams(0, dp(44), 1);
         clearParams.setMargins(dp(8), 0, 0, 0);
@@ -118,7 +122,7 @@ public class SavedStatusesActivity extends Activity {
         root.addView(selectionRow, buttonParams(10));
 
         countText = copy("");
-        countText.setTextColor(Color.rgb(0, 107, 85));
+        countText.setTextColor(Color.rgb(10, 132, 255));
         countText.setTypeface(Typeface.DEFAULT_BOLD);
         countText.setPadding(0, dp(14), 0, dp(6));
         root.addView(countText);
@@ -129,7 +133,7 @@ public class SavedStatusesActivity extends Activity {
         root.addView(emptyText, new LinearLayout.LayoutParams(-1, -2));
 
         listView = new ListView(this);
-        listView.setDividerHeight(1);
+        listView.setDividerHeight(0);
         listView.setCacheColorHint(Color.TRANSPARENT);
         listView.setOnItemClickListener((parent, view, position, id) -> {
             StatusFile file = visibleFiles.get(position);
@@ -307,7 +311,7 @@ public class SavedStatusesActivity extends Activity {
     TextView copy(String text) {
         TextView view = new TextView(this);
         view.setText(text);
-        view.setTextColor(Color.rgb(91, 104, 98));
+        view.setTextColor(Color.rgb(110, 110, 115));
         view.setTextSize(14);
         view.setLineSpacing(dp(4), 1.0f);
         view.setPadding(0, dp(8), 0, 0);
@@ -321,7 +325,29 @@ public class SavedStatusesActivity extends Activity {
         button.setTextSize(14);
         button.setTypeface(Typeface.DEFAULT_BOLD);
         button.setTextColor(Color.rgb(180, 35, 24));
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.WHITE);
+        bg.setCornerRadius(dp(18));
+        bg.setStroke(dp(1), Color.rgb(216, 216, 222));
+        button.setBackground(bg);
         return button;
+    }
+
+    void styleButton(Button button, boolean primary) {
+        button.setTextColor(primary ? Color.WHITE : Color.rgb(10, 132, 255));
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(primary ? Color.rgb(10, 132, 255) : Color.WHITE);
+        bg.setCornerRadius(dp(18));
+        if (!primary) bg.setStroke(dp(1), Color.rgb(216, 216, 222));
+        button.setBackground(bg);
+    }
+
+    GradientDrawable inputBackground() {
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.WHITE);
+        bg.setCornerRadius(dp(18));
+        bg.setStroke(dp(1), Color.rgb(216, 216, 222));
+        return bg;
     }
 
     LinearLayout.LayoutParams buttonParams(int topMargin) {
