@@ -22,7 +22,24 @@ public class NotificationRules {
 
     public static boolean isHidden(Context context, String packageName, String sender, String body) {
         Set<String> rules = prefs(context).getStringSet(PREF_HIDDEN_RULES, new HashSet<>());
-        return rules.contains(key(packageName, sender, body));
+        String targetKey = key(packageName, sender, body);
+        if (rules.contains(targetKey)) return true;
+
+        String targetPackage = norm(packageName);
+        String targetSender = norm(sender);
+        String targetBody = norm(body);
+        for (String value : rules) {
+            Rule rule = Rule.from(value, SEP);
+            if (rule == null) continue;
+            if (!norm(rule.packageName).equals(targetPackage)) continue;
+            String ruleSender = norm(rule.sender);
+            String ruleBody = norm(rule.body);
+            if (ruleSender.equals(targetSender) && ruleBody.equals(targetBody)) return true;
+            if (systemLike(ruleBody) || systemLike(targetBody)) {
+                if (systemSignature(ruleBody).equals(systemSignature(targetBody))) return true;
+            }
+        }
+        return false;
     }
 
     public static List<Rule> list(Context context) {
@@ -59,6 +76,27 @@ public class NotificationRules {
 
     private static String norm(String value) {
         return value == null ? "" : value.trim().replaceAll("\\s+", " ").toLowerCase(Locale.US);
+    }
+
+    private static boolean systemLike(String body) {
+        if (body == null || body.isEmpty()) return true;
+        if (body.contains("checking for new messages")) return true;
+        if (body.contains("new message")) return true;
+        if (body.contains("messages from")) return true;
+        if (body.contains("charging")) return true;
+        if (body.contains("downloading")) return true;
+        if (body.contains("download")) return true;
+        if (body.contains("backup")) return true;
+        return body.contains("running in the background");
+    }
+
+    private static String systemSignature(String body) {
+        String clean = norm(body);
+        clean = clean.replaceAll("\\b\\d+\\s*%\\b", "#%");
+        clean = clean.replaceAll("\\b\\d+(\\.\\d+)?\\s*(kb|mb|gb|b)/s\\b", "#speed");
+        clean = clean.replaceAll("\\b\\d+(\\.\\d+)?\\s*(kb|mb|gb|b)\\b", "#size");
+        clean = clean.replaceAll("\\b\\d+\\b", "#");
+        return clean;
     }
 
     public static class Rule {
