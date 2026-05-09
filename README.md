@@ -13,7 +13,7 @@ WhatsThat is a personal Android notification history app for saving WhatsApp not
 
 ## Privacy Note
 
-This app is intended only for the phone owner's own device with clear permission. It cannot read old WhatsApp chats, muted chats that do not create notifications, deleted messages, or messages that never appeared in notifications.
+This app is intended only for the phone owner's own device with clear permission. It cannot read old WhatsApp chats, muted chats that do not create notifications, deleted messages, or messages that never appeared in notifications. Local notification history is excluded from Android backup by default.
 
 ## Build On GitHub
 

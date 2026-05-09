@@ -7,7 +7,7 @@
   <package android:name="com.whatsapp.w4b" />
  </queries>
 
- <application android:name=".WhatsThatApp" android:label="WhatsThat" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher" android:theme="@android:style/Theme.Material.Light.NoActionBar">
+ <application android:name=".WhatsThatApp" android:label="WhatsThat" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher" android:allowBackup="false" android:fullBackupContent="false" android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
   <activity android:name=".MessageDetailActivity" android:exported="false" />
   <activity android:name=".ConversationActivity" android:exported="false" />
