@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.Editable;
@@ -23,11 +22,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 
 public class MainActivity extends Activity {
-    private static final int REQUEST_IMPORT_CSV = 72;
     private static final String PREFS = "whatsthat_prefs";
     private static final String PREF_RETENTION_DAYS = "retention_days";
     private static final String PREF_ONBOARDED = "onboarded";
@@ -53,8 +49,6 @@ public class MainActivity extends Activity {
     Button hideSelectedBtn;
     Button clearSelectionBtn;
     Button blockedRulesBtn;
-    View exportBtn;
-    View importBtn;
     View settingsBtn;
     LinearLayout accessBanner;
     LinearLayout selectionRow;
@@ -91,8 +85,6 @@ public class MainActivity extends Activity {
         clearSelectionBtn = findViewById(R.id.clearSelectionBtn);
         blockedRulesBtn = findViewById(R.id.blockedRulesBtn);
         View statusSaverBtn = findViewById(R.id.statusSaverBtn);
-        exportBtn = findViewById(R.id.exportBtn);
-        importBtn = findViewById(R.id.importBtn);
         settingsBtn = findViewById(R.id.settingsBtn);
         accessBanner = findViewById(R.id.accessBanner);
         View clear = findViewById(R.id.clearBtn);
@@ -104,8 +96,6 @@ public class MainActivity extends Activity {
         statusSaverBtn.setOnClickListener(v -> startActivity(new Intent(this, StatusSaverActivity.class)));
         clear.setOnClickListener(v -> confirmClearAll());
         settingsBtn.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
-        exportBtn.setOnClickListener(v -> shareCsv());
-        importBtn.setOnClickListener(v -> pickImportCsv());
         deleteSelectedBtn.setOnClickListener(v -> confirmDeleteSelected());
         readSelectedBtn.setOnClickListener(v -> markSelectedRead());
         hideSelectedBtn.setOnClickListener(v -> confirmHideSelected());
@@ -523,62 +513,6 @@ public class MainActivity extends Activity {
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
-    }
-
-    void shareCsv() {
-        String csv = store.exportCsv(showingOtherNotices());
-        if (csv.trim().equals("sender,message,app,package,received_at")) {
-            Toast.makeText(this, "No messages to export yet.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        Intent send = new Intent(Intent.ACTION_SEND);
-        send.setType("text/csv");
-        send.putExtra(Intent.EXTRA_SUBJECT, "WhatsThat message export");
-        send.putExtra(Intent.EXTRA_TEXT, csv);
-        startActivity(Intent.createChooser(send, "Export WhatsThat CSV"));
-    }
-
-    void pickImportCsv() {
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("*/*");
-        String[] types = {"text/csv", "text/comma-separated-values", "text/plain", "application/octet-stream"};
-        intent.putExtra(Intent.EXTRA_MIME_TYPES, types);
-        startActivityForResult(intent, REQUEST_IMPORT_CSV);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != REQUEST_IMPORT_CSV || resultCode != RESULT_OK || data == null || data.getData() == null) return;
-        importCsv(data.getData());
-    }
-
-    void importCsv(Uri uri) {
-        try {
-            String csv = readText(uri);
-            int imported = store.importCsv(csv);
-            activeSender = null;
-            selectedKeys.clear();
-            load();
-            Toast.makeText(this, "Imported " + imported + itemCountLabel(imported) + ".", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            Toast.makeText(this, "Could not import this file.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    String readText(Uri uri) throws Exception {
-        InputStream in = getContentResolver().openInputStream(uri);
-        if (in == null) throw new IllegalArgumentException("No input stream");
-        try {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            byte[] buffer = new byte[4096];
-            int read;
-            while ((read = in.read(buffer)) != -1) out.write(buffer, 0, read);
-            return out.toString("UTF-8");
-        } finally {
-            in.close();
-        }
     }
 
     void showOnboardingIfNeeded() {

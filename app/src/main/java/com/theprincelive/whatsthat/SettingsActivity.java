@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -15,8 +16,11 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 
 public class SettingsActivity extends Activity {
+    private static final int REQUEST_IMPORT_CSV = 72;
     private static final String PREFS = "whatsthat_prefs";
     private static final String PREF_CAPTURE_OTHER = "capture_other_notices";
     private static final String PREF_RETENTION_DAYS = "retention_days";
@@ -64,6 +68,14 @@ public class SettingsActivity extends Activity {
         Button statusSaverBtn = secondaryButton("WhatsApp Status Saver");
         statusSaverBtn.setOnClickListener(v -> startActivity(new Intent(this, StatusSaverActivity.class)));
         root.addView(statusSaverBtn, buttonParams(10));
+
+        Button exportBtn = secondaryButton("Export Messages");
+        exportBtn.setOnClickListener(v -> showExportOptions());
+        root.addView(exportBtn, buttonParams(10));
+
+        Button importBtn = secondaryButton("Import Messages");
+        importBtn.setOnClickListener(v -> pickImportCsv());
+        root.addView(importBtn, buttonParams(10));
 
         hiddenRulesBtn = secondaryButton("");
         hiddenRulesBtn.setOnClickListener(v -> clearHiddenRules());
@@ -124,6 +136,71 @@ public class SettingsActivity extends Activity {
 
     void updateOtherButton() {
         otherCaptureBtn.setText(captureOther() ? "Stop Capturing Other Notices" : "Capture Other Notices");
+    }
+
+    void showExportOptions() {
+        String[] options = {"WhatsApp messages", "Other notices"};
+        new AlertDialog.Builder(this)
+                .setTitle("Export Messages")
+                .setItems(options, (dialog, which) -> shareCsv(which == 1))
+                .show();
+    }
+
+    void shareCsv(boolean otherNotices) {
+        String csv = store.exportCsv(otherNotices);
+        if (csv.trim().equals("sender,message,app,package,received_at")) {
+            Toast.makeText(this, "No messages to export yet.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Intent send = new Intent(Intent.ACTION_SEND);
+        send.setType("text/csv");
+        send.putExtra(Intent.EXTRA_SUBJECT, "WhatsThat message export");
+        send.putExtra(Intent.EXTRA_TEXT, csv);
+        startActivity(Intent.createChooser(send, "Export WhatsThat CSV"));
+    }
+
+    void pickImportCsv() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        String[] types = {"text/csv", "text/comma-separated-values", "text/plain", "application/octet-stream"};
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, types);
+        startActivityForResult(intent, REQUEST_IMPORT_CSV);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != REQUEST_IMPORT_CSV || resultCode != RESULT_OK || data == null || data.getData() == null) return;
+        importCsv(data.getData());
+    }
+
+    void importCsv(Uri uri) {
+        try {
+            String csv = readText(uri);
+            int imported = store.importCsv(csv);
+            Toast.makeText(this, "Imported " + imported + itemCountLabel(imported) + ".", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "Could not import this file.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    String readText(Uri uri) throws Exception {
+        InputStream in = getContentResolver().openInputStream(uri);
+        if (in == null) throw new IllegalArgumentException("No input stream");
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int read;
+            while ((read = in.read(buffer)) != -1) out.write(buffer, 0, read);
+            return out.toString("UTF-8");
+        } finally {
+            in.close();
+        }
+    }
+
+    String itemCountLabel(int count) {
+        return count == 1 ? " item" : " items";
     }
 
     void showRetentionOptions() {

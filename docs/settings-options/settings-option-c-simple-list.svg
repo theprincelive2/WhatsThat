@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844">
+  <rect width="390" height="844" rx="32" fill="#FFFFFF"/>
+  <text x="24" y="58" fill="#171B18" font-family="Arial" font-size="30" font-weight="700">Settings</text>
+  <text x="24" y="88" fill="#6F756C" font-family="Arial" font-size="14">Simple, clean, easy to scan</text>
+  <text x="24" y="126" fill="#006B55" font-family="Arial" font-size="16" font-weight="700">Option C: Simple list</text>
+  <rect x="18" y="150" width="354" height="604" rx="20" fill="#FFFFFF" stroke="#E7EAE6"/>
+  <g stroke="#E7EAE6"><line x1="38" y1="226" x2="352" y2="226"/><line x1="38" y1="302" x2="352" y2="302"/><line x1="38" y1="378" x2="352" y2="378"/><line x1="38" y1="454" x2="352" y2="454"/><line x1="38" y1="530" x2="352" y2="530"/><line x1="38" y1="606" x2="352" y2="606"/><line x1="38" y1="682" x2="352" y2="682"/></g>
+  <g font-family="Arial">
+    <text x="38" y="194" font-size="17" font-weight="700" fill="#171B18">Notification Access</text><text x="38" y="214" font-size="13" fill="#6F756C">Open Android access screen</text>
+    <text x="38" y="270" font-size="17" font-weight="700" fill="#171B18">Capture Other Notices</text><text x="38" y="290" font-size="13" fill="#6F756C">Off</text>
+    <text x="38" y="346" font-size="17" font-weight="700" fill="#171B18">Message Retention</text><text x="38" y="366" font-size="13" fill="#6F756C">Keep forever</text>
+    <text x="38" y="422" font-size="17" font-weight="700" fill="#171B18">Export Messages</text><text x="38" y="442" font-size="13" fill="#6F756C">Share a WhatsThat CSV</text>
+    <text x="38" y="498" font-size="17" font-weight="700" fill="#171B18">Import Messages</text><text x="38" y="518" font-size="13" fill="#6F756C">Restore from exported CSV</text>
+    <text x="38" y="574" font-size="17" font-weight="700" fill="#171B18">Blocked Notices</text><text x="38" y="594" font-size="13" fill="#6F756C">Review hidden rules</text>
+    <text x="38" y="650" font-size="17" font-weight="700" fill="#171B18">App Lock</text><text x="38" y="670" font-size="13" fill="#6F756C">PIN and biometric security</text>
+    <text x="38" y="726" font-size="17" font-weight="700" fill="#171B18">Privacy Limits</text><text x="38" y="746" font-size="13" fill="#6F756C">What the app can and cannot save</text>
+  </g>
+</svg>
