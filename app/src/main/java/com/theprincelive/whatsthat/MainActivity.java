@@ -12,7 +12,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -50,8 +49,8 @@ public class MainActivity extends Activity {
     Button hideSelectedBtn;
     Button clearSelectionBtn;
     Button blockedRulesBtn;
-    ImageButton exportBtn;
-    ImageButton settingsBtn;
+    View exportBtn;
+    View settingsBtn;
     Spinner retentionSpinner;
     LinearLayout accessBanner;
     LinearLayout selectionRow;
@@ -85,12 +84,12 @@ public class MainActivity extends Activity {
         hideSelectedBtn = findViewById(R.id.hideSelectedBtn);
         clearSelectionBtn = findViewById(R.id.clearSelectionBtn);
         blockedRulesBtn = findViewById(R.id.blockedRulesBtn);
-        ImageButton statusSaverBtn = findViewById(R.id.statusSaverBtn);
+        View statusSaverBtn = findViewById(R.id.statusSaverBtn);
         exportBtn = findViewById(R.id.exportBtn);
         settingsBtn = findViewById(R.id.settingsBtn);
         retentionSpinner = findViewById(R.id.retentionSpinner);
         accessBanner = findViewById(R.id.accessBanner);
-        ImageButton clear = findViewById(R.id.clearBtn);
+        View clear = findViewById(R.id.clearBtn);
 
         open.setOnClickListener(v -> startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));
         modeBtn.setOnClickListener(v -> showInboxMode(!showingOtherNotices()));
@@ -212,7 +211,7 @@ public class MainActivity extends Activity {
             latestText.setText(count == 0 ? emptyModeText(otherMode) : "Latest: " + filtered.get(0).time);
         }
         modeBtn.setText(otherMode ? "Other notices" : "WhatsApp");
-        modeBtn.setCompoundDrawablesWithIntrinsicBounds(otherMode ? R.drawable.ic_bell : R.drawable.ic_chat, 0, 0, 0);
+        modeBtn.setCompoundDrawablesWithIntrinsicBounds(0, otherMode ? R.drawable.ic_bell : R.drawable.ic_chat, 0, 0);
         updateFilterButton();
         updateBlockedRulesButton();
         emptyText.setText(emptyModeText(otherMode));
