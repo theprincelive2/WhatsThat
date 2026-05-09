@@ -237,10 +237,9 @@ public class StatusSaverActivity extends Activity {
     }
 
     void selectMode(String mode) {
-        String previousMode = activeMode();
         prefs().edit().putString(PREF_STATUS_MODE, mode).apply();
         Uri saved = savedTree(mode);
-        if (saved == null || previousMode.equals(mode)) {
+        if (saved == null) {
             chooseStatusFolder(MODE_BUSINESS.equals(mode) ? BUSINESS_STATUS_DOC : WHATSAPP_STATUS_DOC, mode);
         } else {
             loadStatuses();
@@ -250,7 +249,7 @@ public class StatusSaverActivity extends Activity {
     void showMoreActions() {
         String[] actions = {
                 "Saved Statuses",
-                "Choose " + modeLabel(activeMode()) + " Folder Manually",
+                "Change " + modeLabel(activeMode()) + " Folder",
                 newestFirst ? "Sort: Oldest First" : "Sort: Newest First"
         };
         new AlertDialog.Builder(this)
@@ -319,7 +318,7 @@ public class StatusSaverActivity extends Activity {
             listView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
             return;
         }
-        folderText.setText(modeLabel(mode) + " status folder is set. Tap the same button again to change it.");
+        folderText.setText(modeLabel(mode) + " status folder is set. Use Options to change it.");
         boolean hasStatusFolder = findStatusDocumentId(tree) != null;
         allFiles.addAll(queryStatuses(tree));
         sortAllFiles();
@@ -689,8 +688,8 @@ public class StatusSaverActivity extends Activity {
         String mode = activeMode();
         boolean whatsappSet = savedTree(MODE_WHATSAPP) != null;
         boolean businessSet = savedTree(MODE_BUSINESS) != null;
-        findWhatsAppBtn.setText(MODE_WHATSAPP.equals(mode) && whatsappSet ? "Change WhatsApp" : (whatsappSet ? "WhatsApp Set" : "Find WhatsApp"));
-        findBusinessBtn.setText(MODE_BUSINESS.equals(mode) && businessSet ? "Change Business" : (businessSet ? "Business Set" : "Business"));
+        findWhatsAppBtn.setText(whatsappSet ? "WhatsApp" : "Set WhatsApp");
+        findBusinessBtn.setText(businessSet ? "Business" : "Set Business");
         styleButton(findWhatsAppBtn, MODE_WHATSAPP.equals(mode));
         styleButton(findBusinessBtn, MODE_BUSINESS.equals(mode));
         chooseBtn.setText("Options");
