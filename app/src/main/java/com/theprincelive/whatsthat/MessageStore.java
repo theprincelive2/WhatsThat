@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -37,8 +38,8 @@ public class MessageStore extends SQLiteOpenHelper {
         }
     }
 
-    public void saveMessage(String sender, String body, String packageName, long receivedAt) {
-        if (body == null || body.trim().isEmpty()) return;
+    public boolean saveMessage(String sender, String body, String packageName, long receivedAt) {
+        if (body == null || body.trim().isEmpty()) return false;
         String cleanBody = clean(body);
         String cleanSender = clean(sender);
         String cleanPackage = clean(packageName);
@@ -49,7 +50,7 @@ public class MessageStore extends SQLiteOpenHelper {
                 new String[]{cleanPackage, cleanSender, cleanBody, String.valueOf(duplicateCutoff)}
         );
         try {
-            if (c.moveToFirst()) return;
+            if (c.moveToFirst()) return false;
         } finally { c.close(); }
         ContentValues values = new ContentValues();
         values.put("sender", cleanSender);
@@ -57,7 +58,7 @@ public class MessageStore extends SQLiteOpenHelper {
         values.put("package_name", cleanPackage);
         values.put("received_at", receivedAt);
         values.put("read_at", 0);
-        db.insert("messages", null, values);
+        return db.insert("messages", null, values) != -1;
     }
 
     public List<SavedMessage> getRecentStructured(boolean otherNotices) {
@@ -144,6 +145,28 @@ public class MessageStore extends SQLiteOpenHelper {
 
     public String exportCsv() {
         return exportCsv(false);
+    }
+
+    public int importCsv(String csvText) {
+        if (csvText == null || csvText.trim().isEmpty()) return 0;
+        ArrayList<List<String>> rows = parseCsv(csvText);
+        int imported = 0;
+        boolean first = true;
+        for (List<String> row : rows) {
+            if (row.size() < 5) continue;
+            if (first && "sender".equalsIgnoreCase(row.get(0).trim()) && "message".equalsIgnoreCase(row.get(1).trim())) {
+                first = false;
+                continue;
+            }
+            first = false;
+            String sender = row.get(0);
+            String body = row.get(1);
+            String packageName = row.get(3);
+            long receivedAt = parseExportTime(row.get(4));
+            if (body == null || body.trim().isEmpty()) continue;
+            if (saveMessage(sender, body, packageName, receivedAt)) imported++;
+        }
+        return imported;
     }
 
     public int markConversationRead(String packageName, String sender) {
@@ -258,6 +281,54 @@ public class MessageStore extends SQLiteOpenHelper {
     private String csv(String value) {
         String safe = value == null ? "" : value.replace("\"", "\"\"");
         return "\"" + safe + "\"";
+    }
+
+    private long parseExportTime(String value) {
+        if (value == null || value.trim().isEmpty()) return System.currentTimeMillis();
+        try {
+            return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).parse(value.trim()).getTime();
+        } catch (ParseException ignored) {
+            return System.currentTimeMillis();
+        }
+    }
+
+    private ArrayList<List<String>> parseCsv(String text) {
+        ArrayList<List<String>> rows = new ArrayList<>();
+        ArrayList<String> row = new ArrayList<>();
+        StringBuilder cell = new StringBuilder();
+        boolean quoted = false;
+        for (int i = 0; i < text.length(); i++) {
+            char ch = text.charAt(i);
+            if (quoted) {
+                if (ch == '"') {
+                    if (i + 1 < text.length() && text.charAt(i + 1) == '"') {
+                        cell.append('"');
+                        i++;
+                    } else {
+                        quoted = false;
+                    }
+                } else {
+                    cell.append(ch);
+                }
+            } else if (ch == '"') {
+                quoted = true;
+            } else if (ch == ',') {
+                row.add(cell.toString());
+                cell.setLength(0);
+            } else if (ch == '\n') {
+                row.add(cell.toString());
+                cell.setLength(0);
+                rows.add(row);
+                row = new ArrayList<>();
+            } else if (ch != '\r') {
+                cell.append(ch);
+            }
+        }
+        if (cell.length() > 0 || !row.isEmpty()) {
+            row.add(cell.toString());
+            rows.add(row);
+        }
+        return rows;
     }
 
     private String dateLabel(long time) {
