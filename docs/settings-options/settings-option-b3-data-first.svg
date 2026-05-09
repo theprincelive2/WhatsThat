@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844">
+  <rect width="390" height="844" rx="32" fill="#FFFFFF"/>
+  <rect width="390" height="140" fill="#006B55"/>
+  <text x="24" y="58" fill="#FFFFFF" font-family="Arial" font-size="28" font-weight="700">Settings</text>
+  <text x="24" y="88" fill="#CDEDE3" font-family="Arial" font-size="14">Backup and privacy controls</text>
+  <text x="24" y="166" fill="#006B55" font-family="Arial" font-size="16" font-weight="700">B3: Data first</text>
+  <rect x="18" y="190" width="354" height="150" rx="22" fill="#FFFFFF" stroke="#E7EAE6"/>
+  <text x="38" y="224" fill="#6F756C" font-family="Arial" font-size="12" font-weight="700">DATA MANAGEMENT</text>
+  <text x="38" y="258" fill="#171B18" font-family="Arial" font-size="22" font-weight="700">Export or restore messages</text>
+  <text x="38" y="284" fill="#6F756C" font-family="Arial" font-size="14">Works with WhatsThat CSV files</text>
+  <rect x="38" y="300" width="140" height="34" rx="17" fill="#006B55"/>
+  <text x="85" y="322" fill="#FFFFFF" font-family="Arial" font-size="13" font-weight="700">Export</text>
+  <rect x="190" y="300" width="140" height="34" rx="17" fill="#EFF1EF" stroke="#E7EAE6"/>
+  <text x="238" y="322" fill="#25302B" font-family="Arial" font-size="13" font-weight="700">Import</text>
+  <g stroke="#E7EAE6"><rect x="18" y="366" width="168" height="106" rx="18" fill="#E5F5EC" stroke="#CFE7DC"/><rect x="204" y="366" width="168" height="106" rx="18" fill="#FFFFFF"/><rect x="18" y="492" width="168" height="106" rx="18" fill="#FFFFFF"/><rect x="204" y="492" width="168" height="106" rx="18" fill="#FFFFFF"/></g>
+  <g font-family="Arial">
+    <text x="38" y="400" fill="#006B55" font-size="12" font-weight="700">CAPTURE</text><text x="38" y="435" fill="#171B18" font-size="20" font-weight="700">WhatsApp</text>
+    <text x="224" y="400" fill="#6F756C" font-size="12" font-weight="700">RETENTION</text><text x="224" y="435" fill="#171B18" font-size="20" font-weight="700">Forever</text>
+    <text x="38" y="526" fill="#6F756C" font-size="12" font-weight="700">SECURITY</text><text x="38" y="561" fill="#171B18" font-size="20" font-weight="700">PIN Off</text>
+    <text x="224" y="526" fill="#6F756C" font-size="12" font-weight="700">RULES</text><text x="224" y="561" fill="#171B18" font-size="20" font-weight="700">Blocked</text>
+  </g>
+  <g fill="#FFFFFF" stroke="#E7EAE6"><rect x="18" y="626" width="354" height="58" rx="16"/><rect x="18" y="696" width="354" height="58" rx="16"/></g>
+  <g font-family="Arial" font-size="17" font-weight="700" fill="#171B18"><text x="38" y="662">Status Saver</text><text x="38" y="732">Privacy Limits</text></g>
+</svg>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844">
+  <rect width="390" height="844" rx="32" fill="#FFFFFF"/>
+  <rect width="390" height="148" fill="#006B55"/>
+  <text x="24" y="58" fill="#FFFFFF" font-family="Arial" font-size="28" font-weight="700">Settings</text>
+  <text x="24" y="88" fill="#CDEDE3" font-family="Arial" font-size="14">Security and storage dashboard</text>
+  <text x="24" y="174" fill="#006B55" font-family="Arial" font-size="16" font-weight="700">B4: Security tiles</text>
+  <rect x="18" y="198" width="354" height="120" rx="22" fill="#FFFFFF" stroke="#E7EAE6"/>
+  <text x="38" y="232" fill="#6F756C" font-family="Arial" font-size="12" font-weight="700">APP LOCK</text>
+  <text x="38" y="268" fill="#171B18" font-family="Arial" font-size="24" font-weight="700">PIN not set</text>
+  <rect x="254" y="244" width="88" height="38" rx="19" fill="#006B55"/>
+  <text x="282" y="268" fill="#FFFFFF" font-family="Arial" font-size="13" font-weight="700">Set</text>
+  <g stroke="#E7EAE6"><rect x="18" y="344" width="168" height="106" rx="18" fill="#FFFFFF"/><rect x="204" y="344" width="168" height="106" rx="18" fill="#FFFFFF"/><rect x="18" y="470" width="168" height="106" rx="18" fill="#E5F5EC" stroke="#CFE7DC"/><rect x="204" y="470" width="168" height="106" rx="18" fill="#FFFFFF"/></g>
+  <g font-family="Arial">
+    <text x="38" y="378" fill="#6F756C" font-size="12" font-weight="700">BIOMETRIC</text><text x="38" y="413" fill="#171B18" font-size="20" font-weight="700">Off</text>
+    <text x="224" y="378" fill="#6F756C" font-size="12" font-weight="700">LOCK CLOSE</text><text x="224" y="413" fill="#171B18" font-size="20" font-weight="700">Off</text>
+    <text x="38" y="504" fill="#006B55" font-size="12" font-weight="700">DATA</text><text x="38" y="539" fill="#171B18" font-size="20" font-weight="700">Export</text>
+    <text x="224" y="504" fill="#6F756C" font-size="12" font-weight="700">RESTORE</text><text x="224" y="539" fill="#171B18" font-size="20" font-weight="700">Import</text>
+  </g>
+  <g fill="#FFFFFF" stroke="#E7EAE6"><rect x="18" y="602" width="354" height="58" rx="16"/><rect x="18" y="672" width="354" height="58" rx="16"/></g>
+  <g font-family="Arial" font-size="17" font-weight="700" fill="#171B18"><text x="38" y="638">Capture Other Notices</text><text x="38" y="708">Message Retention</text></g>
+</svg>

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844">
+  <rect width="390" height="844" rx="32" fill="#FFFFFF"/>
+  <rect width="390" height="148" fill="#006B55"/>
+  <text x="24" y="58" fill="#FFFFFF" font-family="Arial" font-size="28" font-weight="700">Settings</text>
+  <text x="24" y="88" fill="#CDEDE3" font-family="Arial" font-size="14">Dashboard view</text>
+  <text x="24" y="174" fill="#006B55" font-family="Arial" font-size="16" font-weight="700">B1: Compact tiles</text>
+  <g stroke="#E7EAE6">
+    <rect x="18" y="198" width="168" height="92" rx="18" fill="#E5F5EC" stroke="#CFE7DC"/>
+    <rect x="204" y="198" width="168" height="92" rx="18" fill="#FFFFFF"/>
+    <rect x="18" y="308" width="168" height="92" rx="18" fill="#FFFFFF"/>
+    <rect x="204" y="308" width="168" height="92" rx="18" fill="#FFFFFF"/>
+  </g>
+  <g font-family="Arial">
+    <text x="38" y="230" fill="#006B55" font-size="12" font-weight="700">CAPTURE</text>
+    <text x="38" y="260" fill="#171B18" font-size="19" font-weight="700">Other Off</text>
+    <text x="224" y="230" fill="#6F756C" font-size="12" font-weight="700">RETENTION</text>
+    <text x="224" y="260" fill="#171B18" font-size="19" font-weight="700">Forever</text>
+    <text x="38" y="340" fill="#6F756C" font-size="12" font-weight="700">LOCK</text>
+    <text x="38" y="370" fill="#171B18" font-size="19" font-weight="700">PIN Off</text>
+    <text x="224" y="340" fill="#6F756C" font-size="12" font-weight="700">BLOCKED</text>
+    <text x="224" y="370" fill="#171B18" font-size="19" font-weight="700">0 rules</text>
+  </g>
+  <rect x="18" y="428" width="354" height="96" rx="18" fill="#FFFFFF" stroke="#E7EAE6"/>
+  <text x="38" y="462" fill="#6F756C" font-family="Arial" font-size="12" font-weight="700">DATA TOOLS</text>
+  <rect x="38" y="478" width="140" height="34" rx="17" fill="#006B55"/>
+  <text x="85" y="500" fill="#FFFFFF" font-family="Arial" font-size="13" font-weight="700">Export</text>
+  <rect x="190" y="478" width="140" height="34" rx="17" fill="#EFF1EF" stroke="#E7EAE6"/>
+  <text x="238" y="500" fill="#25302B" font-family="Arial" font-size="13" font-weight="700">Import</text>
+  <g fill="#FFFFFF" stroke="#E7EAE6"><rect x="18" y="548" width="354" height="58" rx="16"/><rect x="18" y="618" width="354" height="58" rx="16"/><rect x="18" y="688" width="354" height="58" rx="16"/></g>
+  <g font-family="Arial" font-size="17" font-weight="700" fill="#171B18"><text x="38" y="584">WhatsApp Status Saver</text><text x="38" y="654">Cleanup Tools</text><text x="38" y="724">Privacy Limits</text></g>
+</svg>

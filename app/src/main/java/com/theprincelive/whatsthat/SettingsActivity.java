@@ -41,63 +41,85 @@ public class SettingsActivity extends Activity {
 
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
-        scroll.setBackgroundColor(Color.WHITE);
+        scroll.setBackgroundColor(Color.rgb(255, 255, 255));
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(22), dp(28), dp(22), dp(22));
+        root.setPadding(dp(18), 0, dp(18), dp(24));
         root.setBackgroundColor(Color.WHITE);
         scroll.addView(root, new ScrollView.LayoutParams(-1, -2));
 
+        LinearLayout header = new LinearLayout(this);
+        header.setOrientation(LinearLayout.VERTICAL);
+        header.setPadding(dp(6), dp(28), dp(6), dp(22));
+        header.setBackgroundColor(Color.rgb(0, 107, 85));
+        root.addView(header, new LinearLayout.LayoutParams(-1, -2));
+
         TextView title = title("Settings");
-        root.addView(title);
-        root.addView(copy("Control what WhatsThat captures and review the privacy limits of notification history."));
+        title.setTextColor(Color.WHITE);
+        header.addView(title);
+        TextView intro = copy("Security and storage dashboard");
+        intro.setTextColor(Color.rgb(205, 237, 227));
+        header.addView(intro);
+
+        root.addView(section("App Lock"));
+
+        LinearLayout lockCard = dashboardCard();
+        TextView lockLabel = smallLabel("APP LOCK");
+        lockCard.addView(lockLabel);
+        lockBtn = primaryButton("");
+        lockBtn.setTextSize(18);
+        lockBtn.setOnClickListener(v -> openLockSetup());
+        lockCard.addView(lockBtn, new LinearLayout.LayoutParams(-1, dp(54)));
+        root.addView(lockCard, cardParams(6));
+
+        LinearLayout securityRow = tileRow();
+        biometricBtn = tileButton("");
+        biometricBtn.setOnClickListener(v -> toggleBiometric());
+        securityRow.addView(biometricBtn, tileParams(0));
+
+        lockOnCloseBtn = tileButton("");
+        lockOnCloseBtn.setOnClickListener(v -> toggleLockOnClose());
+        securityRow.addView(lockOnCloseBtn, tileParams(8));
+        root.addView(securityRow, cardParams(10));
 
         Button access = primaryButton("Open Notification Access");
         access.setOnClickListener(v -> startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));
-        root.addView(access, buttonParams(18));
+        root.addView(access, buttonParams(10));
 
-        otherCaptureBtn = secondaryButton("");
-        otherCaptureBtn.setOnClickListener(v -> toggleOtherCapture());
-        root.addView(otherCaptureBtn, buttonParams(10));
+        root.addView(section("Data"));
+        LinearLayout dataRow = tileRow();
+        Button exportBtn = tileButton("Export\nMessages");
+        exportBtn.setOnClickListener(v -> showExportOptions());
+        dataRow.addView(exportBtn, tileParams(0));
 
-        retentionBtn = secondaryButton("");
+        Button importBtn = tileButton("Import\nMessages");
+        importBtn.setOnClickListener(v -> pickImportCsv());
+        dataRow.addView(importBtn, tileParams(8));
+        root.addView(dataRow, cardParams(6));
+
+        retentionBtn = rowButton("");
         retentionBtn.setOnClickListener(v -> showRetentionOptions());
         root.addView(retentionBtn, buttonParams(10));
 
-        Button statusSaverBtn = secondaryButton("WhatsApp Status Saver");
-        statusSaverBtn.setOnClickListener(v -> startActivity(new Intent(this, StatusSaverActivity.class)));
-        root.addView(statusSaverBtn, buttonParams(10));
-
-        Button exportBtn = secondaryButton("Export Messages");
-        exportBtn.setOnClickListener(v -> showExportOptions());
-        root.addView(exportBtn, buttonParams(10));
-
-        Button importBtn = secondaryButton("Import Messages");
-        importBtn.setOnClickListener(v -> pickImportCsv());
-        root.addView(importBtn, buttonParams(10));
-
-        hiddenRulesBtn = secondaryButton("");
-        hiddenRulesBtn.setOnClickListener(v -> clearHiddenRules());
-        root.addView(hiddenRulesBtn, buttonParams(10));
-
-        Button cleanupBtn = secondaryButton("Cleanup Tools");
+        Button cleanupBtn = rowButton("Cleanup Tools");
         cleanupBtn.setOnClickListener(v -> showCleanupTools());
         root.addView(cleanupBtn, buttonParams(10));
 
-        lockBtn = secondaryButton("");
-        lockBtn.setOnClickListener(v -> openLockSetup());
-        root.addView(lockBtn, buttonParams(10));
+        root.addView(section("Capture"));
+        otherCaptureBtn = rowButton("");
+        otherCaptureBtn.setOnClickListener(v -> toggleOtherCapture());
+        root.addView(otherCaptureBtn, buttonParams(6));
 
-        lockOnCloseBtn = secondaryButton("");
-        lockOnCloseBtn.setOnClickListener(v -> toggleLockOnClose());
-        root.addView(lockOnCloseBtn, buttonParams(10));
+        Button statusSaverBtn = rowButton("WhatsApp Status Saver");
+        statusSaverBtn.setOnClickListener(v -> startActivity(new Intent(this, StatusSaverActivity.class)));
+        root.addView(statusSaverBtn, buttonParams(10));
 
-        biometricBtn = secondaryButton("");
-        biometricBtn.setOnClickListener(v -> toggleBiometric());
-        root.addView(biometricBtn, buttonParams(10));
+        hiddenRulesBtn = rowButton("");
+        hiddenRulesBtn.setOnClickListener(v -> clearHiddenRules());
+        root.addView(hiddenRulesBtn, buttonParams(10));
 
-        disableLockBtn = secondaryButton("Turn Off App Lock");
+        disableLockBtn = rowButton("Turn Off App Lock");
         disableLockBtn.setOnClickListener(v -> openLockDisable());
         root.addView(disableLockBtn, buttonParams(10));
 
@@ -378,6 +400,16 @@ public class SettingsActivity extends Activity {
         return view;
     }
 
+    TextView smallLabel(String text) {
+        TextView view = new TextView(this);
+        view.setText(text);
+        view.setTextColor(Color.rgb(111, 117, 108));
+        view.setTextSize(12);
+        view.setTypeface(Typeface.DEFAULT_BOLD);
+        view.setPadding(0, 0, 0, dp(10));
+        return view;
+    }
+
     TextView copy(String text) {
         TextView view = new TextView(this);
         view.setText(text);
@@ -409,6 +441,32 @@ public class SettingsActivity extends Activity {
         return button;
     }
 
+    Button tileButton(String text) {
+        Button button = baseButton(text);
+        button.setTextColor(Color.rgb(23, 27, 24));
+        button.setTextSize(15);
+        button.setPadding(dp(10), dp(8), dp(10), dp(8));
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.WHITE);
+        bg.setCornerRadius(dp(18));
+        bg.setStroke(dp(1), Color.rgb(231, 234, 230));
+        button.setBackground(bg);
+        return button;
+    }
+
+    Button rowButton(String text) {
+        Button button = baseButton(text);
+        button.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        button.setTextColor(Color.rgb(23, 27, 24));
+        button.setPadding(dp(18), 0, dp(18), 0);
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.WHITE);
+        bg.setCornerRadius(dp(16));
+        bg.setStroke(dp(1), Color.rgb(231, 234, 230));
+        button.setBackground(bg);
+        return button;
+    }
+
     Button baseButton(String text) {
         Button button = new Button(this);
         button.setText(text);
@@ -420,6 +478,36 @@ public class SettingsActivity extends Activity {
 
     LinearLayout.LayoutParams buttonParams(int topMargin) {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, dp(50));
+        params.setMargins(0, dp(topMargin), 0, 0);
+        return params;
+    }
+
+    LinearLayout dashboardCard() {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(dp(18), dp(16), dp(18), dp(16));
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.WHITE);
+        bg.setCornerRadius(dp(22));
+        bg.setStroke(dp(1), Color.rgb(231, 234, 230));
+        card.setBackground(bg);
+        return card;
+    }
+
+    LinearLayout tileRow() {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        return row;
+    }
+
+    LinearLayout.LayoutParams tileParams(int leftMargin) {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, dp(106), 1);
+        params.setMargins(dp(leftMargin), 0, 0, 0);
+        return params;
+    }
+
+    LinearLayout.LayoutParams cardParams(int topMargin) {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
         params.setMargins(0, dp(topMargin), 0, 0);
         return params;
     }
