@@ -3,6 +3,7 @@ package com.theprincelive.whatsthat;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.os.Bundle;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import java.util.Locale;
@@ -19,10 +20,10 @@ public class WhatsNotificationService extends NotificationListenerService {
         boolean whatsapp = pkg.equals(PKG_MAIN) || pkg.equals(PKG_BUSINESS);
         if (!whatsapp && !captureOtherNotices()) return;
 
-        CharSequence titleCs = sbn.getNotification().extras.getCharSequence("android.title");
-        CharSequence textCs = sbn.getNotification().extras.getCharSequence("android.text");
+        Bundle extras = sbn.getNotification().extras;
+        CharSequence titleCs = extras.getCharSequence("android.title");
         String title = titleCs == null ? appLabel(pkg) : titleCs.toString();
-        String text = textCs == null ? "" : textCs.toString();
+        String text = notificationText(extras);
         if (text.trim().isEmpty()) return;
         if (whatsapp && isWhatsAppNoise(title, text)) return;
         if (!whatsapp && isSystemNoise(pkg, title, text)) return;
@@ -30,6 +31,26 @@ public class WhatsNotificationService extends NotificationListenerService {
         if (NotificationRules.isHidden(getApplicationContext(), pkg, title, text)) return;
 
         new MessageStore(getApplicationContext()).saveMessage(title, text, pkg, System.currentTimeMillis());
+    }
+
+    private String notificationText(Bundle extras) {
+        CharSequence text = extras.getCharSequence("android.text");
+        if (hasText(text)) return text.toString();
+
+        CharSequence bigText = extras.getCharSequence("android.bigText");
+        if (hasText(bigText)) return bigText.toString();
+
+        CharSequence[] lines = extras.getCharSequenceArray("android.textLines");
+        if (lines != null) {
+            for (int i = lines.length - 1; i >= 0; i--) {
+                if (hasText(lines[i])) return lines[i].toString();
+            }
+        }
+        return "";
+    }
+
+    private boolean hasText(CharSequence value) {
+        return value != null && !value.toString().trim().isEmpty();
     }
 
     private boolean captureOtherNotices() {
