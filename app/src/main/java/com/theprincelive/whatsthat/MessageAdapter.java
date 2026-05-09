@@ -120,6 +120,18 @@ public class MessageAdapter extends BaseAdapter {
         body.setPadding(0, dp(5), 0, 0);
         content.addView(body);
 
+        String meta = metaText(msg, system);
+        if (!meta.isEmpty()) {
+            TextView metaView = new TextView(context);
+            metaView.setText(meta);
+            metaView.setTextColor(system ? Color.rgb(138, 106, 49) : Color.rgb(91, 104, 98));
+            metaView.setTextSize(12);
+            metaView.setSingleLine(true);
+            metaView.setEllipsize(TextUtils.TruncateAt.END);
+            metaView.setPadding(0, dp(4), 0, 0);
+            content.addView(metaView);
+        }
+
         row.addView(content, new LinearLayout.LayoutParams(0, -2, 1));
 
         TextView badge = new TextView(context);
@@ -197,6 +209,19 @@ public class MessageAdapter extends BaseAdapter {
         bg.setCornerRadius(dp(11));
         badge.setBackground(bg);
         return badge;
+    }
+
+    private String metaText(SavedMessage msg, boolean system) {
+        if (system) return "System-generated notice";
+        if (msg.messageCount <= 1) return "";
+        if (msg.unreadCount > 0) {
+            return msg.unreadCount + countLabel(msg.unreadCount, " unread") + " in " + msg.messageCount + countLabel(msg.messageCount, " saved notice");
+        }
+        return msg.messageCount + countLabel(msg.messageCount, " saved notice");
+    }
+
+    private String countLabel(int count, String label) {
+        return count == 1 ? label : label + "s";
     }
 
     private int avatarColor(int position) {
