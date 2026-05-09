@@ -24,6 +24,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -75,6 +76,9 @@ public class StatusSaverActivity extends Activity {
     TextView previewHint;
     Button previewOpenBtn;
     Button previewSaveBtn;
+    TextView galleryHeading;
+    HorizontalScrollView galleryScroller;
+    LinearLayout galleryStrip;
     TextView listHeading;
     TextView sourceText;
     TextView folderText;
@@ -208,6 +212,21 @@ public class StatusSaverActivity extends Activity {
         root.removeView(filterRow);
         root.removeView(selectionRow);
         root.addView(previewCard, previewParams);
+
+        galleryHeading = copy("Media gallery");
+        galleryHeading.setTextColor(Color.rgb(17, 27, 24));
+        galleryHeading.setTypeface(Typeface.DEFAULT_BOLD);
+        galleryHeading.setPadding(0, dp(12), 0, dp(4));
+        root.addView(galleryHeading);
+
+        galleryStrip = new LinearLayout(this);
+        galleryStrip.setOrientation(LinearLayout.HORIZONTAL);
+        galleryStrip.setPadding(0, 0, dp(2), 0);
+        galleryScroller = new HorizontalScrollView(this);
+        galleryScroller.setHorizontalScrollBarEnabled(false);
+        galleryScroller.addView(galleryStrip, new HorizontalScrollView.LayoutParams(-2, -2));
+        root.addView(galleryScroller, new LinearLayout.LayoutParams(-1, dp(92)));
+
         root.addView(searchBox, buttonParams(10));
         root.addView(filterRow, buttonParams(10));
         root.addView(selectionRow, buttonParams(10));
@@ -348,6 +367,7 @@ public class StatusSaverActivity extends Activity {
             listView.setVisibility(View.GONE);
             if (listHeading != null) listHeading.setVisibility(View.GONE);
             updateFeaturedStatus(false);
+            updateGalleryStrip(false);
             updateSelectionActions();
             listView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
             return;
@@ -385,6 +405,7 @@ public class StatusSaverActivity extends Activity {
             listHeading.setVisibility(visibleFiles.isEmpty() ? View.GONE : View.VISIBLE);
         }
         updateFeaturedStatus(hasStatusFolder);
+        updateGalleryStrip(hasStatusFolder);
         updateSelectionActions();
         listView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
     }
@@ -483,6 +504,60 @@ public class StatusSaverActivity extends Activity {
             if (visible.uri.toString().equals(key)) return true;
         }
         return false;
+    }
+
+    void updateGalleryStrip(boolean hasStatusFolder) {
+        if (galleryHeading == null || galleryScroller == null || galleryStrip == null) return;
+        galleryStrip.removeAllViews();
+        if (!hasStatusFolder || visibleFiles.isEmpty()) {
+            galleryHeading.setVisibility(View.GONE);
+            galleryScroller.setVisibility(View.GONE);
+            return;
+        }
+        galleryHeading.setVisibility(View.VISIBLE);
+        galleryScroller.setVisibility(View.VISIBLE);
+        galleryHeading.setText("Media gallery (" + visibleFiles.size() + ")");
+        String featuredKey = featuredFile == null ? "" : featuredFile.uri.toString();
+        for (StatusFile file : visibleFiles) {
+            galleryStrip.addView(galleryTile(file, file.uri.toString().equals(featuredKey)));
+        }
+    }
+
+    View galleryTile(StatusFile file, boolean selected) {
+        LinearLayout tile = new LinearLayout(this);
+        tile.setOrientation(LinearLayout.VERTICAL);
+        tile.setGravity(Gravity.CENTER);
+        tile.setPadding(dp(3), dp(3), dp(3), dp(3));
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(selected ? Color.rgb(229, 245, 236) : Color.rgb(247, 248, 246));
+        bg.setCornerRadius(dp(14));
+        bg.setStroke(dp(selected ? 2 : 1), selected ? Color.rgb(0, 107, 85) : Color.rgb(225, 232, 227));
+        tile.setBackground(bg);
+
+        ImageView thumb = new ImageView(this);
+        thumb.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        thumb.setBackgroundColor(Color.rgb(17, 27, 24));
+        if (file.isImage()) {
+            thumb.setImageURI(file.uri);
+        } else {
+            Bitmap thumbnail = videoThumbnail(file);
+            if (thumbnail != null) {
+                thumb.setImageBitmap(thumbnail);
+            } else {
+                thumb.setImageResource(R.drawable.ic_video);
+                thumb.setPadding(dp(18), dp(18), dp(18), dp(18));
+            }
+        }
+        tile.addView(thumb, new LinearLayout.LayoutParams(dp(68), dp(68)));
+        tile.setOnClickListener(v -> {
+            featuredFile = file;
+            updateFeaturedStatus(findStatusDocumentId(savedTree(activeMode())) != null);
+            updateGalleryStrip(true);
+        });
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dp(82), dp(82));
+        params.setMargins(0, 0, dp(8), 0);
+        tile.setLayoutParams(params);
+        return tile;
     }
 
     String sizeText(long size) {
