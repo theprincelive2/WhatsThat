@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844">
+  <rect width="390" height="844" rx="32" fill="#ffffff"/>
+  <rect width="390" height="198" fill="#006B55"/>
+  <text x="24" y="58" fill="#ffffff" font-family="Arial" font-size="28" font-weight="700">WhatsThat</text>
+  <text x="298" y="58" fill="#ffffff" font-family="Arial" font-size="15" font-weight="700">259 chats</text>
+  <rect x="24" y="104" width="342" height="50" rx="25" fill="#2C8C77"/>
+  <text x="60" y="136" fill="#D5EEE8" font-family="Arial" font-size="17">Search messages</text>
+  <rect x="20" y="184" width="350" height="128" rx="20" fill="#ffffff" stroke="#E7EAE6"/>
+  <text x="38" y="214" fill="#6F756C" font-family="Arial" font-size="12" font-weight="700">INBOX</text>
+  <rect x="38" y="230" width="145" height="44" rx="22" fill="#006B55"/>
+  <rect x="190" y="230" width="142" height="44" rx="22" fill="#EFF1EF" stroke="#E7EAE6"/>
+  <text x="76" y="258" fill="#ffffff" font-family="Arial" font-size="14" font-weight="700">WhatsApp</text>
+  <text x="222" y="258" fill="#25302B" font-family="Arial" font-size="14" font-weight="700">Other</text>
+  <text x="38" y="295" fill="#171B18" font-family="Arial" font-size="15" font-weight="700">Clean view</text>
+  <rect x="252" y="276" width="80" height="34" rx="17" fill="#E5F5EC" stroke="#CFE7DC"/>
+  <circle cx="315" cy="293" r="13" fill="#006B55"/>
+  <text x="24" y="344" fill="#006B55" font-family="Arial" font-size="16" font-weight="700">B2: Card with two clear toggles</text>
+  <g fill="#ffffff" stroke="#E7EAE6"><rect x="18" y="370" width="354" height="74" rx="18"/><rect x="18" y="456" width="354" height="74" rx="18"/><rect x="18" y="542" width="354" height="74" rx="18"/></g>
+  <g fill="#006B55"><circle cx="55" cy="407" r="24"/><circle cx="55" cy="493" r="24"/><circle cx="55" cy="579" r="24"/></g>
+  <g font-family="Arial"><text x="92" y="402" font-size="17" font-weight="700" fill="#171B18">Barima Amoaning</text><text x="92" y="426" font-size="14" fill="#6F756C">2 new messages</text><text x="318" y="402" font-size="13" fill="#006B55">18:12</text><text x="92" y="488" font-size="17" font-weight="700" fill="#171B18">Ama</text><text x="92" y="512" font-size="14" fill="#6F756C">Are you around?</text><text x="318" y="488" font-size="13" fill="#006B55">17:45</text><text x="92" y="574" font-size="17" font-weight="700" fill="#171B18">Kwame</text><text x="92" y="598" font-size="14" fill="#6F756C">Call me when free</text><text x="318" y="574" font-size="13" fill="#006B55">16:08</text></g>
+  <rect x="18" y="744" width="354" height="74" rx="24" fill="#FFFFFF" stroke="#E7EAE6"/>
+  <g fill="#25302B" font-family="Arial" font-size="11" font-weight="700"><text x="55" y="793">Status</text><text x="139" y="793">Export</text><text x="227" y="793">Clear</text><text x="305" y="793">Settings</text></g>
+</svg>

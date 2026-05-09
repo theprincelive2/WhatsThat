@@ -38,6 +38,8 @@ public class MainActivity extends Activity {
     TextView latestText;
     TextView statusText;
     TextView privacyText;
+    TextView topViewTitle;
+    TextView topViewDetail;
     EditText searchBox;
     Button open;
     Button modeBtn;
@@ -71,6 +73,8 @@ public class MainActivity extends Activity {
         latestText = findViewById(R.id.latestText);
         statusText = findViewById(R.id.statusText);
         privacyText = findViewById(R.id.privacyText);
+        topViewTitle = findViewById(R.id.topViewTitle);
+        topViewDetail = findViewById(R.id.topViewDetail);
         searchBox = findViewById(R.id.searchBox);
         open = findViewById(R.id.openBtn);
         modeBtn = findViewById(R.id.modeBtn);
@@ -205,8 +209,9 @@ public class MainActivity extends Activity {
         } else {
             latestText.setText(count == 0 ? emptyModeText(otherMode) : "Latest: " + filtered.get(0).time);
         }
-        modeBtn.setText(otherMode ? "Other notices" : "WhatsApp");
-        modeBtn.setCompoundDrawablesWithIntrinsicBounds(0, otherMode ? R.drawable.ic_bell : R.drawable.ic_chat, 0, 0);
+        modeBtn.setText("Switch");
+        modeBtn.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+        updateTopStatusCard(otherMode);
         updateFilterButton();
         updateBlockedRulesButton();
         emptyText.setText(emptyModeText(otherMode));
@@ -578,7 +583,7 @@ public class MainActivity extends Activity {
     void updateFilterButton() {
         if (filterBtn == null) return;
         boolean active = filteringSystemGenerated();
-        filterBtn.setText(active ? "Clean view" : "All notices");
+        filterBtn.setText(active ? "Clean On" : "All notices");
         filterBtn.setTextColor(active ? android.graphics.Color.WHITE : getResources().getColor(R.color.brand_text));
         filterBtn.setBackgroundResource(active ? R.drawable.bg_chip_selected : R.drawable.bg_chip);
         filterBtn.setContentDescription(active ? "Clean view is hiding system notices" : "All notices are visible");
@@ -586,6 +591,16 @@ public class MainActivity extends Activity {
             privacyText.setText(active
                     ? "Clean view hides system notices. Long-press a row for cleanup actions."
                     : "All notices are visible, including system notices. Long-press a row for cleanup actions.");
+        }
+    }
+
+    void updateTopStatusCard(boolean otherMode) {
+        if (topViewTitle == null || topViewDetail == null) return;
+        topViewTitle.setText(otherMode ? "Other notices" : "WhatsApp");
+        if (filteringSystemGenerated()) {
+            topViewDetail.setText("Clean view is hiding system notices");
+        } else {
+            topViewDetail.setText("All saved notices are visible");
         }
     }
 
