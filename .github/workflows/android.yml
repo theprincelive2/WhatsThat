@@ -13,10 +13,8 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: 8.7
       - name: Build debug APK
-        run: gradle assembleDebug --stacktrace
+        run: ./gradlew assembleDebug --stacktrace
       - name: Build signed release APK
         env:
           KEYSTORE_B64: ${{ secrets.WHATS_THAT_KEYSTORE_B64 }}
@@ -29,7 +27,7 @@ jobs:
             exit 0
           fi
           echo "$KEYSTORE_B64" | base64 -d > whats_that_keystore.jks
-          gradle assembleRelease -PWHATS_THAT_KEYSTORE=../whats_that_keystore.jks -PWHATS_THAT_STORE_PASSWORD="$STORE_PASSWORD" -PWHATS_THAT_KEY_ALIAS="$KEY_ALIAS" -PWHATS_THAT_KEY_PASSWORD="$KEY_PASSWORD" --stacktrace
+          ./gradlew assembleRelease -PWHATS_THAT_KEYSTORE=../whats_that_keystore.jks -PWHATS_THAT_STORE_PASSWORD="$STORE_PASSWORD" -PWHATS_THAT_KEY_ALIAS="$KEY_ALIAS" -PWHATS_THAT_KEY_PASSWORD="$KEY_PASSWORD" --stacktrace
       - uses: actions/upload-artifact@v4
         with:
           name: WhatsThat-V6-builds
