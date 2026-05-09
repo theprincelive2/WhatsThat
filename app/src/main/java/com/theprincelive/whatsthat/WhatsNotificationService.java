@@ -25,6 +25,7 @@ public class WhatsNotificationService extends NotificationListenerService {
         String text = textCs == null ? "" : textCs.toString();
         if (text.trim().isEmpty()) return;
         if (whatsapp && isWhatsAppNoise(title, text)) return;
+        if (!whatsapp && isSystemNoise(pkg, title, text)) return;
         if (whatsapp && isLikelyOwnReply(title, text)) return;
         if (NotificationRules.isHidden(getApplicationContext(), pkg, title, text)) return;
 
@@ -41,8 +42,25 @@ public class WhatsNotificationService extends NotificationListenerService {
         String cleanText = text == null ? "" : text.trim().toLowerCase(Locale.US);
         if (cleanText.equals("checking for new messages")) return true;
         if (cleanText.matches("\\d+ new messages?")) return true;
+        if (cleanText.matches("\\d+ messages? from \\d+ chats?")) return true;
         if (cleanTitle.equals("whatsapp") && cleanText.contains("new messages")) return true;
         return cleanTitle.equals("whatsapp") && cleanText.contains("checking");
+    }
+
+    private boolean isSystemNoise(String packageName, String title, String text) {
+        String cleanPackage = packageName == null ? "" : packageName.trim().toLowerCase(Locale.US);
+        String cleanText = text == null ? "" : text.trim().replaceAll("\\s+", " ").toLowerCase(Locale.US);
+
+        if (cleanText.equals("charging") || cleanText.startsWith("charging ")) return true;
+        if (cleanText.equals("downloading") || cleanText.startsWith("downloading ")) return true;
+        if (cleanText.equals("download complete") || cleanText.equals("download completed")) return true;
+        if (cleanText.contains("download in progress")) return true;
+        if (cleanText.contains("running in the background")) return true;
+        if (cleanPackage.startsWith("android") || cleanPackage.contains("systemui")) return true;
+        if (cleanPackage.contains("launcher") || cleanPackage.contains("packageinstaller")) return true;
+        if (cleanPackage.contains("permissioncontroller") || cleanPackage.contains("updater")) return true;
+        if (cleanPackage.equals("com.google.android.gms") || cleanPackage.equals("com.android.vending")) return true;
+        return cleanPackage.contains("settings") && (cleanText.contains("system") || cleanText.contains("permission"));
     }
 
     private boolean isLikelyOwnReply(String title, String text) {

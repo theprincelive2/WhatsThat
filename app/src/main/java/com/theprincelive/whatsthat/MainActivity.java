@@ -584,7 +584,7 @@ public class MainActivity extends Activity {
     }
 
     boolean filteringSystemGenerated() {
-        return prefs().getBoolean(PREF_FILTER_SYSTEM, false);
+        return prefs().getBoolean(PREF_FILTER_SYSTEM, true);
     }
 
     boolean captureOtherNotices() {
@@ -658,6 +658,11 @@ public class MainActivity extends Activity {
         if (body.contains("whatsapp web is currently active")) return true;
         if (body.contains("you may have new messages")) return true;
         if (body.contains("new messages from")) return true;
+        if (body.equals("charging") || body.startsWith("charging ")) return true;
+        if (body.equals("downloading") || body.startsWith("downloading ")) return true;
+        if (body.equals("download complete") || body.equals("download completed")) return true;
+        if (body.contains("download in progress")) return true;
+        if (body.contains("running in the background")) return true;
         return body.equals("new message") || body.equals("new messages");
     }
 
