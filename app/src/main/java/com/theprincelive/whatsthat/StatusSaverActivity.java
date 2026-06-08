@@ -107,12 +107,15 @@ public class StatusSaverActivity extends Activity {
         root.setBackgroundColor(Color.WHITE);
         root.setPadding(dp(18), dp(24), dp(18), dp(18));
 
+        root.addView(BackNav.button(this, false), new LinearLayout.LayoutParams(dp(96), dp(42)));
+
         TextView title = new TextView(this);
         title.setText("Status Saver");
         title.setTextColor(Color.rgb(17, 27, 24));
         title.setTextSize(26);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         title.setIncludeFontPadding(false);
+        title.setPadding(0, dp(14), 0, 0);
         root.addView(title);
 
         TextView intro = copy("1. View a status in WhatsApp.\n2. Approve the .Statuses folder once.\n3. Return here to preview and save.");

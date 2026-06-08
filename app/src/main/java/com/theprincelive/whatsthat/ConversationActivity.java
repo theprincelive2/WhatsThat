@@ -54,13 +54,7 @@ public class ConversationActivity extends Activity {
         header.setPadding(dp(14), dp(18), dp(14), dp(14));
         header.setBackgroundColor(Color.rgb(0, 107, 85));
 
-        TextView back = new TextView(this);
-        back.setText("<");
-        back.setTextColor(Color.WHITE);
-        back.setTextSize(28);
-        back.setGravity(Gravity.CENTER);
-        back.setOnClickListener(v -> finish());
-        header.addView(back, new LinearLayout.LayoutParams(dp(42), dp(42)));
+        header.addView(BackNav.button(this, true), new LinearLayout.LayoutParams(dp(76), dp(42)));
 
         LinearLayout titleBlock = new LinearLayout(this);
         titleBlock.setOrientation(LinearLayout.VERTICAL);

@@ -36,12 +36,15 @@ public class MessageDetailActivity extends Activity {
         root.setPadding(dp(22), dp(28), dp(22), dp(22));
         root.setBackgroundColor(Color.rgb(236, 229, 221));
 
+        root.addView(BackNav.button(this, false), new LinearLayout.LayoutParams(dp(96), dp(42)));
+
         TextView title = new TextView(this);
         title.setText(sender == null ? "Unknown" : sender);
         title.setTextColor(Color.rgb(17, 27, 24));
         title.setTextSize(26);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         title.setIncludeFontPadding(false);
+        title.setPadding(0, dp(14), 0, 0);
         root.addView(title);
 
         TextView subtitle = new TextView(this);

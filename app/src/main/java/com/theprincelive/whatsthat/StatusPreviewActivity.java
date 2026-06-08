@@ -49,12 +49,15 @@ public class StatusPreviewActivity extends Activity {
         root.setBackgroundColor(Color.WHITE);
         root.setPadding(dp(18), dp(24), dp(18), dp(18));
 
+        root.addView(BackNav.button(this, false), new LinearLayout.LayoutParams(dp(96), dp(42)));
+
         TextView title = new TextView(this);
         title.setText(isVideo() ? "Video Status" : "Photo Status");
         title.setTextColor(Color.rgb(17, 27, 24));
         title.setTextSize(24);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         title.setIncludeFontPadding(false);
+        title.setPadding(0, dp(14), 0, 0);
         root.addView(title);
 
         TextView name = new TextView(this);

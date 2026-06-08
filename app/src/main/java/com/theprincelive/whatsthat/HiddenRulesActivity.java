@@ -32,7 +32,10 @@ public class HiddenRulesActivity extends Activity {
         root.setPadding(dp(22), dp(28), dp(22), dp(22));
         scroll.addView(root, new ScrollView.LayoutParams(-1, -2));
 
+        root.addView(BackNav.button(this, false), new LinearLayout.LayoutParams(dp(96), dp(42)));
+
         TextView title = title("Blocked Notices");
+        title.setPadding(0, dp(14), 0, 0);
         root.addView(title);
 
         summary = copy("");

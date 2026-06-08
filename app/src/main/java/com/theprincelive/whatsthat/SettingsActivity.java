@@ -55,8 +55,11 @@ public class SettingsActivity extends Activity {
         header.setBackgroundColor(Color.rgb(0, 107, 85));
         root.addView(header, new LinearLayout.LayoutParams(-1, -2));
 
+        header.addView(BackNav.button(this, true), new LinearLayout.LayoutParams(dp(96), dp(42)));
+
         TextView title = title("Settings");
         title.setTextColor(Color.WHITE);
+        title.setPadding(0, dp(14), 0, 0);
         header.addView(title);
         TextView intro = copy("Security and storage dashboard");
         intro.setTextColor(Color.rgb(205, 237, 227));
