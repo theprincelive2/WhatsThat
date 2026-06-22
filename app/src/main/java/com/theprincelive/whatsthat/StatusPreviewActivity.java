@@ -433,7 +433,7 @@ public class StatusPreviewActivity extends Activity {
             values.put(MediaStore.MediaColumns.RELATIVE_PATH, isVideo() ? "Movies/WhatsThat/Status Videos" : "Pictures/WhatsThat/Status Photos");
             values.put(MediaStore.MediaColumns.IS_PENDING, 1);
         } else {
-            File folder = new File(android.os.Environment.getExternalStoragePublicDirectory(isVideo() ? android.os.Environment.DIRECTORY_MOVIES : android.os.Environment.DIRECTORY_PICTURES), isVideo ? "WhatsThat/Status Videos" : "WhatsThat/Status Photos");
+            File folder = new File(android.os.Environment.getExternalStoragePublicDirectory(isVideo() ? android.os.Environment.DIRECTORY_MOVIES : android.os.Environment.DIRECTORY_PICTURES), isVideo() ? "WhatsThat/Status Videos" : "WhatsThat/Status Photos");
             if (!folder.exists()) folder.mkdirs();
             values.put(MediaStore.MediaColumns.DATA, new File(folder, outputName).getAbsolutePath());
         }
