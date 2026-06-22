@@ -104,7 +104,7 @@ public class StatusSaverActivity extends Activity {
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(Color.parseColor("#F2F2F7"));
+        root.setBackgroundColor(getColor(R.color.ios_bg));
 
         LinearLayout headerContainer = new LinearLayout(this);
         headerContainer.setOrientation(LinearLayout.VERTICAL);
@@ -113,7 +113,7 @@ public class StatusSaverActivity extends Activity {
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setPadding(dp(14), dp(18), dp(14), dp(14));
-        header.setBackgroundColor(Color.parseColor("#F9F9F9"));
+        header.setBackgroundColor(getColor(R.color.ios_header));
 
         header.addView(BackNav.button(this, false), new LinearLayout.LayoutParams(dp(76), dp(42)));
 
@@ -123,7 +123,7 @@ public class StatusSaverActivity extends Activity {
 
         TextView title = new TextView(this);
         title.setText("Status Saver");
-        title.setTextColor(Color.parseColor("#000000"));
+        title.setTextColor(getColor(R.color.ios_ink));
         title.setTextSize(17);
         title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         title.setSingleLine(true);
@@ -137,7 +137,7 @@ public class StatusSaverActivity extends Activity {
         refreshBtn.setTextSize(16);
         refreshBtn.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
         refreshBtn.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
-        refreshBtn.setTextColor(Color.parseColor("#007AFF"));
+        refreshBtn.setTextColor(getColor(R.color.ios_blue));
         refreshBtn.setBackgroundColor(Color.TRANSPARENT);
         refreshBtn.setPadding(0, 0, dp(8), 0);
         refreshBtn.setOnClickListener(v -> {
@@ -152,7 +152,7 @@ public class StatusSaverActivity extends Activity {
         chooseBtn.setTextSize(16);
         chooseBtn.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
         chooseBtn.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
-        chooseBtn.setTextColor(Color.parseColor("#007AFF"));
+        chooseBtn.setTextColor(getColor(R.color.ios_blue));
         chooseBtn.setBackgroundColor(Color.TRANSPARENT);
         chooseBtn.setPadding(0, 0, dp(8), 0);
         chooseBtn.setOnClickListener(v -> showMoreActions());
@@ -161,7 +161,7 @@ public class StatusSaverActivity extends Activity {
         headerContainer.addView(header);
 
         View headerDivider = new View(this);
-        headerDivider.setBackgroundColor(Color.parseColor("#E5E5EA"));
+        headerDivider.setBackgroundColor(getColor(R.color.ios_border));
         headerContainer.addView(headerDivider, new LinearLayout.LayoutParams(-1, dp(1)));
 
         root.addView(headerContainer);
@@ -171,14 +171,14 @@ public class StatusSaverActivity extends Activity {
         contentLayout.setPadding(dp(18), dp(18), dp(18), 0);
 
         TextView intro = copy("1. View a status in WhatsApp.\n2. Approve the folder once.\n3. Return here to preview and save.");
-        intro.setTextColor(Color.parseColor("#8E8E93"));
+        intro.setTextColor(getColor(R.color.ios_muted));
         contentLayout.addView(intro);
 
         LinearLayout modeSegment = new LinearLayout(this);
         modeSegment.setOrientation(LinearLayout.HORIZONTAL);
         modeSegment.setPadding(dp(2), dp(2), dp(2), dp(2));
         GradientDrawable modeSegmentBg = new GradientDrawable();
-        modeSegmentBg.setColor(Color.parseColor("#E5E5EA"));
+        modeSegmentBg.setColor(getColor(R.color.ios_border));
         modeSegmentBg.setCornerRadius(dp(9));
         modeSegment.setBackground(modeSegmentBg);
 
@@ -201,12 +201,12 @@ public class StatusSaverActivity extends Activity {
         searchBox.setHint("Search statuses");
         searchBox.setTextSize(14);
         GradientDrawable searchBg = new GradientDrawable();
-        searchBg.setColor(Color.parseColor("#E5E5EA"));
+        searchBg.setColor(getColor(R.color.ios_border));
         searchBg.setCornerRadius(dp(10));
         searchBox.setBackground(searchBg);
         searchBox.setPadding(dp(14), dp(8), dp(14), dp(8));
-        searchBox.setTextColor(Color.parseColor("#1C1C1E"));
-        searchBox.setHintTextColor(Color.parseColor("#8E8E93"));
+        searchBox.setTextColor(getColor(R.color.ios_ink));
+        searchBox.setHintTextColor(getColor(R.color.ios_muted));
         searchBox.addTextChangedListener(new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -223,7 +223,7 @@ public class StatusSaverActivity extends Activity {
         filterSegment.setOrientation(LinearLayout.HORIZONTAL);
         filterSegment.setPadding(dp(2), dp(2), dp(2), dp(2));
         GradientDrawable filterSegmentBg = new GradientDrawable();
-        filterSegmentBg.setColor(Color.parseColor("#E5E5EA"));
+        filterSegmentBg.setColor(getColor(R.color.ios_border));
         filterSegmentBg.setCornerRadius(dp(9));
         filterSegment.setBackground(filterSegmentBg);
 
@@ -247,19 +247,19 @@ public class StatusSaverActivity extends Activity {
         contentLayout.addView(filterSegment, filterParams);
 
         sourceText = copy("");
-        sourceText.setTextColor(Color.parseColor("#8E8E93"));
+        sourceText.setTextColor(getColor(R.color.ios_muted));
         sourceText.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         sourceText.setPadding(0, dp(12), 0, 0);
         contentLayout.addView(sourceText);
 
         folderText = copy("");
-        folderText.setTextColor(Color.parseColor("#8E8E93"));
+        folderText.setTextColor(getColor(R.color.ios_muted));
         folderText.setPadding(0, dp(4), 0, dp(4));
         contentLayout.addView(folderText);
 
         emptyText = copy("");
         emptyText.setGravity(Gravity.CENTER);
-        emptyText.setTextColor(Color.parseColor("#8E8E93"));
+        emptyText.setTextColor(getColor(R.color.ios_muted));
         emptyText.setPadding(dp(16), dp(28), dp(16), dp(28));
         contentLayout.addView(emptyText, new LinearLayout.LayoutParams(-1, -2));
 
@@ -298,20 +298,20 @@ public class StatusSaverActivity extends Activity {
         selectionRow.setOrientation(LinearLayout.VERTICAL);
 
         View selectionDivider = new View(this);
-        selectionDivider.setBackgroundColor(Color.parseColor("#E5E5EA"));
+        selectionDivider.setBackgroundColor(getColor(R.color.ios_border));
         selectionRow.addView(selectionDivider, new LinearLayout.LayoutParams(-1, dp(1)));
 
         LinearLayout selectionBtnRow = new LinearLayout(this);
         selectionBtnRow.setOrientation(LinearLayout.HORIZONTAL);
         selectionBtnRow.setPadding(dp(14), dp(8), dp(14), dp(8));
-        selectionBtnRow.setBackgroundColor(Color.parseColor("#F9F9F9"));
+        selectionBtnRow.setBackgroundColor(getColor(R.color.ios_header));
         selectionBtnRow.setGravity(Gravity.CENTER_VERTICAL);
 
-        saveSelectedBtn = toolbarButton("Save Selected", Color.parseColor("#007AFF"));
+        saveSelectedBtn = toolbarButton(\"Save Selected\", getColor(R.color.ios_blue));
         saveSelectedBtn.setOnClickListener(v -> saveSelectedStatuses());
         selectionBtnRow.addView(saveSelectedBtn, new LinearLayout.LayoutParams(0, dp(44), 1));
 
-        clearSelectionBtn = toolbarButton("Clear", Color.parseColor("#8E8E93"));
+        clearSelectionBtn = toolbarButton(\"Clear\", getColor(R.color.ios_muted));
         clearSelectionBtn.setOnClickListener(v -> clearSelection());
         LinearLayout.LayoutParams clearParams = new LinearLayout.LayoutParams(0, dp(44), 1);
         clearParams.setMargins(dp(8), 0, 0, 0);
@@ -475,18 +475,18 @@ public class StatusSaverActivity extends Activity {
         card.setOrientation(LinearLayout.VERTICAL);
         card.setPadding(dp(14), dp(14), dp(14), dp(14));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.rgb(247, 250, 248));
+        bg.setColor(getColor(R.color.ios_surface));
         bg.setCornerRadius(dp(22));
-        bg.setStroke(dp(1), Color.rgb(225, 232, 227));
+        bg.setStroke(dp(1), getColor(R.color.ios_border));
         card.setBackground(bg);
 
         previewImage = new ImageView(this);
         previewImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        previewImage.setBackgroundColor(Color.rgb(17, 27, 24));
+        previewImage.setBackgroundColor(getColor(R.color.ios_bg));
         card.addView(previewImage, new LinearLayout.LayoutParams(-1, dp(170)));
 
         previewLabel = new TextView(this);
-        previewLabel.setTextColor(Color.rgb(17, 27, 24));
+        previewLabel.setTextColor(getColor(R.color.ios_ink));
         previewLabel.setTextSize(18);
         previewLabel.setTypeface(Typeface.DEFAULT_BOLD);
         previewLabel.setPadding(0, dp(12), 0, 0);
@@ -583,14 +583,14 @@ public class StatusSaverActivity extends Activity {
         tile.setGravity(Gravity.CENTER);
         tile.setPadding(dp(3), dp(3), dp(3), dp(3));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(selected ? Color.rgb(229, 245, 236) : Color.rgb(247, 248, 246));
+        bg.setColor(selected ? getColor(R.color.brand_green_soft) : getColor(R.color.ios_surface));
         bg.setCornerRadius(dp(14));
-        bg.setStroke(dp(selected ? 2 : 1), selected ? Color.rgb(0, 107, 85) : Color.rgb(225, 232, 227));
+        bg.setStroke(dp(selected ? 2 : 1), selected ? getColor(R.color.brand_green) : getColor(R.color.ios_border));
         tile.setBackground(bg);
 
         ImageView thumb = new ImageView(this);
         thumb.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        thumb.setBackgroundColor(Color.rgb(17, 27, 24));
+        thumb.setBackgroundColor(getColor(R.color.ios_bg));
         if (file.isImage()) {
             thumb.setImageURI(file.uri);
         } else {
@@ -1006,7 +1006,7 @@ public class StatusSaverActivity extends Activity {
     TextView copy(String text) {
         TextView view = new TextView(this);
         view.setText(text);
-        view.setTextColor(Color.rgb(91, 104, 98));
+        view.setTextColor(getColor(R.color.brand_muted));
         view.setTextSize(14);
         view.setLineSpacing(dp(4), 1.0f);
         view.setPadding(0, dp(8), 0, 0);
@@ -1019,11 +1019,11 @@ public class StatusSaverActivity extends Activity {
         button.setAllCaps(false);
         button.setTextSize(16);
         button.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-        button.setTextColor(Color.parseColor("#007AFF"));
+        button.setTextColor(getColor(R.color.ios_blue));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.WHITE);
+        bg.setColor(getColor(R.color.ios_surface));
         bg.setCornerRadius(dp(12));
-        bg.setStroke(dp(1), Color.parseColor("#E5E5EA"));
+        bg.setStroke(dp(1), getColor(R.color.ios_border));
         button.setBackground(bg);
         return button;
     }
@@ -1036,9 +1036,9 @@ public class StatusSaverActivity extends Activity {
         button.setAllCaps(false);
         button.setTextSize(13);
         button.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-        button.setTextColor(primary ? Color.BLACK : Color.parseColor("#8E8E93"));
+        button.setTextColor(primary ? getColor(R.color.ios_ink) : getColor(R.color.ios_muted));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(primary ? Color.WHITE : Color.TRANSPARENT);
+        bg.setColor(primary ? getColor(R.color.ios_surface) : Color.TRANSPARENT);
         bg.setCornerRadius(dp(7));
         button.setBackground(bg);
         button.setPadding(0, 0, 0, 0);

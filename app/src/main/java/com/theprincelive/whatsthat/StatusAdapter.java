@@ -57,9 +57,9 @@ class StatusAdapter extends BaseAdapter {
         container.setLayoutParams(layoutParams);
 
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.WHITE);
+        bg.setColor(context.getColor(R.color.ios_surface));
         bg.setCornerRadius(dp(12));
-        bg.setStroke(dp(1), Color.parseColor("#E5E5EA"));
+        bg.setStroke(dp(1), context.getColor(R.color.ios_border));
         container.setBackground(bg);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -68,7 +68,7 @@ class StatusAdapter extends BaseAdapter {
 
         ImageView preview = new ImageView(context);
         preview.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        preview.setBackgroundColor(Color.parseColor("#F2F2F7"));
+        preview.setBackgroundColor(context.getColor(R.color.ios_bg));
         if (file.isImage()) {
             preview.setImageURI(file.uri);
         } else {
@@ -109,7 +109,7 @@ class StatusAdapter extends BaseAdapter {
             
             GradientDrawable badgeBg = new GradientDrawable();
             badgeBg.setShape(GradientDrawable.OVAL);
-            badgeBg.setColor(Color.parseColor("#34C759"));
+            badgeBg.setColor(context.getColor(R.color.ios_green));
             savedBadge.setBackground(badgeBg);
 
             android.widget.FrameLayout.LayoutParams badgeParams = new android.widget.FrameLayout.LayoutParams(dp(20), dp(20));
@@ -120,7 +120,8 @@ class StatusAdapter extends BaseAdapter {
 
         if (selected) {
             View overlay = new View(context);
-            overlay.setBackgroundColor(Color.parseColor("#40007AFF"));
+            int tint = context.getColor(R.color.ios_blue);
+            overlay.setBackgroundColor((tint & 0x00FFFFFF) | 0x40000000);
             container.addView(overlay, new android.widget.FrameLayout.LayoutParams(-1, -1));
 
             TextView selectBadge = new TextView(context);
@@ -132,7 +133,7 @@ class StatusAdapter extends BaseAdapter {
 
             GradientDrawable selectBg = new GradientDrawable();
             selectBg.setShape(GradientDrawable.OVAL);
-            selectBg.setColor(Color.parseColor("#007AFF"));
+            selectBg.setColor(context.getColor(R.color.ios_blue));
             selectBadge.setBackground(selectBg);
 
             android.widget.FrameLayout.LayoutParams selectParams = new android.widget.FrameLayout.LayoutParams(dp(20), dp(20));

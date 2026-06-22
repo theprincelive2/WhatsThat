@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844">
+  <rect width="390" height="844" rx="32" fill="#FFFFFF"/>
+  <rect width="390" height="138" fill="#006B55"/>
+  <text x="24" y="58" fill="#FFFFFF" font-family="Arial" font-size="28" font-weight="700">Status Saver</text>
+  <text x="24" y="88" fill="#CDEDE3" font-family="Arial" font-size="14">Viewed statuses and saved library</text>
+  <text x="24" y="164" fill="#006B55" font-family="Arial" font-size="16" font-weight="700">Option D: Saved library</text>
+
+  <rect x="18" y="188" width="354" height="60" rx="22" fill="#EFF1EF" stroke="#E7EAE6"/>
+  <rect x="24" y="194" width="168" height="48" rx="20" fill="#006B55"/>
+  <text x="78" y="224" fill="#FFFFFF" font-family="Arial" font-size="14" font-weight="700">Viewed</text>
+  <text x="246" y="224" fill="#25302B" font-family="Arial" font-size="14" font-weight="700">Saved</text>
+
+  <rect x="18" y="274" width="354" height="98" rx="20" fill="#FFFFFF" stroke="#E7EAE6"/>
+  <text x="38" y="308" fill="#6F756C" font-family="Arial" font-size="12" font-weight="700">LIBRARY</text>
+  <text x="38" y="340" fill="#171B18" font-family="Arial" font-size="22" font-weight="700">25 viewed, 9 saved</text>
+  <rect x="250" y="310" width="92" height="38" rx="19" fill="#006B55"/>
+  <text x="277" y="334" fill="#FFFFFF" font-family="Arial" font-size="13" font-weight="700">Open</text>
+
+  <text x="24" y="418" fill="#171B18" font-family="Arial" font-size="20" font-weight="700">Latest viewed</text>
+  <g>
+    <rect x="18" y="440" width="354" height="72" rx="18" fill="#FFFFFF" stroke="#E7EAE6"/>
+    <rect x="18" y="528" width="354" height="72" rx="18" fill="#FFFFFF" stroke="#E7EAE6"/>
+    <rect x="18" y="616" width="354" height="72" rx="18" fill="#FFFFFF" stroke="#E7EAE6"/>
+    <rect x="36" y="456" width="44" height="44" rx="12" fill="#D8EDE7"/>
+    <rect x="36" y="544" width="44" height="44" rx="12" fill="#EFF1EF"/>
+    <rect x="36" y="632" width="44" height="44" rx="12" fill="#D8EDE7"/>
+  </g>
+  <g font-family="Arial">
+    <text x="96" y="472" fill="#171B18" font-size="17" font-weight="700">Photo status</text>
+    <text x="96" y="494" fill="#6F756C" font-size="13">Viewed 2 minutes ago</text>
+    <text x="96" y="560" fill="#171B18" font-size="17" font-weight="700">Video status</text>
+    <text x="96" y="582" fill="#6F756C" font-size="13">Viewed 12 minutes ago</text>
+    <text x="96" y="648" fill="#171B18" font-size="17" font-weight="700">Photo status</text>
+    <text x="96" y="670" fill="#6F756C" font-size="13">Viewed 1 hour ago</text>
+  </g>
+  <rect x="18" y="744" width="354" height="74" rx="24" fill="#FFFFFF" stroke="#E7EAE6"/>
+  <text x="54" y="793" fill="#25302B" font-family="Arial" font-size="11" font-weight="700">Preview</text>
+  <text x="142" y="793" fill="#25302B" font-family="Arial" font-size="11" font-weight="700">Saved</text>
+  <text x="225" y="793" fill="#25302B" font-family="Arial" font-size="11" font-weight="700">Folders</text>
+  <text x="306" y="793" fill="#25302B" font-family="Arial" font-size="11" font-weight="700">Help</text>
+</svg>

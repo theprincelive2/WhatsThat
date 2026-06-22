@@ -14,7 +14,7 @@ class BackNav {
         button.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
         button.setTextSize(17);
         button.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
-        button.setTextColor(Color.parseColor("#007AFF")); // iOS System Blue
+        button.setTextColor(activity.getColor(R.color.ios_blue)); // iOS System Blue
         button.setBackgroundColor(Color.TRANSPARENT);
         button.setPadding(dp(activity, 8), 0, dp(activity, 8), 0);
         button.setOnClickListener(v -> activity.finish());

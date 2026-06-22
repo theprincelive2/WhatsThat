@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844">
+  <rect width="390" height="844" rx="32" fill="#FFFFFF"/>
+  <rect width="390" height="142" fill="#006B55"/>
+  <text x="24" y="58" fill="#FFFFFF" font-family="Arial" font-size="28" font-weight="700">Status Saver</text>
+  <text x="24" y="88" fill="#CDEDE3" font-family="Arial" font-size="14">Folder setup and media browser</text>
+  <text x="24" y="168" fill="#006B55" font-family="Arial" font-size="16" font-weight="700">Option C: Folder control</text>
+
+  <rect x="18" y="192" width="354" height="150" rx="22" fill="#FFFFFF" stroke="#E7EAE6"/>
+  <text x="38" y="226" fill="#6F756C" font-family="Arial" font-size="12" font-weight="700">STATUS FOLDER</text>
+  <text x="38" y="260" fill="#171B18" font-family="Arial" font-size="22" font-weight="700">WhatsApp set</text>
+  <text x="38" y="286" fill="#6F756C" font-family="Arial" font-size="14">Business folder also available</text>
+  <rect x="38" y="304" width="136" height="34" rx="17" fill="#006B55"/>
+  <text x="75" y="326" fill="#FFFFFF" font-family="Arial" font-size="13" font-weight="700">Change</text>
+  <rect x="188" y="304" width="144" height="34" rx="17" fill="#EFF1EF" stroke="#E7EAE6"/>
+  <text x="226" y="326" fill="#25302B" font-family="Arial" font-size="13" font-weight="700">Refresh</text>
+
+  <rect x="18" y="368" width="354" height="52" rx="20" fill="#EFF1EF" stroke="#E7EAE6"/>
+  <rect x="24" y="374" width="112" height="40" rx="20" fill="#006B55"/>
+  <text x="58" y="399" fill="#FFFFFF" font-family="Arial" font-size="13" font-weight="700">All</text>
+  <text x="164" y="399" fill="#25302B" font-family="Arial" font-size="13" font-weight="700">Photos</text>
+  <text x="274" y="399" fill="#25302B" font-family="Arial" font-size="13" font-weight="700">Videos</text>
+
+  <g>
+    <rect x="18" y="448" width="108" height="138" rx="18" fill="#EFF1EF"/>
+    <rect x="141" y="448" width="108" height="138" rx="18" fill="#D8EDE7"/>
+    <rect x="264" y="448" width="108" height="138" rx="18" fill="#EFF1EF"/>
+    <rect x="18" y="616" width="108" height="138" rx="18" fill="#D8EDE7"/>
+    <rect x="141" y="616" width="108" height="138" rx="18" fill="#EFF1EF"/>
+    <rect x="264" y="616" width="108" height="138" rx="18" fill="#D8EDE7"/>
+  </g>
+  <text x="44" y="804" fill="#6F756C" font-family="Arial" font-size="12">Tap any item to preview, then save locally.</text>
+</svg>

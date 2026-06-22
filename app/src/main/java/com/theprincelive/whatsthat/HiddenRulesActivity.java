@@ -26,7 +26,7 @@ public class HiddenRulesActivity extends Activity {
 
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
-        scroll.setBackgroundColor(Color.parseColor("#F2F2F7"));
+        scroll.setBackgroundColor(getColor(R.color.ios_bg));
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -36,16 +36,16 @@ public class HiddenRulesActivity extends Activity {
         root.addView(BackNav.button(this, false), new LinearLayout.LayoutParams(dp(96), dp(42)));
 
         TextView title = title("Blocked Notices");
-        title.setTextColor(Color.parseColor("#1C1C1E"));
+        title.setTextColor(getColor(R.color.ios_ink));
         title.setPadding(0, dp(14), 0, 0);
         root.addView(title);
 
         summary = copy("");
-        summary.setTextColor(Color.parseColor("#8E8E93"));
+        summary.setTextColor(getColor(R.color.ios_muted));
         root.addView(summary);
 
         clearAllBtn = secondaryButton("Clear All Blocked Notices");
-        clearAllBtn.setTextColor(Color.parseColor("#FF3B30"));
+        clearAllBtn.setTextColor(getColor(R.color.ios_red));
         clearAllBtn.setOnClickListener(v -> confirmClearAll());
         root.addView(clearAllBtn, buttonParams(18));
 
@@ -78,33 +78,33 @@ public class HiddenRulesActivity extends Activity {
         row.setOrientation(LinearLayout.VERTICAL);
         row.setPadding(dp(16), dp(14), dp(16), dp(14));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.WHITE);
+        bg.setColor(getColor(R.color.ios_surface));
         bg.setCornerRadius(dp(12));
-        bg.setStroke(dp(1), Color.parseColor("#E5E5EA"));
+        bg.setStroke(dp(1), getColor(R.color.ios_border));
         row.setBackground(bg);
 
         TextView sender = new TextView(this);
         sender.setText(rule.sender);
-        sender.setTextColor(Color.parseColor("#1C1C1E"));
+        sender.setTextColor(getColor(R.color.ios_ink));
         sender.setTextSize(16);
         sender.setTypeface(Typeface.DEFAULT_BOLD);
         sender.setSingleLine(true);
         row.addView(sender);
 
         TextView body = copy(rule.body);
-        body.setTextColor(Color.parseColor("#3A3A3C"));
+        body.setTextColor(getColor(R.color.ios_ink));
         body.setPadding(0, dp(6), 0, 0);
         row.addView(body);
 
         TextView pkg = new TextView(this);
         pkg.setText(AppLabels.label(this, rule.packageName));
-        pkg.setTextColor(Color.parseColor("#007AFF"));
+        pkg.setTextColor(getColor(R.color.ios_blue));
         pkg.setTextSize(12);
         pkg.setPadding(0, dp(8), 0, 0);
         row.addView(pkg);
 
         Button unblock = secondaryButton("Unblock");
-        unblock.setTextColor(Color.parseColor("#007AFF"));
+        unblock.setTextColor(getColor(R.color.ios_blue));
         unblock.setPadding(dp(16), 0, dp(16), 0);
         unblock.setOnClickListener(v -> {
             NotificationRules.remove(this, rule.value);
@@ -134,7 +134,7 @@ public class HiddenRulesActivity extends Activity {
     TextView title(String text) {
         TextView view = new TextView(this);
         view.setText(text);
-        view.setTextColor(Color.rgb(17, 27, 24));
+        view.setTextColor(getColor(R.color.ios_ink));
         view.setTextSize(28);
         view.setTypeface(Typeface.DEFAULT_BOLD);
         view.setIncludeFontPadding(false);
@@ -144,7 +144,7 @@ public class HiddenRulesActivity extends Activity {
     TextView copy(String text) {
         TextView view = new TextView(this);
         view.setText(text);
-        view.setTextColor(Color.rgb(91, 104, 98));
+        view.setTextColor(getColor(R.color.ios_muted));
         view.setTextSize(14);
         view.setLineSpacing(dp(4), 1.0f);
         view.setPadding(0, dp(8), 0, 0);
@@ -157,11 +157,11 @@ public class HiddenRulesActivity extends Activity {
         button.setAllCaps(false);
         button.setTextSize(14);
         button.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-        button.setTextColor(Color.parseColor("#007AFF"));
+        button.setTextColor(getColor(R.color.ios_blue));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.WHITE);
+        bg.setColor(getColor(R.color.ios_surface));
         bg.setCornerRadius(dp(12));
-        bg.setStroke(dp(1), Color.parseColor("#E5E5EA"));
+        bg.setStroke(dp(1), getColor(R.color.ios_border));
         button.setBackground(bg);
         return button;
     }

@@ -20,6 +20,8 @@
     <color name="ios_muted">#8E8E93</color>
     <color name="ios_blue">#007AFF</color>
     <color name="ios_green">#34C759</color>
+    <color name="ios_red">#FF3B30</color>
     <color name="ios_border">#E5E5EA</color>
-    <color name="ios_header">#F9F9F9</color>
+    <color name="ios_header">#E6F9F9F9</color>
+    <color name="ios_selection">#E5F1FF</color>
 </resources>

@@ -469,7 +469,7 @@ public class StatusPreviewActivity extends Activity {
         Button button = baseButton(text);
         button.setTextColor(Color.WHITE);
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.rgb(0, 107, 85));
+        bg.setColor(getColor(R.color.brand_green));
         bg.setCornerRadius(dp(18));
         button.setBackground(bg);
         return button;
@@ -477,11 +477,11 @@ public class StatusPreviewActivity extends Activity {
 
     Button secondaryButton(String text) {
         Button button = baseButton(text);
-        button.setTextColor(Color.rgb(0, 107, 85));
+        button.setTextColor(getColor(R.color.brand_green));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.rgb(247, 248, 246));
+        bg.setColor(getColor(R.color.brand_surface));
         bg.setCornerRadius(dp(18));
-        bg.setStroke(dp(1), Color.rgb(231, 234, 230));
+        bg.setStroke(dp(1), getColor(R.color.brand_line));
         button.setBackground(bg);
         return button;
     }

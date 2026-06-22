@@ -46,12 +46,12 @@ public class SettingsActivity extends Activity {
 
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
-        scroll.setBackgroundColor(Color.rgb(255, 255, 255));
+        scroll.setBackgroundColor(getColor(R.color.ios_bg));
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(dp(18), 0, dp(18), dp(24));
-        root.setBackgroundColor(Color.WHITE);
+        root.setBackgroundColor(getColor(R.color.ios_bg));
         scroll.addView(root, new ScrollView.LayoutParams(-1, -2));
 
         LinearLayout header = new LinearLayout(this);
@@ -63,11 +63,11 @@ public class SettingsActivity extends Activity {
         header.addView(BackNav.button(this, false), new LinearLayout.LayoutParams(dp(96), dp(42)));
 
         TextView title = title("Settings");
-        title.setTextColor(Color.parseColor("#1C1C1E"));
+        title.setTextColor(getColor(R.color.ios_ink));
         title.setPadding(0, dp(14), 0, 0);
         header.addView(title);
         TextView intro = copy("Security and storage dashboard");
-        intro.setTextColor(Color.parseColor("#8E8E93"));
+        intro.setTextColor(getColor(R.color.ios_muted));
         header.addView(intro);
 
         root.addView(section("App Lock"));
@@ -439,7 +439,7 @@ public class SettingsActivity extends Activity {
     TextView title(String text) {
         TextView view = new TextView(this);
         view.setText(text);
-        view.setTextColor(Color.rgb(17, 27, 24));
+        view.setTextColor(getColor(R.color.ios_ink));
         view.setTextSize(28);
         view.setTypeface(Typeface.DEFAULT_BOLD);
         view.setIncludeFontPadding(false);
@@ -449,7 +449,7 @@ public class SettingsActivity extends Activity {
     TextView section(String text) {
         TextView view = new TextView(this);
         view.setText(text);
-        view.setTextColor(Color.rgb(0, 107, 85));
+        view.setTextColor(getColor(R.color.brand_green));
         view.setTextSize(15);
         view.setTypeface(Typeface.DEFAULT_BOLD);
         view.setPadding(0, dp(22), 0, dp(6));
@@ -459,7 +459,7 @@ public class SettingsActivity extends Activity {
     TextView smallLabel(String text) {
         TextView view = new TextView(this);
         view.setText(text);
-        view.setTextColor(Color.rgb(111, 117, 108));
+        view.setTextColor(getColor(R.color.brand_muted));
         view.setTextSize(12);
         view.setTypeface(Typeface.DEFAULT_BOLD);
         view.setPadding(0, 0, 0, dp(10));
@@ -469,7 +469,7 @@ public class SettingsActivity extends Activity {
     TextView copy(String text) {
         TextView view = new TextView(this);
         view.setText(text);
-        view.setTextColor(Color.rgb(91, 104, 98));
+        view.setTextColor(getColor(R.color.brand_muted));
         view.setTextSize(14);
         view.setLineSpacing(dp(4), 1.0f);
         view.setPadding(0, dp(8), 0, 0);
@@ -480,7 +480,7 @@ public class SettingsActivity extends Activity {
         Button button = baseButton(text);
         button.setTextColor(Color.WHITE);
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.rgb(0, 107, 85));
+        bg.setColor(getColor(R.color.brand_green));
         bg.setCornerRadius(dp(18));
         button.setBackground(bg);
         return button;
@@ -488,24 +488,24 @@ public class SettingsActivity extends Activity {
 
     Button secondaryButton(String text) {
         Button button = baseButton(text);
-        button.setTextColor(Color.rgb(0, 107, 85));
+        button.setTextColor(getColor(R.color.brand_green));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.rgb(247, 248, 246));
+        bg.setColor(getColor(R.color.brand_surface));
         bg.setCornerRadius(dp(18));
-        bg.setStroke(dp(1), Color.rgb(231, 234, 230));
+        bg.setStroke(dp(1), getColor(R.color.brand_line));
         button.setBackground(bg);
         return button;
     }
 
     Button tileButton(String text) {
         Button button = baseButton(text);
-        button.setTextColor(Color.rgb(23, 27, 24));
+        button.setTextColor(getColor(R.color.ios_ink));
         button.setTextSize(15);
         button.setPadding(dp(10), dp(8), dp(10), dp(8));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.WHITE);
+        bg.setColor(getColor(R.color.ios_surface));
         bg.setCornerRadius(dp(18));
-        bg.setStroke(dp(1), Color.rgb(231, 234, 230));
+        bg.setStroke(dp(1), getColor(R.color.ios_border));
         button.setBackground(bg);
         return button;
     }
@@ -513,12 +513,12 @@ public class SettingsActivity extends Activity {
     Button rowButton(String text) {
         Button button = baseButton(text);
         button.setGravity(android.view.Gravity.CENTER_VERTICAL);
-        button.setTextColor(Color.rgb(23, 27, 24));
+        button.setTextColor(getColor(R.color.ios_ink));
         button.setPadding(dp(18), 0, dp(18), 0);
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.WHITE);
+        bg.setColor(getColor(R.color.ios_surface));
         bg.setCornerRadius(dp(16));
-        bg.setStroke(dp(1), Color.rgb(231, 234, 230));
+        bg.setStroke(dp(1), getColor(R.color.ios_border));
         button.setBackground(bg);
         return button;
     }
@@ -543,9 +543,9 @@ public class SettingsActivity extends Activity {
         card.setOrientation(LinearLayout.VERTICAL);
         card.setPadding(dp(18), dp(16), dp(18), dp(16));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.WHITE);
+        bg.setColor(getColor(R.color.ios_surface));
         bg.setCornerRadius(dp(22));
-        bg.setStroke(dp(1), Color.rgb(231, 234, 230));
+        bg.setStroke(dp(1), getColor(R.color.ios_border));
         card.setBackground(bg);
         return card;
     }

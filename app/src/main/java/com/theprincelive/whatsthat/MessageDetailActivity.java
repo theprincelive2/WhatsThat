@@ -37,13 +37,13 @@ public class MessageDetailActivity extends Activity {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(dp(22), dp(28), dp(22), dp(22));
-        root.setBackgroundColor(Color.parseColor("#F2F2F7"));
+        root.setBackgroundColor(getColor(R.color.ios_bg));
 
         root.addView(BackNav.button(this, false), new LinearLayout.LayoutParams(dp(96), dp(42)));
 
         TextView title = new TextView(this);
         title.setText(sender == null ? "Unknown" : sender);
-        title.setTextColor(Color.parseColor("#1C1C1E"));
+        title.setTextColor(getColor(R.color.ios_ink));
         title.setTextSize(26);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         title.setIncludeFontPadding(false);
@@ -52,22 +52,22 @@ public class MessageDetailActivity extends Activity {
 
         TextView subtitle = new TextView(this);
         subtitle.setText(time == null ? "" : time);
-        subtitle.setTextColor(Color.parseColor("#8E8E93"));
+        subtitle.setTextColor(getColor(R.color.ios_muted));
         subtitle.setTextSize(14);
         subtitle.setPadding(0, dp(8), 0, dp(20));
         root.addView(subtitle);
 
         TextView message = new TextView(this);
         message.setText(body == null ? "" : body);
-        message.setTextColor(Color.parseColor("#1C1C1E"));
+        message.setTextColor(getColor(R.color.ios_ink));
         message.setTextSize(17);
         message.setLineSpacing(dp(5), 1.0f);
         message.setPadding(dp(16), dp(16), dp(16), dp(16));
         message.setGravity(Gravity.START);
 
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.WHITE);
-        bg.setStroke(dp(1), Color.parseColor("#E5E5EA"));
+        bg.setColor(getColor(R.color.ios_surface));
+        bg.setStroke(dp(1), getColor(R.color.ios_border));
         bg.setCornerRadius(dp(16));
         message.setBackground(bg);
         root.addView(message, new LinearLayout.LayoutParams(-1, -2));
@@ -159,11 +159,11 @@ public class MessageDetailActivity extends Activity {
         button.setAllCaps(false);
         button.setTextSize(16);
         button.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-        button.setTextColor(destructive ? Color.parseColor("#FF3B30") : Color.parseColor("#007AFF"));
+        button.setTextColor(destructive ? getColor(R.color.ios_red) : getColor(R.color.ios_blue));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.WHITE);
+        bg.setColor(getColor(R.color.ios_surface));
         bg.setCornerRadius(dp(12));
-        bg.setStroke(dp(1), Color.parseColor("#E5E5EA"));
+        bg.setStroke(dp(1), getColor(R.color.ios_border));
         button.setBackground(bg);
         return button;
     }

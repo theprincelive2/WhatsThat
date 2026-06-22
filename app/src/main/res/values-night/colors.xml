@@ -1,0 +1,29 @@
+<resources>
+    <!-- Brand colors styled for Dark Mode -->
+    <color name="brand_bg">#000000</color>
+    <color name="brand_surface">#1C1C1E</color>
+    <color name="brand_card">#1C1C1E</color>
+    <color name="brand_ink">#FFFFFF</color>
+    <color name="brand_text">#E5E5EA</color>
+    <color name="brand_muted">#8E8E93</color>
+    <color name="brand_line">#2C2C2E</color>
+    <color name="brand_green">#30D158</color>
+    <color name="brand_green_soft">#1C3A27</color>
+    <color name="brand_header">#1C1C1E</color>
+    <color name="brand_header_dark">#121212</color>
+    <color name="brand_chip">#2C2C2E</color>
+    <color name="brand_unread">#30D158</color>
+    <color name="brand_brass">#FFD60A</color>
+
+    <!-- iOS Style Color Resources (Dark Theme) -->
+    <color name="ios_bg">#000000</color>
+    <color name="ios_surface">#1C1C1E</color>
+    <color name="ios_ink">#FFFFFF</color>
+    <color name="ios_muted">#8E8E93</color>
+    <color name="ios_blue">#0A84FF</color>
+    <color name="ios_green">#30D158</color>
+    <color name="ios_red">#FF453A</color>
+    <color name="ios_border">#2C2C2E</color>
+    <color name="ios_header">#E61C1C1E</color>
+    <color name="ios_selection">#1A2F4C</color>
+</resources>
