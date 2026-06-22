@@ -185,14 +185,14 @@ public class StatusSaverActivity extends Activity {
         findWhatsAppBtn = new Button(this);
         findWhatsAppBtn.setAllCaps(false);
         findWhatsAppBtn.setOnClickListener(v -> selectMode(MODE_WHATSAPP));
-        modeSegment.addView(findWhatsAppBtn, new LinearLayout.LayoutParams(0, dp(32), 1));
+        modeSegment.addView(findWhatsAppBtn, new LinearLayout.LayoutParams(0, dp(36), 1));
 
         findBusinessBtn = new Button(this);
         findBusinessBtn.setAllCaps(false);
         findBusinessBtn.setOnClickListener(v -> selectMode(MODE_BUSINESS));
-        modeSegment.addView(findBusinessBtn, new LinearLayout.LayoutParams(0, dp(32), 1));
+        modeSegment.addView(findBusinessBtn, new LinearLayout.LayoutParams(0, dp(36), 1));
 
-        LinearLayout.LayoutParams modeParams = new LinearLayout.LayoutParams(-1, dp(36));
+        LinearLayout.LayoutParams modeParams = new LinearLayout.LayoutParams(-1, dp(40));
         modeParams.setMargins(0, dp(14), 0, 0);
         contentLayout.addView(modeSegment, modeParams);
 
@@ -230,19 +230,19 @@ public class StatusSaverActivity extends Activity {
         allFilterBtn = new Button(this);
         allFilterBtn.setAllCaps(false);
         allFilterBtn.setOnClickListener(v -> setFilter(FILTER_ALL));
-        filterSegment.addView(allFilterBtn, new LinearLayout.LayoutParams(0, dp(32), 1));
+        filterSegment.addView(allFilterBtn, new LinearLayout.LayoutParams(0, dp(36), 1));
 
         photosFilterBtn = new Button(this);
         photosFilterBtn.setAllCaps(false);
         photosFilterBtn.setOnClickListener(v -> setFilter(FILTER_PHOTOS));
-        filterSegment.addView(photosFilterBtn, new LinearLayout.LayoutParams(0, dp(32), 1));
+        filterSegment.addView(photosFilterBtn, new LinearLayout.LayoutParams(0, dp(36), 1));
 
         videosFilterBtn = new Button(this);
         videosFilterBtn.setAllCaps(false);
         videosFilterBtn.setOnClickListener(v -> setFilter(FILTER_VIDEOS));
-        filterSegment.addView(videosFilterBtn, new LinearLayout.LayoutParams(0, dp(32), 1));
+        filterSegment.addView(videosFilterBtn, new LinearLayout.LayoutParams(0, dp(36), 1));
 
-        LinearLayout.LayoutParams filterParams = new LinearLayout.LayoutParams(-1, dp(36));
+        LinearLayout.LayoutParams filterParams = new LinearLayout.LayoutParams(-1, dp(40));
         filterParams.setMargins(0, dp(12), 0, 0);
         contentLayout.addView(filterSegment, filterParams);
 
@@ -1025,6 +1025,9 @@ public class StatusSaverActivity extends Activity {
         bg.setColor(primary ? Color.WHITE : Color.TRANSPARENT);
         bg.setCornerRadius(dp(7));
         button.setBackground(bg);
+        button.setPadding(0, 0, 0, 0);
+        button.setMinHeight(0);
+        button.setMinWidth(0);
     }
 
     Button toolbarButton(String text, int textColor) {
