@@ -324,14 +324,11 @@ public class StatusSaverActivity extends Activity {
         migrateOldStatusFolder();
         loadStatuses();
     }
-        migrateOldStatusFolder();
-        loadStatuses();
-    }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (listView != null) {
+        if (gridView != null) {
             loadStatuses();
             if (refreshAfterWhatsAppLaunch) {
                 refreshAfterWhatsAppLaunch = false;
