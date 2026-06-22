@@ -45,6 +45,12 @@ public class StatusPreviewActivity extends Activity {
     String statusMime;
     Button saveButton;
     boolean pendingSave;
+    private String currentTheme;
+
+    @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(ThemeManager.wrapContext(newBase));
+    }
 
     // Gestures and controls
     private ScaleGestureDetector scaleGestureDetector;
@@ -59,6 +65,7 @@ public class StatusPreviewActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        currentTheme = ThemeManager.getThemePref(this);
         super.onCreate(savedInstanceState);
         statusUri = Uri.parse(getIntent().getStringExtra(EXTRA_URI));
         statusName = getIntent().getStringExtra(EXTRA_NAME);
@@ -264,6 +271,15 @@ public class StatusPreviewActivity extends Activity {
         root.addView(actionsBar, actionsParams);
 
         setContentView(root);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        String theme = ThemeManager.getThemePref(this);
+        if (!theme.equals(currentTheme)) {
+            recreate();
+        }
     }
 
     private void startProgressUpdater(VideoView video, SeekBar seekBar, TextView elapsed, TextView duration) {

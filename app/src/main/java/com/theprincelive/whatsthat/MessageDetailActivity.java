@@ -24,9 +24,16 @@ public class MessageDetailActivity extends Activity {
     String body;
     String time;
     private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor();
+    private String currentTheme;
+
+    @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(ThemeManager.wrapContext(newBase));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        currentTheme = ThemeManager.getThemePref(this);
         super.onCreate(savedInstanceState);
 
         messageId = getIntent().getLongExtra("id", -1);
@@ -100,6 +107,15 @@ public class MessageDetailActivity extends Activity {
         root.addView(actions);
 
         setContentView(root);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        String theme = ThemeManager.getThemePref(this);
+        if (!theme.equals(currentTheme)) {
+            recreate();
+        }
     }
 
     void copyMessage() {

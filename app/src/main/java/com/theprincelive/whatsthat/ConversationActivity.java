@@ -40,9 +40,16 @@ public class ConversationActivity extends Activity {
     Set<Long> selectedIds = new HashSet<>();
     Map<Long, List<Long>> groupedMessageIds = new HashMap<>();
     private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor();
+    private String currentTheme;
+
+    @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(ThemeManager.wrapContext(newBase));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        currentTheme = ThemeManager.getThemePref(this);
         super.onCreate(savedInstanceState);
         packageName = getIntent().getStringExtra("packageName");
         sender = getIntent().getStringExtra("sender");
@@ -144,6 +151,16 @@ public class ConversationActivity extends Activity {
 
         setContentView(root);
         updateSelectionActions();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        String theme = ThemeManager.getThemePref(this);
+        if (!theme.equals(currentTheme)) {
+            recreate();
+            return;
+        }
         loadMessages();
     }
 

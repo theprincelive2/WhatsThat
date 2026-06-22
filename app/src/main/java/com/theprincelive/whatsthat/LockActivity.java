@@ -37,9 +37,16 @@ public class LockActivity extends Activity {
     boolean biometricPromptShown;
     CancellationSignal biometricSignal;
     boolean isDecoyMode;
+    private String currentTheme;
+
+    @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(ThemeManager.wrapContext(newBase));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        currentTheme = ThemeManager.getThemePref(this);
         super.onCreate(savedInstanceState);
         mode = getIntent().getStringExtra(MODE);
         if (mode == null) mode = MODE_UNLOCK;
@@ -105,6 +112,15 @@ public class LockActivity extends Activity {
         refreshText();
         setContentView(root);
         if (canUseBiometric()) pinInput.postDelayed(() -> showBiometricPrompt(true), 350);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        String theme = ThemeManager.getThemePref(this);
+        if (!theme.equals(currentTheme)) {
+            recreate();
+        }
     }
 
     void handleAction() {

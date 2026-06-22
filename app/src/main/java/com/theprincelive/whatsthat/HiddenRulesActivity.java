@@ -19,9 +19,16 @@ public class HiddenRulesActivity extends Activity {
     LinearLayout list;
     TextView summary;
     Button clearAllBtn;
+    private String currentTheme;
+
+    @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(ThemeManager.wrapContext(newBase));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        currentTheme = ThemeManager.getThemePref(this);
         super.onCreate(savedInstanceState);
 
         ScrollView scroll = new ScrollView(this);
@@ -54,6 +61,16 @@ public class HiddenRulesActivity extends Activity {
         root.addView(list);
 
         setContentView(scroll);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        String theme = ThemeManager.getThemePref(this);
+        if (!theme.equals(currentTheme)) {
+            recreate();
+            return;
+        }
         loadRules();
     }
 

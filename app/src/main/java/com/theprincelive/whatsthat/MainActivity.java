@@ -65,9 +65,16 @@ public class MainActivity extends Activity {
     boolean restoreListPosition;
     int savedListPosition;
     int savedListTop;
+    private String currentTheme;
+
+    @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(ThemeManager.wrapContext(newBase));
+    }
 
     @Override
     protected void onCreate(Bundle b) {
+        currentTheme = ThemeManager.getThemePref(this);
         super.onCreate(b);
         setContentView(R.layout.activity_main);
         store = MessageStore.getInstance(this);
@@ -151,6 +158,11 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        String theme = ThemeManager.getThemePref(this);
+        if (!theme.equals(currentTheme)) {
+            recreate();
+            return;
+        }
         requireUnlock();
         load();
     }

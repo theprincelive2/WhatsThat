@@ -43,9 +43,16 @@ public class SavedStatusesActivity extends Activity {
     List<StatusFile> visibleFiles = new ArrayList<>();
     Set<String> selectedUris = new HashSet<>();
     boolean newestFirst = true;
+    private String currentTheme;
+
+    @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(ThemeManager.wrapContext(newBase));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        currentTheme = ThemeManager.getThemePref(this);
         super.onCreate(savedInstanceState);
 
         LinearLayout root = new LinearLayout(this);
@@ -172,6 +179,16 @@ public class SavedStatusesActivity extends Activity {
         root.addView(listView, new LinearLayout.LayoutParams(-1, 0, 1));
 
         setContentView(root);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        String theme = ThemeManager.getThemePref(this);
+        if (!theme.equals(currentTheme)) {
+            recreate();
+            return;
+        }
         loadSavedStatuses();
     }
 

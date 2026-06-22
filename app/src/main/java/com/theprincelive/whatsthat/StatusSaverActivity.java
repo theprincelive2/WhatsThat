@@ -97,9 +97,16 @@ public class StatusSaverActivity extends Activity {
     boolean newestFirst = true;
     boolean refreshAfterWhatsAppLaunch = false;
     StatusFile featuredFile;
+    private String currentTheme;
+
+    @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(ThemeManager.wrapContext(newBase));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        currentTheme = ThemeManager.getThemePref(this);
         super.onCreate(savedInstanceState);
 
         LinearLayout root = new LinearLayout(this);
@@ -328,6 +335,11 @@ public class StatusSaverActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        String theme = ThemeManager.getThemePref(this);
+        if (!theme.equals(currentTheme)) {
+            recreate();
+            return;
+        }
         if (gridView != null) {
             loadStatuses();
             if (refreshAfterWhatsAppLaunch) {
