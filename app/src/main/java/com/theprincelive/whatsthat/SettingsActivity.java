@@ -55,17 +55,17 @@ public class SettingsActivity extends Activity {
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.VERTICAL);
         header.setPadding(dp(6), dp(28), dp(6), dp(22));
-        header.setBackgroundColor(Color.rgb(0, 107, 85));
+        header.setBackgroundColor(Color.TRANSPARENT);
         root.addView(header, new LinearLayout.LayoutParams(-1, -2));
 
-        header.addView(BackNav.button(this, true), new LinearLayout.LayoutParams(dp(96), dp(42)));
+        header.addView(BackNav.button(this, false), new LinearLayout.LayoutParams(dp(96), dp(42)));
 
         TextView title = title("Settings");
-        title.setTextColor(Color.WHITE);
+        title.setTextColor(Color.parseColor("#1C1C1E"));
         title.setPadding(0, dp(14), 0, 0);
         header.addView(title);
         TextView intro = copy("Security and storage dashboard");
-        intro.setTextColor(Color.rgb(205, 237, 227));
+        intro.setTextColor(Color.parseColor("#8E8E93"));
         header.addView(intro);
 
         root.addView(section("App Lock"));

@@ -3,24 +3,20 @@ package com.theprincelive.whatsthat;
 import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
 import android.widget.Button;
 
 class BackNav {
     static Button button(Activity activity, boolean darkHeader) {
         Button button = new Button(activity);
-        button.setText("< Back");
+        button.setText("‹ Back");
         button.setAllCaps(false);
-        button.setGravity(Gravity.CENTER);
-        button.setTextSize(14);
-        button.setTypeface(Typeface.DEFAULT_BOLD);
-        button.setTextColor(darkHeader ? Color.WHITE : Color.rgb(0, 107, 85));
-        GradientDrawable bg = new GradientDrawable();
-        bg.setColor(darkHeader ? Color.rgb(0, 121, 96) : Color.rgb(247, 248, 246));
-        bg.setCornerRadius(dp(activity, 18));
-        bg.setStroke(dp(activity, 1), darkHeader ? Color.rgb(42, 145, 121) : Color.rgb(231, 234, 230));
-        button.setBackground(bg);
+        button.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+        button.setTextSize(17);
+        button.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
+        button.setTextColor(Color.parseColor("#007AFF")); // iOS System Blue
+        button.setBackgroundColor(Color.TRANSPARENT);
+        button.setPadding(dp(activity, 8), 0, dp(activity, 8), 0);
         button.setOnClickListener(v -> activity.finish());
         return button;
     }
@@ -29,3 +25,4 @@ class BackNav {
         return (int) (value * activity.getResources().getDisplayMetrics().density + 0.5f);
     }
 }
+

@@ -37,13 +37,13 @@ public class MessageDetailActivity extends Activity {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(dp(22), dp(28), dp(22), dp(22));
-        root.setBackgroundColor(Color.rgb(236, 229, 221));
+        root.setBackgroundColor(Color.parseColor("#F2F2F7"));
 
         root.addView(BackNav.button(this, false), new LinearLayout.LayoutParams(dp(96), dp(42)));
 
         TextView title = new TextView(this);
         title.setText(sender == null ? "Unknown" : sender);
-        title.setTextColor(Color.rgb(17, 27, 24));
+        title.setTextColor(Color.parseColor("#1C1C1E"));
         title.setTextSize(26);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         title.setIncludeFontPadding(false);
@@ -52,22 +52,23 @@ public class MessageDetailActivity extends Activity {
 
         TextView subtitle = new TextView(this);
         subtitle.setText(time == null ? "" : time);
-        subtitle.setTextColor(Color.rgb(91, 104, 98));
+        subtitle.setTextColor(Color.parseColor("#8E8E93"));
         subtitle.setTextSize(14);
         subtitle.setPadding(0, dp(8), 0, dp(20));
         root.addView(subtitle);
 
         TextView message = new TextView(this);
         message.setText(body == null ? "" : body);
-        message.setTextColor(Color.rgb(17, 27, 24));
+        message.setTextColor(Color.parseColor("#1C1C1E"));
         message.setTextSize(17);
         message.setLineSpacing(dp(5), 1.0f);
-        message.setPadding(dp(20), dp(20), dp(20), dp(20));
+        message.setPadding(dp(16), dp(16), dp(16), dp(16));
         message.setGravity(Gravity.START);
 
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.rgb(220, 248, 198));
-        bg.setCornerRadius(dp(18));
+        bg.setColor(Color.WHITE);
+        bg.setStroke(dp(1), Color.parseColor("#E5E5EA"));
+        bg.setCornerRadius(dp(16));
         message.setBackground(bg);
         root.addView(message, new LinearLayout.LayoutParams(-1, -2));
 
@@ -75,7 +76,7 @@ public class MessageDetailActivity extends Activity {
         actions.setOrientation(LinearLayout.VERTICAL);
         actions.setPadding(0, dp(18), 0, 0);
 
-        Button copy = actionButton("Copy message", true);
+        Button copy = actionButton("Copy message", false);
         copy.setOnClickListener(v -> copyMessage());
         actions.addView(copy, new LinearLayout.LayoutParams(-1, dp(48)));
 
@@ -85,13 +86,13 @@ public class MessageDetailActivity extends Activity {
         actionParams.setMargins(0, dp(10), 0, 0);
         actions.addView(share, actionParams);
 
-        Button delete = actionButton("Delete this message", false);
+        Button delete = actionButton("Delete this message", true);
         delete.setOnClickListener(v -> confirmDeleteMessage());
         LinearLayout.LayoutParams deleteParams = new LinearLayout.LayoutParams(-1, dp(48));
         deleteParams.setMargins(0, dp(10), 0, 0);
         actions.addView(delete, deleteParams);
 
-        Button deleteSender = actionButton("Delete all from sender", false);
+        Button deleteSender = actionButton("Delete all from sender", true);
         deleteSender.setOnClickListener(v -> confirmDeleteSender());
         LinearLayout.LayoutParams senderParams = new LinearLayout.LayoutParams(-1, dp(48));
         senderParams.setMargins(0, dp(10), 0, 0);
@@ -152,17 +153,17 @@ public class MessageDetailActivity extends Activity {
         return safe(sender) + "\n\n" + safe(body) + "\n\n" + safe(time);
     }
 
-    Button actionButton(String text, boolean primary) {
+    Button actionButton(String text, boolean destructive) {
         Button button = new Button(this);
         button.setText(text);
         button.setAllCaps(false);
-        button.setTextSize(14);
-        button.setTypeface(Typeface.DEFAULT_BOLD);
-        button.setTextColor(primary ? Color.WHITE : Color.rgb(0, 107, 85));
+        button.setTextSize(16);
+        button.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        button.setTextColor(destructive ? Color.parseColor("#FF3B30") : Color.parseColor("#007AFF"));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(primary ? Color.rgb(0, 107, 85) : Color.WHITE);
-        bg.setCornerRadius(dp(16));
-        if (!primary) bg.setStroke(dp(1), Color.rgb(222, 226, 223));
+        bg.setColor(Color.WHITE);
+        bg.setCornerRadius(dp(12));
+        bg.setStroke(dp(1), Color.parseColor("#E5E5EA"));
         button.setBackground(bg);
         return button;
     }

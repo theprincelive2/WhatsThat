@@ -25,7 +25,7 @@ public class HiddenRulesActivity extends Activity {
 
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
-        scroll.setBackgroundColor(Color.WHITE);
+        scroll.setBackgroundColor(Color.parseColor("#F2F2F7"));
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -35,13 +35,16 @@ public class HiddenRulesActivity extends Activity {
         root.addView(BackNav.button(this, false), new LinearLayout.LayoutParams(dp(96), dp(42)));
 
         TextView title = title("Blocked Notices");
+        title.setTextColor(Color.parseColor("#1C1C1E"));
         title.setPadding(0, dp(14), 0, 0);
         root.addView(title);
 
         summary = copy("");
+        summary.setTextColor(Color.parseColor("#8E8E93"));
         root.addView(summary);
 
         clearAllBtn = secondaryButton("Clear All Blocked Notices");
+        clearAllBtn.setTextColor(Color.parseColor("#FF3B30"));
         clearAllBtn.setOnClickListener(v -> confirmClearAll());
         root.addView(clearAllBtn, buttonParams(18));
 
@@ -74,37 +77,43 @@ public class HiddenRulesActivity extends Activity {
         row.setOrientation(LinearLayout.VERTICAL);
         row.setPadding(dp(16), dp(14), dp(16), dp(14));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.rgb(247, 248, 246));
-        bg.setCornerRadius(dp(8));
-        bg.setStroke(dp(1), Color.rgb(231, 234, 230));
+        bg.setColor(Color.WHITE);
+        bg.setCornerRadius(dp(12));
+        bg.setStroke(dp(1), Color.parseColor("#E5E5EA"));
         row.setBackground(bg);
 
         TextView sender = new TextView(this);
         sender.setText(rule.sender);
-        sender.setTextColor(Color.rgb(17, 27, 24));
+        sender.setTextColor(Color.parseColor("#1C1C1E"));
         sender.setTextSize(16);
         sender.setTypeface(Typeface.DEFAULT_BOLD);
         sender.setSingleLine(true);
         row.addView(sender);
 
         TextView body = copy(rule.body);
+        body.setTextColor(Color.parseColor("#3A3A3C"));
         body.setPadding(0, dp(6), 0, 0);
         row.addView(body);
 
         TextView pkg = new TextView(this);
         pkg.setText(AppLabels.label(this, rule.packageName));
-        pkg.setTextColor(Color.rgb(0, 107, 85));
+        pkg.setTextColor(Color.parseColor("#007AFF"));
         pkg.setTextSize(12);
         pkg.setPadding(0, dp(8), 0, 0);
         row.addView(pkg);
 
         Button unblock = secondaryButton("Unblock");
+        unblock.setTextColor(Color.parseColor("#007AFF"));
+        unblock.setPadding(dp(16), 0, dp(16), 0);
         unblock.setOnClickListener(v -> {
             NotificationRules.remove(this, rule.value);
             Toast.makeText(this, "Notification rule unblocked.", Toast.LENGTH_SHORT).show();
             loadRules();
         });
-        row.addView(unblock, buttonParams(12));
+        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(-2, dp(36));
+        btnParams.gravity = Gravity.END;
+        btnParams.setMargins(0, dp(10), 0, 0);
+        row.addView(unblock, btnParams);
         return row;
     }
 
@@ -146,12 +155,12 @@ public class HiddenRulesActivity extends Activity {
         button.setText(text);
         button.setAllCaps(false);
         button.setTextSize(14);
-        button.setTypeface(Typeface.DEFAULT_BOLD);
-        button.setTextColor(Color.rgb(0, 107, 85));
+        button.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        button.setTextColor(Color.parseColor("#007AFF"));
         GradientDrawable bg = new GradientDrawable();
         bg.setColor(Color.WHITE);
-        bg.setCornerRadius(dp(18));
-        bg.setStroke(dp(1), Color.rgb(231, 234, 230));
+        bg.setCornerRadius(dp(12));
+        bg.setStroke(dp(1), Color.parseColor("#E5E5EA"));
         button.setBackground(bg);
         return button;
     }

@@ -36,6 +36,7 @@ public class ConversationActivity extends Activity {
     Button deleteSelectedBtn;
     Button hideSelectedBtn;
     Button clearSelectionBtn;
+    ScrollView scroll;
     Set<Long> selectedIds = new HashSet<>();
     Map<Long, List<Long>> groupedMessageIds = new HashMap<>();
     private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor();
@@ -49,15 +50,18 @@ public class ConversationActivity extends Activity {
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(Color.rgb(236, 229, 221));
+        root.setBackgroundColor(Color.parseColor("#F2F2F7"));
+
+        LinearLayout headerContainer = new LinearLayout(this);
+        headerContainer.setOrientation(LinearLayout.VERTICAL);
 
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setPadding(dp(14), dp(18), dp(14), dp(14));
-        header.setBackgroundColor(Color.rgb(0, 107, 85));
+        header.setBackgroundColor(Color.parseColor("#F9F9F9"));
 
-        header.addView(BackNav.button(this, true), new LinearLayout.LayoutParams(dp(76), dp(42)));
+        header.addView(BackNav.button(this, false), new LinearLayout.LayoutParams(dp(76), dp(42)));
 
         LinearLayout titleBlock = new LinearLayout(this);
         titleBlock.setOrientation(LinearLayout.VERTICAL);
@@ -65,47 +69,72 @@ public class ConversationActivity extends Activity {
 
         TextView title = new TextView(this);
         title.setText(safe(sender));
-        title.setTextColor(Color.WHITE);
-        title.setTextSize(19);
-        title.setTypeface(Typeface.DEFAULT_BOLD);
+        title.setTextColor(Color.parseColor("#000000"));
+        title.setTextSize(17);
+        title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         title.setSingleLine(true);
         titleBlock.addView(title);
 
         subtitle = new TextView(this);
-        subtitle.setTextColor(Color.rgb(207, 234, 225));
-        subtitle.setTextSize(13);
+        subtitle.setTextColor(Color.parseColor("#8E8E93"));
+        subtitle.setTextSize(12);
         subtitle.setSingleLine(true);
         titleBlock.addView(subtitle);
         header.addView(titleBlock, new LinearLayout.LayoutParams(0, -2, 1));
 
-        Button actions = headerButton("Actions");
+        Button actions = new Button(this);
+        actions.setText("Actions");
+        actions.setAllCaps(false);
+        actions.setTextSize(17);
+        actions.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
+        actions.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
+        actions.setTextColor(Color.parseColor("#007AFF"));
+        actions.setBackgroundColor(Color.TRANSPARENT);
+        actions.setPadding(0, 0, dp(8), 0);
         actions.setOnClickListener(v -> showConversationActions());
-        header.addView(actions, new LinearLayout.LayoutParams(dp(92), dp(42)));
-        root.addView(header);
+        header.addView(actions, new LinearLayout.LayoutParams(dp(84), dp(42)));
+        
+        headerContainer.addView(header);
+        
+        View headerDivider = new View(this);
+        headerDivider.setBackgroundColor(Color.parseColor("#E5E5EA"));
+        headerContainer.addView(headerDivider, new LinearLayout.LayoutParams(-1, dp(1)));
+        
+        root.addView(headerContainer);
 
         selectionRow = new LinearLayout(this);
-        selectionRow.setOrientation(LinearLayout.HORIZONTAL);
-        selectionRow.setPadding(dp(14), dp(10), dp(14), dp(4));
-        selectionRow.setBackgroundColor(Color.rgb(236, 229, 221));
+        selectionRow.setOrientation(LinearLayout.VERTICAL);
 
-        deleteSelectedBtn = headerButton("Delete");
+        View selectionDivider = new View(this);
+        selectionDivider.setBackgroundColor(Color.parseColor("#E5E5EA"));
+        selectionRow.addView(selectionDivider, new LinearLayout.LayoutParams(-1, dp(1)));
+
+        LinearLayout selectionBtnRow = new LinearLayout(this);
+        selectionBtnRow.setOrientation(LinearLayout.HORIZONTAL);
+        selectionBtnRow.setPadding(dp(14), dp(8), dp(14), dp(8));
+        selectionBtnRow.setBackgroundColor(Color.parseColor("#F9F9F9"));
+        selectionBtnRow.setGravity(Gravity.CENTER_VERTICAL);
+
+        deleteSelectedBtn = selectionBarButton("Delete", Color.parseColor("#FF3B30"));
         deleteSelectedBtn.setOnClickListener(v -> confirmDeleteSelected());
-        selectionRow.addView(deleteSelectedBtn, new LinearLayout.LayoutParams(0, dp(42), 1));
+        selectionBtnRow.addView(deleteSelectedBtn, new LinearLayout.LayoutParams(0, dp(44), 1));
 
-        hideSelectedBtn = headerButton("Hide");
+        hideSelectedBtn = selectionBarButton("Hide", Color.parseColor("#007AFF"));
         hideSelectedBtn.setOnClickListener(v -> confirmHideSelected());
-        LinearLayout.LayoutParams hideParams = new LinearLayout.LayoutParams(0, dp(42), 1);
+        LinearLayout.LayoutParams hideParams = new LinearLayout.LayoutParams(0, dp(44), 1);
         hideParams.setMargins(dp(8), 0, 0, 0);
-        selectionRow.addView(hideSelectedBtn, hideParams);
+        selectionBtnRow.addView(hideSelectedBtn, hideParams);
 
-        clearSelectionBtn = headerButton("Clear");
+        clearSelectionBtn = selectionBarButton("Clear", Color.parseColor("#8E8E93"));
         clearSelectionBtn.setOnClickListener(v -> clearSelection());
-        LinearLayout.LayoutParams clearParams = new LinearLayout.LayoutParams(0, dp(42), 1);
+        LinearLayout.LayoutParams clearParams = new LinearLayout.LayoutParams(0, dp(44), 1);
         clearParams.setMargins(dp(8), 0, 0, 0);
-        selectionRow.addView(clearSelectionBtn, clearParams);
+        selectionBtnRow.addView(clearSelectionBtn, clearParams);
+        
+        selectionRow.addView(selectionBtnRow);
         root.addView(selectionRow);
 
-        ScrollView scroll = new ScrollView(this);
+        scroll = new ScrollView(this);
         scroll.setFillViewport(true);
         messages = new LinearLayout(this);
         messages.setOrientation(LinearLayout.VERTICAL);
@@ -130,7 +159,7 @@ public class ConversationActivity extends Activity {
                 if (rawRows.isEmpty()) {
                     TextView empty = new TextView(ConversationActivity.this);
                     empty.setText("No saved notices remain in this conversation.");
-                    empty.setTextColor(Color.rgb(91, 104, 98));
+                    empty.setTextColor(Color.parseColor("#8E8E93"));
                     empty.setTextSize(15);
                     empty.setGravity(Gravity.CENTER);
                     messages.addView(empty, new LinearLayout.LayoutParams(-1, -2));
@@ -146,21 +175,24 @@ public class ConversationActivity extends Activity {
                     messages.addView(messageBubble(msg), bubbleParams(msg));
                 }
                 updateSelectionActions();
+                if (scroll != null) {
+                    scroll.post(() -> scroll.fullScroll(ScrollView.FOCUS_DOWN));
+                }
             });
         });
     }
 
     View dateChip(String text) {
         TextView chip = new TextView(this);
-        chip.setText(safe(text));
-        chip.setTextColor(Color.rgb(91, 104, 98));
-        chip.setTextSize(12);
-        chip.setTypeface(Typeface.DEFAULT_BOLD);
+        chip.setText(safe(text).toUpperCase());
+        chip.setTextColor(Color.parseColor("#8E8E93"));
+        chip.setTextSize(11);
+        chip.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         chip.setGravity(Gravity.CENTER);
-        chip.setPadding(dp(12), dp(6), dp(12), dp(6));
+        chip.setPadding(dp(10), dp(4), dp(10), dp(4));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.rgb(248, 249, 247));
-        bg.setCornerRadius(dp(12));
+        bg.setColor(Color.parseColor("#E5E5EA"));
+        bg.setCornerRadius(dp(10));
         chip.setBackground(bg);
         return chip;
     }
@@ -171,21 +203,25 @@ public class ConversationActivity extends Activity {
         bubble.setOrientation(LinearLayout.VERTICAL);
         bubble.setPadding(dp(14), dp(10), dp(14), dp(8));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(selected ? Color.rgb(220, 248, 198) : Color.WHITE);
-        if (selected) bg.setStroke(dp(2), Color.rgb(18, 140, 126));
-        bg.setCornerRadius(dp(10));
+        bg.setColor(selected ? Color.parseColor("#E5F1FF") : Color.WHITE);
+        if (selected) {
+            bg.setStroke(dp(2), Color.parseColor("#007AFF"));
+        } else {
+            bg.setStroke(dp(1), Color.parseColor("#E5E5EA"));
+        }
+        bg.setCornerRadius(dp(16));
         bubble.setBackground(bg);
 
         TextView body = new TextView(this);
         body.setText(safe(msg.body));
-        body.setTextColor(Color.rgb(17, 27, 24));
+        body.setTextColor(Color.parseColor("#1C1C1E"));
         body.setTextSize(16);
         body.setLineSpacing(dp(4), 1.0f);
         bubble.addView(body);
 
         TextView time = new TextView(this);
         time.setText(msg.messageCount > 1 ? safe(msg.shortTime) + " - x" + msg.messageCount : safe(msg.shortTime));
-        time.setTextColor(Color.rgb(91, 104, 98));
+        time.setTextColor(Color.parseColor("#8E8E93"));
         time.setTextSize(11);
         time.setGravity(Gravity.RIGHT);
         time.setPadding(0, dp(6), 0, 0);
@@ -440,17 +476,14 @@ public class ConversationActivity extends Activity {
         return count == 1 ? " message" : " messages";
     }
 
-    Button headerButton(String text) {
+    Button selectionBarButton(String text, int textColor) {
         Button button = new Button(this);
         button.setText(text);
         button.setAllCaps(false);
-        button.setTextSize(13);
-        button.setTypeface(Typeface.DEFAULT_BOLD);
-        button.setTextColor(Color.WHITE);
-        GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.rgb(18, 140, 126));
-        bg.setCornerRadius(dp(16));
-        button.setBackground(bg);
+        button.setTextSize(15);
+        button.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        button.setTextColor(textColor);
+        button.setBackgroundColor(Color.TRANSPARENT);
         return button;
     }
 
