@@ -354,10 +354,12 @@ public class StatusSaverActivity extends Activity {
     }
 
     void showMoreActions() {
+        boolean autoSaveEnabled = prefs().getBoolean("auto_save_statuses", false);
         String[] actions = {
                 "Saved Statuses",
                 "Change " + modeLabel(activeMode()) + " Folder",
-                newestFirst ? "Sort: Oldest First" : "Sort: Newest First"
+                newestFirst ? "Sort: Oldest First" : "Sort: Newest First",
+                autoSaveEnabled ? "Disable Auto-Save Statuses" : "Enable Auto-Save Statuses"
         };
         new AlertDialog.Builder(this)
                 .setTitle("Status Saver")
@@ -366,10 +368,21 @@ public class StatusSaverActivity extends Activity {
                         startActivity(new Intent(this, SavedStatusesActivity.class));
                     } else if (which == 1) {
                         chooseStatusFolder(null, activeMode());
-                    } else {
+                    } else if (which == 2) {
                         newestFirst = !newestFirst;
                         sortAllFiles();
                         applyFilter();
+                    } else if (which == 3) {
+                        boolean newValue = !autoSaveEnabled;
+                        prefs().edit().putBoolean("auto_save_statuses", newValue).apply();
+                        Toast.makeText(this, newValue ? "Auto-Save Statuses enabled." : "Auto-Save Statuses disabled.", Toast.LENGTH_SHORT).show();
+                        if (newValue) {
+                            Intent serviceIntent = new Intent(this, WhatsNotificationService.class);
+                            serviceIntent.setAction("com.theprincelive.whatsthat.ACTION_TRIGGER_AUTO_SAVE");
+                            try {
+                                startService(serviceIntent);
+                            } catch (Exception ignored) {}
+                        }
                     }
                 })
                 .show();
