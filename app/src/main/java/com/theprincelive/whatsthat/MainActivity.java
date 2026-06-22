@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import android.content.res.ColorStateList;
 
 public class MainActivity extends Activity {
     private static final String PREFS = "whatsthat_prefs";
@@ -226,10 +227,20 @@ public class MainActivity extends Activity {
                 emptyText.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
                 list.setVisibility(filtered.isEmpty() ? View.GONE : View.VISIBLE);
                 updateSelectionActions();
+                updateBottomNavigationHighlights(otherMode);
                 list.setAdapter(new MessageAdapter(MainActivity.this, filtered, selectedKeys, systemKeys));
                 restoreListPositionIfNeeded(filtered.size());
             });
         });
+    }
+
+    void updateBottomNavigationHighlights(boolean otherMode) {
+        Button whatsappBtn = findViewById(R.id.whatsappBtn);
+        if (whatsappBtn != null) {
+            int activeColor = getResources().getColor(otherMode ? R.color.ios_muted : R.color.ios_blue);
+            whatsappBtn.setTextColor(activeColor);
+            whatsappBtn.setCompoundDrawableTintList(ColorStateList.valueOf(activeColor));
+        }
     }
 
     List<SavedMessage> groupConversations(List<SavedMessage> rows) {
@@ -633,8 +644,14 @@ public class MainActivity extends Activity {
         if (filterBtn == null) return;
         boolean active = filteringSystemGenerated();
         filterBtn.setText(active ? "Clean On" : "All notices");
-        filterBtn.setTextColor(active ? android.graphics.Color.WHITE : getResources().getColor(R.color.brand_text));
-        filterBtn.setBackgroundResource(active ? R.drawable.bg_chip_selected : R.drawable.bg_chip);
+        
+        int textColor = active ? android.graphics.Color.WHITE : getResources().getColor(R.color.ios_muted);
+        int tintColor = active ? getResources().getColor(R.color.ios_blue) : getResources().getColor(R.color.ios_border);
+        
+        filterBtn.setTextColor(textColor);
+        filterBtn.setBackgroundTintList(ColorStateList.valueOf(tintColor));
+        filterBtn.setBackgroundResource(R.drawable.bg_ios_chip);
+        
         filterBtn.setContentDescription(active ? "Clean view is hiding system notices" : "All notices are visible");
         if (privacyText != null) {
             privacyText.setText(active
@@ -657,6 +674,9 @@ public class MainActivity extends Activity {
         if (blockedRulesBtn == null) return;
         int count = NotificationRules.count(this);
         blockedRulesBtn.setText(count == 0 ? "Blocked" : "Blocked (" + count + ")");
+        blockedRulesBtn.setBackgroundResource(R.drawable.bg_ios_chip);
+        blockedRulesBtn.setTextColor(getResources().getColor(R.color.ios_blue));
+        blockedRulesBtn.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ios_border)));
         blockedRulesBtn.setContentDescription(count == 0 ? "Blocked notices" : count + " blocked notice rules");
     }
 

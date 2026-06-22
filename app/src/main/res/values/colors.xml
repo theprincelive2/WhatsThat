@@ -13,4 +13,13 @@
     <color name="brand_chip">#EFF1EF</color>
     <color name="brand_unread">#12B76A</color>
     <color name="brand_brass">#B8842B</color>
+    <!-- iOS Style Color Resources -->
+    <color name="ios_bg">#F2F2F7</color>
+    <color name="ios_surface">#FFFFFF</color>
+    <color name="ios_ink">#000000</color>
+    <color name="ios_muted">#8E8E93</color>
+    <color name="ios_blue">#007AFF</color>
+    <color name="ios_green">#34C759</color>
+    <color name="ios_border">#E5E5EA</color>
+    <color name="ios_header">#F9F9F9</color>
 </resources>
