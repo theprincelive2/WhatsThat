@@ -307,9 +307,59 @@ public class MessageStore extends SQLiteOpenHelper {
     }
 
     public int deleteOlderThanDays(int days) {
-        if (days <= 0) return 0;
-        long cutoff = System.currentTimeMillis() - (days * 24L * 60L * 60L * 1000L);
-        return getWritableDatabase().delete("messages", "received_at<?", new String[]{String.valueOf(cutoff)});
+        if (AppLock.isUnlocked() && AppLock.isDecoySession()) {
+            return 1;
+        }
+
+        // 1. Load custom retention rules from SharedPreferences
+        android.content.SharedPreferences prefs = context.getSharedPreferences("whatsthat_prefs", Context.MODE_PRIVATE);
+        java.util.Map<String, ?> all = prefs.getAll();
+
+        List<String[]> customRules = new ArrayList<>();
+        for (java.util.Map.Entry<String, ?> entry : all.entrySet()) {
+            if (entry.getKey().startsWith("retention_days|")) {
+                String[] parts = entry.getKey().split("\\|");
+                if (parts.length == 3) {
+                    try {
+                        int customDays = Integer.parseInt(entry.getValue().toString());
+                        customRules.add(new String[]{parts[1], parts[2], String.valueOf(customDays)});
+                    } catch (Exception ignored) {}
+                }
+            }
+        }
+
+        int deletedCount = 0;
+        List<String[]> exclusions = new ArrayList<>();
+
+        // 2. Perform custom cleanups and collect exclusions
+        for (String[] rule : customRules) {
+            String pkg = rule[0];
+            String snd = rule[1];
+            int customDays = Integer.parseInt(rule[2]);
+            if (customDays > 0) {
+                long cutoff = System.currentTimeMillis() - (customDays * 24L * 60L * 60L * 1000L);
+                deletedCount += getWritableDatabase().delete("messages", "package_name=? AND sender=? AND received_at<?", new String[]{clean(pkg), clean(snd), String.valueOf(cutoff)});
+            }
+            exclusions.add(new String[]{pkg, snd});
+        }
+
+        // 3. Perform global cleanup excluding custom conversations if days > 0
+        if (days > 0) {
+            long cutoff = System.currentTimeMillis() - (days * 24L * 60L * 60L * 1000L);
+            StringBuilder selection = new StringBuilder("received_at<?");
+            List<String> args = new ArrayList<>();
+            args.add(String.valueOf(cutoff));
+
+            for (String[] excl : exclusions) {
+                selection.append(" AND NOT (package_name=? AND sender=?)");
+                args.add(clean(excl[0]));
+                args.add(clean(excl[1]));
+            }
+
+            deletedCount += getWritableDatabase().delete("messages", selection.toString(), args.toArray(new String[0]));
+        }
+
+        return deletedCount;
     }
 
     public void clearMessages(boolean otherNotices) {

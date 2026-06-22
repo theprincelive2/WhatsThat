@@ -276,13 +276,66 @@ public class ConversationActivity extends Activity {
     }
 
     void showConversationActions() {
-        String[] actions = {"Export conversation", "Delete conversation"};
+        String[] actions = {"Export conversation", "Message Retention", "Delete conversation"};
         new AlertDialog.Builder(this)
                 .setTitle(safe(sender))
                 .setItems(actions, (dialog, which) -> {
                     if (which == 0) shareConversation();
+                    else if (which == 1) showRetentionDialog();
                     else confirmDeleteConversation();
                 })
+                .show();
+    }
+
+    void showRetentionDialog() {
+        String prefKey = "retention_days|" + packageName + "|" + sender;
+        int currentVal = getSharedPreferences("whatsthat_prefs", MODE_PRIVATE).getInt(prefKey, -1);
+        int selection;
+        if (currentVal == -1) selection = 0;
+        else if (currentVal == 0) selection = 1;
+        else if (currentVal == 1) selection = 2;
+        else if (currentVal == 3) selection = 3;
+        else if (currentVal == 7) selection = 4;
+        else if (currentVal == 30) selection = 5;
+        else selection = 0;
+        
+        String[] options = {
+            "Follow global default",
+            "Keep forever",
+            "Delete after 1 day",
+            "Delete after 3 days",
+            "Delete after 7 days",
+            "Delete after 30 days"
+        };
+        
+        new AlertDialog.Builder(this)
+                .setTitle("Message Retention - " + safe(sender))
+                .setSingleChoiceItems(options, selection, (dialog, which) -> {
+                    int days;
+                    if (which == 0) days = -1;
+                    else if (which == 1) days = 0;
+                    else if (which == 2) days = 1;
+                    else if (which == 3) days = 3;
+                    else if (which == 4) days = 7;
+                    else if (which == 5) days = 30;
+                    else days = -1;
+                    
+                    if (days == -1) {
+                        getSharedPreferences("whatsthat_prefs", MODE_PRIVATE).edit().remove(prefKey).apply();
+                    } else {
+                        getSharedPreferences("whatsthat_prefs", MODE_PRIVATE).edit().putInt(prefKey, days).apply();
+                    }
+                    
+                    dialog.dismiss();
+                    String summary = which == 0 ? "Following global default" : options[which];
+                    Toast.makeText(ConversationActivity.this, "Retention set: " + summary, Toast.LENGTH_SHORT).show();
+                    
+                    dbExecutor.execute(() -> {
+                        store.deleteOlderThanDays(getSharedPreferences("whatsthat_prefs", MODE_PRIVATE).getInt("retention_days", 0));
+                        loadMessages();
+                    });
+                })
+                .setNegativeButton("Cancel", null)
                 .show();
     }
 

@@ -335,7 +335,7 @@ public class MainActivity extends Activity {
 
     void applyRetention() {
         int days = prefs().getInt(PREF_RETENTION_DAYS, 0);
-        if (days > 0) store.deleteOlderThanDays(days);
+        store.deleteOlderThanDays(days);
     }
 
     void confirmClearAll() {

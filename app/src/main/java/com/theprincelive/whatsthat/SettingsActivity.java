@@ -256,7 +256,7 @@ public class SettingsActivity extends Activity {
                     int days = daysForPosition(which);
                     prefs().edit().putInt(PREF_RETENTION_DAYS, days).apply();
                     dbExecutor.execute(() -> {
-                        if (days > 0) store.deleteOlderThanDays(days);
+                        store.deleteOlderThanDays(days);
                         runOnUiThread(() -> {
                             updateRetentionButton();
                             dialog.dismiss();
