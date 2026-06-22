@@ -98,9 +98,14 @@ public class WhatsNotificationService extends NotificationListenerService {
         if (!whatsapp && isSystemNoise(pkg, title, text)) return;
         if (whatsapp && isLikelyOwnReply(title, text)) return;
 
+        final android.content.Context ctx = getApplicationContext();
+        final String finalPkg = pkg;
+        final String finalTitle = title;
+        final String finalText = text;
+
         dbExecutor.execute(() -> {
-            if (NotificationRules.isHidden(getApplicationContext(), pkg, title, text)) return;
-            MessageStore.getInstance(getApplicationContext()).saveMessage(title, text, pkg, System.currentTimeMillis());
+            if (NotificationRules.isHidden(ctx, finalPkg, finalTitle, finalText)) return;
+            MessageStore.getInstance(ctx).saveMessage(finalTitle, finalText, finalPkg, System.currentTimeMillis());
         });
     }
 
