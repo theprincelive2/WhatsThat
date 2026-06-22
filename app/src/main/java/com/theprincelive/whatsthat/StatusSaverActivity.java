@@ -307,11 +307,11 @@ public class StatusSaverActivity extends Activity {
         selectionBtnRow.setBackgroundColor(getColor(R.color.ios_header));
         selectionBtnRow.setGravity(Gravity.CENTER_VERTICAL);
 
-        saveSelectedBtn = toolbarButton(\"Save Selected\", getColor(R.color.ios_blue));
+        saveSelectedBtn = toolbarButton("Save Selected", getColor(R.color.ios_blue));
         saveSelectedBtn.setOnClickListener(v -> saveSelectedStatuses());
         selectionBtnRow.addView(saveSelectedBtn, new LinearLayout.LayoutParams(0, dp(44), 1));
 
-        clearSelectionBtn = toolbarButton(\"Clear\", getColor(R.color.ios_muted));
+        clearSelectionBtn = toolbarButton("Clear", getColor(R.color.ios_muted));
         clearSelectionBtn.setOnClickListener(v -> clearSelection());
         LinearLayout.LayoutParams clearParams = new LinearLayout.LayoutParams(0, dp(44), 1);
         clearParams.setMargins(dp(8), 0, 0, 0);
