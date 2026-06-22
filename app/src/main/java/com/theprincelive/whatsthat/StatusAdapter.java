@@ -60,13 +60,7 @@ class StatusAdapter extends BaseAdapter {
         if (file.isImage()) {
             preview.setImageURI(file.uri);
         } else {
-            Bitmap thumbnail = videoThumbnail(file);
-            if (thumbnail != null) {
-                preview.setImageBitmap(thumbnail);
-            } else {
-                preview.setImageResource(R.drawable.ic_video);
-                preview.setPadding(dp(18), dp(18), dp(18), dp(18));
-            }
+            ThumbnailLoader.loadVideoThumbnail(context, file.uri, preview, R.drawable.ic_video);
         }
         row.addView(preview, new LinearLayout.LayoutParams(dp(68), dp(68)));
 
@@ -118,20 +112,7 @@ class StatusAdapter extends BaseAdapter {
         return String.format(Locale.getDefault(), "%.0f KB", size / 1024f);
     }
 
-    Bitmap videoThumbnail(StatusFile file) {
-        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-        try {
-            retriever.setDataSource(context, file.uri);
-            return retriever.getFrameAtTime(1_000_000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
-        } catch (Exception ignored) {
-            return null;
-        } finally {
-            try {
-                retriever.release();
-            } catch (Exception ignored) {
-            }
-        }
-    }
+
 
     private int dp(int value) {
         return (int) (value * context.getResources().getDisplayMetrics().density + 0.5f);

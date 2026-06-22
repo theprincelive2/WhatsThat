@@ -7,12 +7,16 @@ import android.os.Bundle;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class WhatsNotificationService extends NotificationListenerService {
     private static final String PREFS = "whatsthat_prefs";
     private static final String PREF_CAPTURE_OTHER = "capture_other_notices";
     private static final String PKG_MAIN = "com.whatsapp";
     private static final String PKG_BUSINESS = "com.whatsapp.w4b";
+
+    private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor();
 
     @Override public void onNotificationPosted(StatusBarNotification sbn) {
         String pkg = sbn.getPackageName();
@@ -28,9 +32,11 @@ public class WhatsNotificationService extends NotificationListenerService {
         if (whatsapp && isWhatsAppNoise(title, text)) return;
         if (!whatsapp && isSystemNoise(pkg, title, text)) return;
         if (whatsapp && isLikelyOwnReply(title, text)) return;
-        if (NotificationRules.isHidden(getApplicationContext(), pkg, title, text)) return;
 
-        new MessageStore(getApplicationContext()).saveMessage(title, text, pkg, System.currentTimeMillis());
+        dbExecutor.execute(() -> {
+            if (NotificationRules.isHidden(getApplicationContext(), pkg, title, text)) return;
+            MessageStore.getInstance(getApplicationContext()).saveMessage(title, text, pkg, System.currentTimeMillis());
+        });
     }
 
     private String notificationText(Bundle extras) {

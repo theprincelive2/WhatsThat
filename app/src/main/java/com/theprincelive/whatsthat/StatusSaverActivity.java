@@ -483,13 +483,7 @@ public class StatusSaverActivity extends Activity {
         if (featuredFile.isImage()) {
             previewImage.setImageURI(featuredFile.uri);
         } else {
-            Bitmap thumbnail = videoThumbnail(featuredFile);
-            if (thumbnail != null) {
-                previewImage.setImageBitmap(thumbnail);
-            } else {
-                previewImage.setImageResource(R.drawable.ic_video);
-                previewImage.setPadding(dp(54), dp(54), dp(54), dp(54));
-            }
+            ThumbnailLoader.loadVideoThumbnail(this, featuredFile.uri, previewImage, R.drawable.ic_video);
         }
         previewLabel.setText(featuredFile.isVideo() ? "Video status" : "Photo status");
         previewMeta.setText(featuredFile.name + " - " + sizeText(featuredFile.size));
@@ -543,13 +537,7 @@ public class StatusSaverActivity extends Activity {
         if (file.isImage()) {
             thumb.setImageURI(file.uri);
         } else {
-            Bitmap thumbnail = videoThumbnail(file);
-            if (thumbnail != null) {
-                thumb.setImageBitmap(thumbnail);
-            } else {
-                thumb.setImageResource(R.drawable.ic_video);
-                thumb.setPadding(dp(18), dp(18), dp(18), dp(18));
-            }
+            ThumbnailLoader.loadVideoThumbnail(this, file.uri, thumb, R.drawable.ic_video);
         }
         tile.addView(thumb, new LinearLayout.LayoutParams(dp(68), dp(68)));
         tile.setOnClickListener(v -> {
@@ -569,20 +557,7 @@ public class StatusSaverActivity extends Activity {
         return String.format(Locale.getDefault(), "%.0f KB", size / 1024f);
     }
 
-    Bitmap videoThumbnail(StatusFile file) {
-        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-        try {
-            retriever.setDataSource(this, file.uri);
-            return retriever.getFrameAtTime(1_000_000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
-        } catch (Exception ignored) {
-            return null;
-        } finally {
-            try {
-                retriever.release();
-            } catch (Exception ignored) {
-            }
-        }
-    }
+
 
     void toggleSelection(StatusFile file) {
         String key = file.uri.toString();

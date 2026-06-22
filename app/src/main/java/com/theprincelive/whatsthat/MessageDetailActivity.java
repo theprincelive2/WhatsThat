@@ -15,12 +15,15 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MessageDetailActivity extends Activity {
     long messageId;
     String sender;
     String body;
     String time;
+    private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,8 +119,10 @@ public class MessageDetailActivity extends Activity {
                 .setTitle("Delete this message?")
                 .setMessage("This only removes the local copy saved in WhatsThat.")
                 .setPositiveButton("Delete", (dialog, which) -> {
-                    if (messageId >= 0) new MessageStore(this).deleteMessage(messageId);
-                    finish();
+                    dbExecutor.execute(() -> {
+                        if (messageId >= 0) MessageStore.getInstance(MessageDetailActivity.this).deleteMessage(messageId);
+                        runOnUiThread(this::finish);
+                    });
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -128,11 +133,19 @@ public class MessageDetailActivity extends Activity {
                 .setTitle("Delete all from this sender?")
                 .setMessage("This removes every locally saved message from " + safe(sender) + ".")
                 .setPositiveButton("Delete", (dialog, which) -> {
-                    new MessageStore(this).deleteSender(sender);
-                    finish();
+                    dbExecutor.execute(() -> {
+                        MessageStore.getInstance(MessageDetailActivity.this).deleteSender(sender);
+                        runOnUiThread(this::finish);
+                    });
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        dbExecutor.shutdown();
     }
 
     String formattedMessage() {

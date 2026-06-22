@@ -18,6 +18,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class SettingsActivity extends Activity {
     private static final int REQUEST_IMPORT_CSV = 72;
@@ -33,11 +35,12 @@ public class SettingsActivity extends Activity {
     Button lockOnCloseBtn;
     Button biometricBtn;
     MessageStore store;
+    private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        store = new MessageStore(this);
+        store = MessageStore.getInstance(this);
 
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
@@ -172,16 +175,20 @@ public class SettingsActivity extends Activity {
     }
 
     void shareCsv(boolean otherNotices) {
-        String csv = store.exportCsv(otherNotices);
-        if (csv.trim().equals("sender,message,app,package,received_at")) {
-            Toast.makeText(this, "No messages to export yet.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        Intent send = new Intent(Intent.ACTION_SEND);
-        send.setType("text/csv");
-        send.putExtra(Intent.EXTRA_SUBJECT, "WhatsThat message export");
-        send.putExtra(Intent.EXTRA_TEXT, csv);
-        startActivity(Intent.createChooser(send, "Export WhatsThat CSV"));
+        dbExecutor.execute(() -> {
+            String csv = store.exportCsv(otherNotices);
+            runOnUiThread(() -> {
+                if (csv.trim().equals("sender,message,app,package,received_at")) {
+                    Toast.makeText(SettingsActivity.this, "No messages to export yet.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                Intent send = new Intent(Intent.ACTION_SEND);
+                send.setType("text/csv");
+                send.putExtra(Intent.EXTRA_SUBJECT, "WhatsThat message export");
+                send.putExtra(Intent.EXTRA_TEXT, csv);
+                startActivity(Intent.createChooser(send, "Export WhatsThat CSV"));
+            });
+        });
     }
 
     void pickImportCsv() {
@@ -201,13 +208,15 @@ public class SettingsActivity extends Activity {
     }
 
     void importCsv(Uri uri) {
-        try {
-            String csv = readText(uri);
-            int imported = store.importCsv(csv);
-            Toast.makeText(this, "Imported " + imported + itemCountLabel(imported) + ".", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            Toast.makeText(this, "Could not import this file.", Toast.LENGTH_SHORT).show();
-        }
+        dbExecutor.execute(() -> {
+            try {
+                String csv = readText(uri);
+                int imported = store.importCsv(csv);
+                runOnUiThread(() -> Toast.makeText(SettingsActivity.this, "Imported " + imported + itemCountLabel(imported) + ".", Toast.LENGTH_SHORT).show());
+            } catch (Exception e) {
+                runOnUiThread(() -> Toast.makeText(SettingsActivity.this, "Could not import this file.", Toast.LENGTH_SHORT).show());
+            }
+        });
     }
 
     String readText(Uri uri) throws Exception {
@@ -236,10 +245,14 @@ public class SettingsActivity extends Activity {
                 .setSingleChoiceItems(options, current, (dialog, which) -> {
                     int days = daysForPosition(which);
                     prefs().edit().putInt(PREF_RETENTION_DAYS, days).apply();
-                    if (days > 0) store.deleteOlderThanDays(days);
-                    updateRetentionButton();
-                    dialog.dismiss();
-                    Toast.makeText(this, retentionSummary(days), Toast.LENGTH_SHORT).show();
+                    dbExecutor.execute(() -> {
+                        if (days > 0) store.deleteOlderThanDays(days);
+                        runOnUiThread(() -> {
+                            updateRetentionButton();
+                            dialog.dismiss();
+                            Toast.makeText(SettingsActivity.this, retentionSummary(days), Toast.LENGTH_SHORT).show();
+                        });
+                    });
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -291,12 +304,16 @@ public class SettingsActivity extends Activity {
 
     void handleCleanupAction(int which) {
         if (which == 0) {
-            int removed = store.deleteWhatsAppNoise();
-            Toast.makeText(this, "Removed " + removed + " WhatsApp noise items.", Toast.LENGTH_SHORT).show();
+            dbExecutor.execute(() -> {
+                int removed = store.deleteWhatsAppNoise();
+                runOnUiThread(() -> Toast.makeText(SettingsActivity.this, "Removed " + removed + " WhatsApp noise items.", Toast.LENGTH_SHORT).show());
+            });
         } else if (which == 1) {
             confirmCleanup("Clear Other notices?", "This removes all saved non-WhatsApp notifications.", () -> {
-                store.clearMessages(true);
-                Toast.makeText(this, "Other notices cleared.", Toast.LENGTH_SHORT).show();
+                dbExecutor.execute(() -> {
+                    store.clearMessages(true);
+                    runOnUiThread(() -> Toast.makeText(SettingsActivity.this, "Other notices cleared.", Toast.LENGTH_SHORT).show());
+                });
             });
         } else if (which == 2) {
             confirmDeleteOlderThan(7);
@@ -309,9 +326,17 @@ public class SettingsActivity extends Activity {
 
     void confirmDeleteOlderThan(int days) {
         confirmCleanup("Delete old notices?", "This removes saved notifications older than " + days + " days.", () -> {
-            int removed = store.deleteOlderThanDays(days);
-            Toast.makeText(this, "Removed " + removed + " old notices.", Toast.LENGTH_SHORT).show();
+            dbExecutor.execute(() -> {
+                int removed = store.deleteOlderThanDays(days);
+                runOnUiThread(() -> Toast.makeText(SettingsActivity.this, "Removed " + removed + " old notices.", Toast.LENGTH_SHORT).show());
+            });
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        dbExecutor.shutdown();
     }
 
     void confirmCleanup(String title, String message, Runnable action) {

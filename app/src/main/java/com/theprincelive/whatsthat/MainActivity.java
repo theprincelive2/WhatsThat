@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
     private static final String PREFS = "whatsthat_prefs";
@@ -30,6 +32,8 @@ public class MainActivity extends Activity {
     private static final String PREF_CAPTURE_OTHER = "capture_other_notices";
     private static final String PREF_SHOW_OTHER = "show_other_notices";
     private static final String PREF_FILTER_SYSTEM = "filter_system_generated";
+
+    private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor();
 
     MessageStore store;
     ListView list;
@@ -65,7 +69,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.activity_main);
-        store = new MessageStore(this);
+        store = MessageStore.getInstance(this);
         list = findViewById(R.id.listView);
         countText = findViewById(R.id.countText);
         emptyText = findViewById(R.id.emptyText);
@@ -125,7 +129,7 @@ public class MainActivity extends Activity {
                 return;
             }
             rememberListPosition();
-            store.markMessageRead(msg.id);
+            dbExecutor.execute(() -> store.markMessageRead(msg.id));
             Intent intent = new Intent(this, MessageDetailActivity.class);
             intent.putExtra("id", msg.id);
             intent.putExtra("sender", msg.sender);
@@ -172,53 +176,60 @@ public class MainActivity extends Activity {
         open.setVisibility(hasAccess ? View.GONE : View.VISIBLE);
         accessBanner.setVisibility(hasAccess && activeSender == null ? View.GONE : View.VISIBLE);
         statusText.setText(otherMode ? "Other notification inbox" : "WhatsApp notification inbox");
-        applyRetention();
-        store.deleteWhatsAppNoise();
-        store.deleteHiddenByRules();
 
-        List<SavedMessage> rows = store.getRecentStructured(otherMode);
-        String q = searchBox.getText().toString().toLowerCase(Locale.getDefault());
-        List<SavedMessage> matching = new ArrayList<>();
-        int hiddenSystemCount = 0;
-        for (SavedMessage m : rows) {
-            if (filteringSystemGenerated() && isSystemGenerated(m)) {
-                hiddenSystemCount++;
-                continue;
+        dbExecutor.execute(() -> {
+            applyRetention();
+            store.deleteWhatsAppNoise();
+            store.deleteHiddenByRules();
+
+            final List<SavedMessage> rows = store.getRecentStructured(otherMode);
+            final String q = searchBox.getText().toString().toLowerCase(Locale.getDefault());
+            final List<SavedMessage> matching = new ArrayList<>();
+            int hiddenSystemCountVal = 0;
+            for (SavedMessage m : rows) {
+                if (filteringSystemGenerated() && isSystemGenerated(m)) {
+                    hiddenSystemCountVal++;
+                    continue;
+                }
+                String v = (m.sender + " " + m.body + " " + m.time).toLowerCase(Locale.getDefault());
+                boolean senderMatches = activeSender == null || activeSender.equals(m.sender);
+                if (senderMatches && (q.isEmpty() || v.contains(q))) matching.add(m);
             }
-            String v = (m.sender + " " + m.body + " " + m.time).toLowerCase(Locale.getDefault());
-            boolean senderMatches = activeSender == null || activeSender.equals(m.sender);
-            if (senderMatches && (q.isEmpty() || v.contains(q))) matching.add(m);
-        }
-        List<SavedMessage> filtered = activeSender == null ? groupConversations(matching) : collapseRepeatedMessages(matching);
-        visibleRows.clear();
-        visibleRows.addAll(filtered);
-        updateSystemKeys(filtered);
-        pruneSelection();
+            final List<SavedMessage> filtered = activeSender == null ? groupConversations(matching) : collapseRepeatedMessages(matching);
+            final int hiddenSystemCount = hiddenSystemCountVal;
 
-        int count = filtered.size();
-        countText.setText(count + countLabel(count, otherMode));
-        if (!hasAccess) {
-            latestText.setText("Turn on Notification Access so saved alerts can appear here.");
-        } else if (otherMode && !captureOtherNotices()) {
-            latestText.setText("Other notices are off. Tap Other notices to start capturing non-WhatsApp notifications.");
-        } else if (activeSender != null) {
-            latestText.setText("Showing saved alerts from " + activeSender + ".");
-        } else if (filteringSystemGenerated() && hiddenSystemCount > 0) {
-            latestText.setText(filterSummary(hiddenSystemCount, count == 0 ? "" : " Latest: " + filtered.get(0).time));
-        } else {
-            latestText.setText(count == 0 ? emptyModeText(otherMode) : "Latest: " + filtered.get(0).time);
-        }
-        modeBtn.setText("Switch");
-        modeBtn.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-        updateTopStatusCard(otherMode);
-        updateFilterButton();
-        updateBlockedRulesButton();
-        emptyText.setText(emptyModeText(otherMode));
-        emptyText.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
-        list.setVisibility(filtered.isEmpty() ? View.GONE : View.VISIBLE);
-        updateSelectionActions();
-        list.setAdapter(new MessageAdapter(this, filtered, selectedKeys, systemKeys));
-        restoreListPositionIfNeeded(filtered.size());
+            runOnUiThread(() -> {
+                visibleRows.clear();
+                visibleRows.addAll(filtered);
+                updateSystemKeys(filtered);
+                pruneSelection();
+
+                int count = filtered.size();
+                countText.setText(count + countLabel(count, otherMode));
+                if (!hasAccess) {
+                    latestText.setText("Turn on Notification Access so saved alerts can appear here.");
+                } else if (otherMode && !captureOtherNotices()) {
+                    latestText.setText("Other notices are off. Tap Other notices to start capturing non-WhatsApp notifications.");
+                } else if (activeSender != null) {
+                    latestText.setText("Showing saved alerts from " + activeSender + ".");
+                } else if (filteringSystemGenerated() && hiddenSystemCount > 0) {
+                    latestText.setText(filterSummary(hiddenSystemCount, count == 0 ? "" : " Latest: " + filtered.get(0).time));
+                } else {
+                    latestText.setText(count == 0 ? emptyModeText(otherMode) : "Latest: " + filtered.get(0).time);
+                }
+                modeBtn.setText("Switch");
+                modeBtn.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+                updateTopStatusCard(otherMode);
+                updateFilterButton();
+                updateBlockedRulesButton();
+                emptyText.setText(emptyModeText(otherMode));
+                emptyText.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
+                list.setVisibility(filtered.isEmpty() ? View.GONE : View.VISIBLE);
+                updateSelectionActions();
+                list.setAdapter(new MessageAdapter(MainActivity.this, filtered, selectedKeys, systemKeys));
+                restoreListPositionIfNeeded(filtered.size());
+            });
+        });
     }
 
     List<SavedMessage> groupConversations(List<SavedMessage> rows) {
@@ -321,9 +332,13 @@ public class MainActivity extends Activity {
                 .setTitle(showingOtherNotices() ? "Clear other notices?" : "Clear WhatsApp messages?")
                 .setMessage("This removes the saved items in the current inbox only.")
                 .setPositiveButton("Clear", (dialog, which) -> {
-                    store.clearMessages(showingOtherNotices());
-                    activeSender = null;
-                    load();
+                    dbExecutor.execute(() -> {
+                        store.clearMessages(showingOtherNotices());
+                        runOnUiThread(() -> {
+                            activeSender = null;
+                            load();
+                        });
+                    });
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -381,24 +396,34 @@ public class MainActivity extends Activity {
     }
 
     void deleteSelected() {
-        int deleted = 0;
-        for (SavedMessage msg : selectedMessages()) {
-            deleted += store.deleteConversation(msg.packageName, msg.sender);
-        }
-        selectedKeys.clear();
-        activeSender = null;
-        load();
-        Toast.makeText(this, "Deleted " + deleted + itemCountLabel(deleted) + ".", Toast.LENGTH_SHORT).show();
+        dbExecutor.execute(() -> {
+            int deleted = 0;
+            for (SavedMessage msg : selectedMessages()) {
+                deleted += store.deleteConversation(msg.packageName, msg.sender);
+            }
+            final int finalDeleted = deleted;
+            runOnUiThread(() -> {
+                selectedKeys.clear();
+                activeSender = null;
+                load();
+                Toast.makeText(MainActivity.this, "Deleted " + finalDeleted + itemCountLabel(finalDeleted) + ".", Toast.LENGTH_SHORT).show();
+            });
+        });
     }
 
     void markSelectedRead() {
-        int updated = 0;
-        for (SavedMessage msg : selectedMessages()) {
-            updated += store.markConversationRead(msg.packageName, msg.sender);
-        }
-        selectedKeys.clear();
-        load();
-        Toast.makeText(this, "Marked " + updated + itemCountLabel(updated) + " read.", Toast.LENGTH_SHORT).show();
+        dbExecutor.execute(() -> {
+            int updated = 0;
+            for (SavedMessage msg : selectedMessages()) {
+                updated += store.markConversationRead(msg.packageName, msg.sender);
+            }
+            final int finalUpdated = updated;
+            runOnUiThread(() -> {
+                selectedKeys.clear();
+                load();
+                Toast.makeText(MainActivity.this, "Marked " + finalUpdated + itemCountLabel(finalUpdated) + " read.", Toast.LENGTH_SHORT).show();
+            });
+        });
     }
 
     void confirmHideSelected() {
@@ -413,14 +438,19 @@ public class MainActivity extends Activity {
     }
 
     void hideSelected() {
-        int removed = 0;
-        for (SavedMessage msg : selectedMessages()) {
-            NotificationRules.hideSimilar(this, msg.packageName, msg.sender, msg.body);
-            removed += store.deleteSimilar(msg.packageName, msg.sender, msg.body);
-        }
-        selectedKeys.clear();
-        load();
-        Toast.makeText(this, "Hidden selected pattern" + (removed == 1 ? "." : "s."), Toast.LENGTH_SHORT).show();
+        dbExecutor.execute(() -> {
+            int removed = 0;
+            for (SavedMessage msg : selectedMessages()) {
+                NotificationRules.hideSimilar(MainActivity.this, msg.packageName, msg.sender, msg.body);
+                removed += store.deleteSimilar(msg.packageName, msg.sender, msg.body);
+            }
+            final int finalRemoved = removed;
+            runOnUiThread(() -> {
+                selectedKeys.clear();
+                load();
+                Toast.makeText(MainActivity.this, "Hidden selected pattern" + (finalRemoved == 1 ? "." : "s."), Toast.LENGTH_SHORT).show();
+            });
+        });
     }
 
     List<SavedMessage> selectedMessages() {
@@ -450,8 +480,10 @@ public class MainActivity extends Activity {
         if ("Ignore system notices like this".equals(action)) {
             confirmIgnoreSystemLikeThis(msg);
         } else if ("Delete this message".equals(action)) {
-            store.deleteMessage(msg.id);
-            load();
+            dbExecutor.execute(() -> {
+                store.deleteMessage(msg.id);
+                runOnUiThread(this::load);
+            });
         } else if ("Delete all from this sender".equals(action)) {
             confirmDeleteSender(msg, otherMode);
         } else if ("Hide messages like this".equals(action)) {
@@ -466,9 +498,13 @@ public class MainActivity extends Activity {
                 .setTitle("Delete all from sender?")
                 .setMessage("Remove saved items from " + safe(msg.sender) + " in this inbox.")
                 .setPositiveButton("Delete", (dialog, which) -> {
-                    store.deleteSender(msg.sender, otherMode);
-                    activeSender = null;
-                    load();
+                    dbExecutor.execute(() -> {
+                        store.deleteSender(msg.sender, otherMode);
+                        runOnUiThread(() -> {
+                            activeSender = null;
+                            load();
+                        });
+                    });
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -479,11 +515,15 @@ public class MainActivity extends Activity {
                 .setTitle("Hide messages like this?")
                 .setMessage("Future notifications with the same app, sender, and message text will not be saved. Existing matching rows will be removed.")
                 .setPositiveButton("Hide", (dialog, which) -> {
-                    NotificationRules.hideSimilar(this, msg.packageName, msg.sender, msg.body);
-                    int removed = store.deleteSimilar(msg.packageName, msg.sender, msg.body);
-                    activeSender = null;
-                    load();
-                    Toast.makeText(this, "Hidden rule saved. Removed " + removed + " items.", Toast.LENGTH_SHORT).show();
+                    dbExecutor.execute(() -> {
+                        NotificationRules.hideSimilar(MainActivity.this, msg.packageName, msg.sender, msg.body);
+                        int removed = store.deleteSimilar(msg.packageName, msg.sender, msg.body);
+                        runOnUiThread(() -> {
+                            activeSender = null;
+                            load();
+                            Toast.makeText(MainActivity.this, "Hidden rule saved. Removed " + removed + " items.", Toast.LENGTH_SHORT).show();
+                        });
+                    });
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -494,11 +534,15 @@ public class MainActivity extends Activity {
                 .setTitle("Ignore system notices like this?")
                 .setMessage("Future matching system notices will not be saved, and existing matching copies will be removed.")
                 .setPositiveButton("Ignore", (dialog, which) -> {
-                    NotificationRules.hideSimilar(this, msg.packageName, msg.sender, msg.body);
-                    int removed = store.deleteSimilar(msg.packageName, msg.sender, msg.body);
-                    activeSender = null;
-                    load();
-                    Toast.makeText(this, "Ignored system notice. Removed " + removed + " items.", Toast.LENGTH_SHORT).show();
+                    dbExecutor.execute(() -> {
+                        NotificationRules.hideSimilar(MainActivity.this, msg.packageName, msg.sender, msg.body);
+                        int removed = store.deleteSimilar(msg.packageName, msg.sender, msg.body);
+                        runOnUiThread(() -> {
+                            activeSender = null;
+                            load();
+                            Toast.makeText(MainActivity.this, "Ignored system notice. Removed " + removed + " items.", Toast.LENGTH_SHORT).show();
+                        });
+                    });
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -509,12 +553,22 @@ public class MainActivity extends Activity {
                 .setTitle("Delete all from this app?")
                 .setMessage("Remove saved notices from " + AppLabels.label(this, msg.packageName) + ".")
                 .setPositiveButton("Delete", (dialog, which) -> {
-                    store.deletePackage(msg.packageName);
-                    activeSender = null;
-                    load();
+                    dbExecutor.execute(() -> {
+                        store.deletePackage(msg.packageName);
+                        runOnUiThread(() -> {
+                            activeSender = null;
+                            load();
+                        });
+                    });
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        dbExecutor.shutdown();
     }
 
     void showOnboardingIfNeeded() {

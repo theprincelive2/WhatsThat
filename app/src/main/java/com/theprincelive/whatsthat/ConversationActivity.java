@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ConversationActivity extends Activity {
     String packageName;
@@ -36,13 +38,14 @@ public class ConversationActivity extends Activity {
     Button clearSelectionBtn;
     Set<Long> selectedIds = new HashSet<>();
     Map<Long, List<Long>> groupedMessageIds = new HashMap<>();
+    private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         packageName = getIntent().getStringExtra("packageName");
         sender = getIntent().getStringExtra("sender");
-        store = new MessageStore(this);
+        store = MessageStore.getInstance(this);
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -116,30 +119,35 @@ public class ConversationActivity extends Activity {
     }
 
     void loadMessages() {
-        store.markConversationRead(packageName, sender);
-        messages.removeAllViews();
-        List<SavedMessage> rawRows = store.getConversation(packageName, sender);
-        List<SavedMessage> rows = collapseRepeatedMessages(rawRows);
-        subtitle.setText(AppLabels.label(this, packageName) + " - " + rawRows.size() + (rawRows.size() == 1 ? " saved notice" : " saved notices"));
-        if (rawRows.isEmpty()) {
-            TextView empty = new TextView(this);
-            empty.setText("No saved notices remain in this conversation.");
-            empty.setTextColor(Color.rgb(91, 104, 98));
-            empty.setTextSize(15);
-            empty.setGravity(Gravity.CENTER);
-            messages.addView(empty, new LinearLayout.LayoutParams(-1, -2));
-            return;
-        }
+        dbExecutor.execute(() -> {
+            store.markConversationRead(packageName, sender);
+            final List<SavedMessage> rawRows = store.getConversation(packageName, sender);
+            final List<SavedMessage> rows = collapseRepeatedMessages(rawRows);
 
-        String lastDate = "";
-        for (SavedMessage msg : rows) {
-            if (!safe(msg.dateLabel).equals(lastDate)) {
-                messages.addView(dateChip(msg.dateLabel), centeredParams(0, 8));
-                lastDate = safe(msg.dateLabel);
-            }
-            messages.addView(messageBubble(msg), bubbleParams(msg));
-        }
-        updateSelectionActions();
+            runOnUiThread(() -> {
+                messages.removeAllViews();
+                subtitle.setText(AppLabels.label(ConversationActivity.this, packageName) + " - " + rawRows.size() + (rawRows.size() == 1 ? " saved notice" : " saved notices"));
+                if (rawRows.isEmpty()) {
+                    TextView empty = new TextView(ConversationActivity.this);
+                    empty.setText("No saved notices remain in this conversation.");
+                    empty.setTextColor(Color.rgb(91, 104, 98));
+                    empty.setTextSize(15);
+                    empty.setGravity(Gravity.CENTER);
+                    messages.addView(empty, new LinearLayout.LayoutParams(-1, -2));
+                    return;
+                }
+
+                String lastDate = "";
+                for (SavedMessage msg : rows) {
+                    if (!safe(msg.dateLabel).equals(lastDate)) {
+                        messages.addView(dateChip(msg.dateLabel), centeredParams(0, 8));
+                        lastDate = safe(msg.dateLabel);
+                    }
+                    messages.addView(messageBubble(msg), bubbleParams(msg));
+                }
+                updateSelectionActions();
+            });
+        });
     }
 
     View dateChip(String text) {
@@ -256,19 +264,24 @@ public class ConversationActivity extends Activity {
     }
 
     void shareConversation() {
-        StringBuilder out = new StringBuilder();
-        for (SavedMessage msg : store.getConversation(packageName, sender)) {
-            out.append(formatMessage(msg)).append("\n\n");
-        }
-        if (out.length() == 0) {
-            Toast.makeText(this, "No messages to export.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        Intent send = new Intent(Intent.ACTION_SEND);
-        send.setType("text/plain");
-        send.putExtra(Intent.EXTRA_SUBJECT, "WhatsThat conversation export");
-        send.putExtra(Intent.EXTRA_TEXT, out.toString().trim());
-        startActivity(Intent.createChooser(send, "Export conversation"));
+        dbExecutor.execute(() -> {
+            StringBuilder out = new StringBuilder();
+            for (SavedMessage msg : store.getConversation(packageName, sender)) {
+                out.append(formatMessage(msg)).append("\n\n");
+            }
+            final String text = out.toString().trim();
+            runOnUiThread(() -> {
+                if (text.isEmpty()) {
+                    Toast.makeText(ConversationActivity.this, "No messages to export.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                Intent send = new Intent(Intent.ACTION_SEND);
+                send.setType("text/plain");
+                send.putExtra(Intent.EXTRA_SUBJECT, "WhatsThat conversation export");
+                send.putExtra(Intent.EXTRA_TEXT, text);
+                startActivity(Intent.createChooser(send, "Export conversation"));
+            });
+        });
     }
 
     void confirmDeleteMessage(SavedMessage msg) {
@@ -276,8 +289,10 @@ public class ConversationActivity extends Activity {
                 .setTitle(msg.messageCount > 1 ? "Delete repeated messages?" : "Delete this message?")
                 .setMessage(msg.messageCount > 1 ? "This removes the repeated local copies in this group." : "This only removes the local copy saved in WhatsThat.")
                 .setPositiveButton("Delete", (dialog, which) -> {
-                    deleteMessageGroup(msg);
-                    loadMessages();
+                    dbExecutor.execute(() -> {
+                        deleteMessageGroup(msg);
+                        runOnUiThread(this::loadMessages);
+                    });
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -288,8 +303,10 @@ public class ConversationActivity extends Activity {
                 .setTitle("Delete conversation?")
                 .setMessage("This removes every saved notice from " + safe(sender) + ".")
                 .setPositiveButton("Delete", (dialog, which) -> {
-                    store.deleteConversation(packageName, sender);
-                    finish();
+                    dbExecutor.execute(() -> {
+                        store.deleteConversation(packageName, sender);
+                        runOnUiThread(this::finish);
+                    });
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -307,18 +324,23 @@ public class ConversationActivity extends Activity {
     }
 
     void deleteSelectedMessages() {
-        int deleted = 0;
-        for (Long id : new ArrayList<>(selectedIds)) {
-            List<Long> ids = groupedMessageIds.get(id);
-            if (ids == null || ids.isEmpty()) {
-                deleted += store.deleteMessage(id);
-            } else {
-                for (Long groupedId : ids) deleted += store.deleteMessage(groupedId);
+        dbExecutor.execute(() -> {
+            int deleted = 0;
+            for (Long id : new ArrayList<>(selectedIds)) {
+                List<Long> ids = groupedMessageIds.get(id);
+                if (ids == null || ids.isEmpty()) {
+                    deleted += store.deleteMessage(id);
+                } else {
+                    for (Long groupedId : ids) deleted += store.deleteMessage(groupedId);
+                }
             }
-        }
-        selectedIds.clear();
-        loadMessages();
-        Toast.makeText(this, "Deleted " + deleted + statusCountLabel(deleted) + ".", Toast.LENGTH_SHORT).show();
+            final int finalDeleted = deleted;
+            runOnUiThread(() -> {
+                selectedIds.clear();
+                loadMessages();
+                Toast.makeText(ConversationActivity.this, "Deleted " + finalDeleted + statusCountLabel(finalDeleted) + ".", Toast.LENGTH_SHORT).show();
+            });
+        });
     }
 
     void confirmHideSelected() {
@@ -333,15 +355,20 @@ public class ConversationActivity extends Activity {
     }
 
     void hideSelectedMessages() {
-        int removed = 0;
-        for (SavedMessage msg : store.getConversation(packageName, sender)) {
-            if (!selectedIds.contains(msg.id)) continue;
-            NotificationRules.hideSimilar(this, msg.packageName, msg.sender, msg.body);
-            removed += store.deleteSimilar(msg.packageName, msg.sender, msg.body);
-        }
-        selectedIds.clear();
-        loadMessages();
-        Toast.makeText(this, "Hidden selected pattern" + (removed == 1 ? "." : "s."), Toast.LENGTH_SHORT).show();
+        dbExecutor.execute(() -> {
+            int removed = 0;
+            for (SavedMessage msg : store.getConversation(packageName, sender)) {
+                if (!selectedIds.contains(msg.id)) continue;
+                NotificationRules.hideSimilar(ConversationActivity.this, msg.packageName, msg.sender, msg.body);
+                removed += store.deleteSimilar(msg.packageName, msg.sender, msg.body);
+            }
+            final int finalRemoved = removed;
+            runOnUiThread(() -> {
+                selectedIds.clear();
+                loadMessages();
+                Toast.makeText(ConversationActivity.this, "Hidden selected pattern" + (finalRemoved == 1 ? "." : "s."), Toast.LENGTH_SHORT).show();
+            });
+        });
     }
 
     void deleteMessageGroup(SavedMessage msg) {
@@ -351,6 +378,12 @@ public class ConversationActivity extends Activity {
             return;
         }
         for (Long id : ids) store.deleteMessage(id);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        dbExecutor.shutdown();
     }
 
     List<SavedMessage> collapseRepeatedMessages(List<SavedMessage> rows) {

@@ -16,18 +16,28 @@ import java.util.Locale;
 
 public class MessageStore extends SQLiteOpenHelper {
     private static final String DB_NAME = "whatsthat.db";
-    private static final int DB_VERSION = 3;
+    private static final int DB_VERSION = 4;
     private static final String PKG_MAIN = "com.whatsapp";
     private static final String PKG_BUSINESS = "com.whatsapp.w4b";
     private final Context context;
+    private static MessageStore instance;
 
-    public MessageStore(Context context) {
+    public static synchronized MessageStore getInstance(Context context) {
+        if (instance == null) {
+            instance = new MessageStore(context.getApplicationContext());
+        }
+        return instance;
+    }
+
+    private MessageStore(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
         this.context = context.getApplicationContext();
     }
 
     @Override public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE messages (id INTEGER PRIMARY KEY AUTOINCREMENT, sender TEXT, body TEXT, package_name TEXT, received_at INTEGER, read_at INTEGER DEFAULT 0)");
+        db.execSQL("CREATE INDEX IF NOT EXISTS idx_messages_pkg_sender ON messages(package_name, sender)");
+        db.execSQL("CREATE INDEX IF NOT EXISTS idx_messages_received ON messages(received_at DESC)");
     }
 
     @Override public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -36,14 +46,23 @@ public class MessageStore extends SQLiteOpenHelper {
                 db.execSQL("ALTER TABLE messages ADD COLUMN read_at INTEGER DEFAULT 0");
             } catch (Exception ignored) { }
         }
+        if (oldVersion < 4) {
+            try {
+                db.execSQL("CREATE INDEX IF NOT EXISTS idx_messages_pkg_sender ON messages(package_name, sender)");
+                db.execSQL("CREATE INDEX IF NOT EXISTS idx_messages_received ON messages(received_at DESC)");
+            } catch (Exception ignored) { }
+        }
     }
 
     public boolean saveMessage(String sender, String body, String packageName, long receivedAt) {
+        return saveMessageInternal(getWritableDatabase(), sender, body, packageName, receivedAt);
+    }
+
+    private boolean saveMessageInternal(SQLiteDatabase db, String sender, String body, String packageName, long receivedAt) {
         if (body == null || body.trim().isEmpty()) return false;
         String cleanBody = clean(body);
         String cleanSender = clean(sender);
         String cleanPackage = clean(packageName);
-        SQLiteDatabase db = getWritableDatabase();
         long duplicateCutoff = receivedAt - 120000L;
         Cursor c = db.rawQuery(
                 "SELECT id FROM messages WHERE package_name=? AND sender=? AND body=? AND received_at>? LIMIT 1",
@@ -152,19 +171,26 @@ public class MessageStore extends SQLiteOpenHelper {
         ArrayList<List<String>> rows = parseCsv(csvText);
         int imported = 0;
         boolean first = true;
-        for (List<String> row : rows) {
-            if (row.size() < 5) continue;
-            if (first && "sender".equalsIgnoreCase(row.get(0).trim()) && "message".equalsIgnoreCase(row.get(1).trim())) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.beginTransaction();
+        try {
+            for (List<String> row : rows) {
+                if (row.size() < 5) continue;
+                if (first && "sender".equalsIgnoreCase(row.get(0).trim()) && "message".equalsIgnoreCase(row.get(1).trim())) {
+                    first = false;
+                    continue;
+                }
                 first = false;
-                continue;
+                String sender = row.get(0);
+                String body = row.get(1);
+                String packageName = row.get(3);
+                long receivedAt = parseExportTime(row.get(4));
+                if (body == null || body.trim().isEmpty()) continue;
+                if (saveMessageInternal(db, sender, body, packageName, receivedAt)) imported++;
             }
-            first = false;
-            String sender = row.get(0);
-            String body = row.get(1);
-            String packageName = row.get(3);
-            long receivedAt = parseExportTime(row.get(4));
-            if (body == null || body.trim().isEmpty()) continue;
-            if (saveMessage(sender, body, packageName, receivedAt)) imported++;
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
         }
         return imported;
     }
@@ -223,6 +249,9 @@ public class MessageStore extends SQLiteOpenHelper {
     }
 
     public int deleteHiddenByRules() {
+        List<NotificationRules.Rule> rules = NotificationRules.list(context);
+        if (rules.isEmpty()) return 0;
+
         ArrayList<Long> ids = new ArrayList<>();
         Cursor c = getReadableDatabase().rawQuery("SELECT id, sender, body, package_name FROM messages", null);
         try {
@@ -231,14 +260,22 @@ public class MessageStore extends SQLiteOpenHelper {
                 String sender = c.getString(1);
                 String body = c.getString(2);
                 String packageName = c.getString(3);
-                if (NotificationRules.isHidden(context, packageName, sender, body)) ids.add(id);
+                if (NotificationRules.isHidden(rules, packageName, sender, body)) ids.add(id);
             }
         } finally { c.close(); }
 
+        if (ids.isEmpty()) return 0;
+
         int deleted = 0;
         SQLiteDatabase db = getWritableDatabase();
-        for (Long id : ids) {
-            deleted += db.delete("messages", "id=?", new String[]{String.valueOf(id)});
+        db.beginTransaction();
+        try {
+            for (Long id : ids) {
+                deleted += db.delete("messages", "id=?", new String[]{String.valueOf(id)});
+            }
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
         }
         return deleted;
     }

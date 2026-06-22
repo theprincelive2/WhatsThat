@@ -42,6 +42,23 @@ public class NotificationRules {
         return false;
     }
 
+    public static boolean isHidden(List<Rule> rules, String packageName, String sender, String body) {
+        String targetPackage = norm(packageName);
+        String targetSender = norm(sender);
+        String targetBody = norm(body);
+        for (Rule rule : rules) {
+            if (rule == null) continue;
+            if (!norm(rule.packageName).equals(targetPackage)) continue;
+            String ruleSender = norm(rule.sender);
+            String ruleBody = norm(rule.body);
+            if (ruleSender.equals(targetSender) && ruleBody.equals(targetBody)) return true;
+            if (systemLike(ruleBody) || systemLike(targetBody)) {
+                if (systemSignature(ruleBody).equals(systemSignature(targetBody))) return true;
+            }
+        }
+        return false;
+    }
+
     public static List<Rule> list(Context context) {
         ArrayList<Rule> out = new ArrayList<>();
         Set<String> rules = prefs(context).getStringSet(PREF_HIDDEN_RULES, new HashSet<>());
