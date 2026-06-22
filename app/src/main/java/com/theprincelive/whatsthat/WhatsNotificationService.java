@@ -78,6 +78,20 @@ public class WhatsNotificationService extends NotificationListenerService {
         Bundle extras = sbn.getNotification().extras;
         CharSequence titleCs = extras.getCharSequence("android.title");
         String title = titleCs == null ? appLabel(pkg) : titleCs.toString();
+        
+        if (title != null) {
+            title = title.trim().replace("\uFE0F", "").replace("\uFE0E", "").replace("\u200B", "").trim();
+            if (whatsapp) {
+                if (title.startsWith("WhatsApp: ")) {
+                    title = title.substring("WhatsApp: ".length()).trim();
+                } else if (title.startsWith("WhatsApp Business: ")) {
+                    title = title.substring("WhatsApp Business: ".length()).trim();
+                } else if (title.startsWith("WA Business: ")) {
+                    title = title.substring("WA Business: ".length()).trim();
+                }
+            }
+        }
+        
         String text = notificationText(extras);
         if (text.trim().isEmpty()) return;
         if (whatsapp && isWhatsAppNoise(title, text)) return;

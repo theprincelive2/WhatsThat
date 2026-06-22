@@ -128,7 +128,7 @@ public class MainActivity extends Activity {
                 toggleSelection(msg);
                 return;
             }
-            if (activeSender == null && msg.messageCount > 1) {
+            if (activeSender == null) {
                 rememberListPosition();
                 Intent intent = new Intent(this, ConversationActivity.class);
                 intent.putExtra("packageName", msg.packageName);
@@ -258,10 +258,23 @@ public class MainActivity extends Activity {
     List<SavedMessage> groupConversations(List<SavedMessage> rows) {
         LinkedHashMap<String, ThreadSummary> summaries = new LinkedHashMap<>();
         for (SavedMessage row : rows) {
-            String key = safe(row.packageName) + "\u001f" + safe(row.sender);
+            String cleanSender = cleanSender(row.sender, row.packageName);
+            String key = safe(row.packageName) + "\u001f" + cleanSender;
             ThreadSummary summary = summaries.get(key);
             if (summary == null) {
-                summaries.put(key, new ThreadSummary(row));
+                summaries.put(key, new ThreadSummary(new SavedMessage(
+                        row.id,
+                        cleanSender,
+                        row.body,
+                        row.time,
+                        row.shortTime,
+                        row.dateLabel,
+                        row.packageName,
+                        row.receivedAt,
+                        row.messageCount,
+                        row.unreadCount,
+                        row.read
+                )));
             } else {
                 summary.count++;
                 if (!row.read) summary.unreadCount++;
@@ -287,6 +300,26 @@ public class MainActivity extends Activity {
             ));
         }
         return out;
+    }
+
+    private String cleanSender(String sender, String packageName) {
+        if (sender == null) return "Unknown";
+        String s = sender.trim();
+        s = s.replace("\uFE0F", "");
+        s = s.replace("\uFE0E", "");
+        s = s.replace("\u200B", "");
+        s = s.trim();
+        boolean whatsapp = "com.whatsapp".equals(packageName) || "com.whatsapp.w4b".equals(packageName);
+        if (whatsapp) {
+            if (s.startsWith("WhatsApp: ")) {
+                s = s.substring("WhatsApp: ".length());
+            } else if (s.startsWith("WhatsApp Business: ")) {
+                s = s.substring("WhatsApp Business: ".length());
+            } else if (s.startsWith("WA Business: ")) {
+                s = s.substring("WA Business: ".length());
+            }
+        }
+        return s.trim();
     }
 
     List<SavedMessage> collapseRepeatedMessages(List<SavedMessage> rows) {

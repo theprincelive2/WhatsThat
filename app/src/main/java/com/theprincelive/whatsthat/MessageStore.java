@@ -25,6 +25,12 @@ public class MessageStore extends SQLiteOpenHelper {
     public static synchronized MessageStore getInstance(Context context) {
         if (instance == null) {
             instance = new MessageStore(context.getApplicationContext());
+            final MessageStore inst = instance;
+            new Thread(() -> {
+                try {
+                    inst.normalizeDatabaseSenders();
+                } catch (Exception ignored) {}
+            }).start();
         }
         return instance;
     }
@@ -32,6 +38,43 @@ public class MessageStore extends SQLiteOpenHelper {
     private MessageStore(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
         this.context = context.getApplicationContext();
+    }
+
+    public void normalizeDatabaseSenders() {
+        android.database.sqlite.SQLiteDatabase db = getWritableDatabase();
+        android.database.Cursor c = db.rawQuery("SELECT DISTINCT sender, package_name FROM messages", null);
+        try {
+            while (c.moveToNext()) {
+                String original = c.getString(0);
+                String pkg = c.getString(1);
+                if (original == null) continue;
+                String cleaned = original.trim();
+                cleaned = cleaned.replace("\uFE0F", "");
+                cleaned = cleaned.replace("\uFE0E", "");
+                cleaned = cleaned.replace("\u200B", "");
+                cleaned = cleaned.trim();
+                
+                boolean whatsapp = PKG_MAIN.equals(pkg) || PKG_BUSINESS.equals(pkg);
+                if (whatsapp) {
+                    if (cleaned.startsWith("WhatsApp: ")) {
+                        cleaned = cleaned.substring("WhatsApp: ".length()).trim();
+                    } else if (cleaned.startsWith("WhatsApp Business: ")) {
+                        cleaned = cleaned.substring("WhatsApp Business: ".length()).trim();
+                    } else if (cleaned.startsWith("WA Business: ")) {
+                        cleaned = cleaned.substring("WA Business: ".length()).trim();
+                    }
+                }
+                
+                if (!cleaned.equals(original)) {
+                    ContentValues cv = new ContentValues();
+                    cv.put("sender", cleaned);
+                    db.update("messages", cv, "sender=? AND package_name=?", new String[]{original, pkg});
+                }
+            }
+        } catch (Exception ignored) {
+        } finally {
+            c.close();
+        }
     }
 
     @Override public void onCreate(SQLiteDatabase db) {
@@ -61,8 +104,19 @@ public class MessageStore extends SQLiteOpenHelper {
     private boolean saveMessageInternal(SQLiteDatabase db, String sender, String body, String packageName, long receivedAt) {
         if (body == null || body.trim().isEmpty()) return false;
         String cleanBody = clean(body);
-        String cleanSender = clean(sender);
         String cleanPackage = clean(packageName);
+        String cleanSender = clean(sender);
+        
+        boolean whatsapp = PKG_MAIN.equals(cleanPackage) || PKG_BUSINESS.equals(cleanPackage);
+        if (whatsapp) {
+            if (cleanSender.startsWith("WhatsApp: ")) {
+                cleanSender = cleanSender.substring("WhatsApp: ".length()).trim();
+            } else if (cleanSender.startsWith("WhatsApp Business: ")) {
+                cleanSender = cleanSender.substring("WhatsApp Business: ".length()).trim();
+            } else if (cleanSender.startsWith("WA Business: ")) {
+                cleanSender = cleanSender.substring("WA Business: ".length()).trim();
+            }
+        }
         long duplicateCutoff = receivedAt - 120000L;
         Cursor c = db.rawQuery(
                 "SELECT id FROM messages WHERE package_name=? AND sender=? AND body=? AND received_at>? LIMIT 1",
@@ -389,7 +443,14 @@ public class MessageStore extends SQLiteOpenHelper {
     }
 
     public void clearMessages() { getWritableDatabase().delete("messages", null, null); }
-    private String clean(String value) { return value == null ? "Unknown" : value.trim(); }
+    private String clean(String value) {
+        if (value == null) return "Unknown";
+        String val = value.trim();
+        val = val.replace("\uFE0F", "");
+        val = val.replace("\uFE0E", "");
+        val = val.replace("\u200B", "");
+        return val.trim();
+    }
 
     private String csv(String value) {
         String safe = value == null ? "" : value.replace("\"", "\"\"");
