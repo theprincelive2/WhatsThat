@@ -36,12 +36,14 @@ public class LockActivity extends Activity {
     Button biometricButton;
     boolean biometricPromptShown;
     CancellationSignal biometricSignal;
+    boolean isDecoyMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mode = getIntent().getStringExtra(MODE);
         if (mode == null) mode = MODE_UNLOCK;
+        isDecoyMode = getIntent().getBooleanExtra("is_decoy", false);
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -115,8 +117,15 @@ public class LockActivity extends Activity {
         if (MODE_UNLOCK.equals(mode)) {
             if (AppLock.verifyPin(this, pin)) {
                 AppLock.setUnlocked(true);
+                AppLock.setDecoySession(false);
                 finish();
-            } else showError();
+            } else if (AppLock.hasDecoyPin(this) && AppLock.verifyDecoyPin(this, pin)) {
+                AppLock.setUnlocked(true);
+                AppLock.setDecoySession(true);
+                finish();
+            } else {
+                showError();
+            }
             return;
         }
 
@@ -130,7 +139,8 @@ public class LockActivity extends Activity {
         }
 
         if (MODE_CHANGE.equals(mode) && step == 0) {
-            if (AppLock.verifyPin(this, pin)) {
+            boolean verified = isDecoyMode ? AppLock.verifyDecoyPin(this, pin) : AppLock.verifyPin(this, pin);
+            if (verified) {
                 step = 1;
                 pinInput.setText("");
                 refreshText();
@@ -155,8 +165,13 @@ public class LockActivity extends Activity {
             return;
         }
 
-        AppLock.setPin(this, pin);
-        Toast.makeText(this, MODE_CHANGE.equals(mode) ? "PIN changed." : "App lock enabled.", Toast.LENGTH_SHORT).show();
+        if (isDecoyMode) {
+            AppLock.setDecoyPin(this, pin);
+            Toast.makeText(this, MODE_CHANGE.equals(mode) ? "Decoy PIN changed." : "Decoy PIN enabled.", Toast.LENGTH_SHORT).show();
+        } else {
+            AppLock.setPin(this, pin);
+            Toast.makeText(this, MODE_CHANGE.equals(mode) ? "PIN changed." : "App lock enabled.", Toast.LENGTH_SHORT).show();
+        }
         finish();
     }
 
@@ -170,17 +185,17 @@ public class LockActivity extends Activity {
             helper.setText("Enter your PIN to remove app lock.");
             actionButton.setText("Turn Off");
         } else if (MODE_CHANGE.equals(mode) && step == 0) {
-            title.setText("Change PIN");
-            helper.setText("Enter your current PIN first.");
+            title.setText(isDecoyMode ? "Change Decoy PIN" : "Change PIN");
+            helper.setText(isDecoyMode ? "Enter your current Decoy PIN first." : "Enter your current PIN first.");
             actionButton.setText("Continue");
         } else if (pendingPin == null) {
-            title.setText(MODE_CHANGE.equals(mode) ? "New PIN" : "Set App Lock");
-            helper.setText("Create a 4-digit PIN for WhatsThat.");
+            title.setText(isDecoyMode ? (MODE_CHANGE.equals(mode) ? "New Decoy PIN" : "Set Decoy PIN") : (MODE_CHANGE.equals(mode) ? "New PIN" : "Set App Lock"));
+            helper.setText(isDecoyMode ? "Create a 4-digit Decoy PIN for WhatsThat." : "Create a 4-digit PIN for WhatsThat.");
             actionButton.setText("Continue");
         } else {
-            title.setText("Confirm PIN");
-            helper.setText("Re-enter the same 4-digit PIN.");
-            actionButton.setText("Save PIN");
+            title.setText(isDecoyMode ? "Confirm Decoy PIN" : "Confirm PIN");
+            helper.setText(isDecoyMode ? "Re-enter the same 4-digit Decoy PIN." : "Re-enter the same 4-digit PIN.");
+            actionButton.setText(isDecoyMode ? "Save Decoy PIN" : "Save PIN");
         }
         if (biometricButton != null) {
             biometricButton.setVisibility(canUseBiometric() ? android.view.View.VISIBLE : android.view.View.GONE);

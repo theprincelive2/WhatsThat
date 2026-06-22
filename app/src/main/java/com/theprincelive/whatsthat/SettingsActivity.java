@@ -34,6 +34,8 @@ public class SettingsActivity extends Activity {
     Button hiddenRulesBtn;
     Button lockOnCloseBtn;
     Button biometricBtn;
+    Button decoyBtn;
+    Button disableDecoyBtn;
     MessageStore store;
     private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor();
 
@@ -128,6 +130,14 @@ public class SettingsActivity extends Activity {
         disableLockBtn = rowButton("Turn Off App Lock");
         disableLockBtn.setOnClickListener(v -> openLockDisable());
         root.addView(disableLockBtn, buttonParams(10));
+
+        decoyBtn = rowButton("");
+        decoyBtn.setOnClickListener(v -> openDecoySetup());
+        root.addView(decoyBtn, buttonParams(10));
+
+        disableDecoyBtn = rowButton("Disable Decoy PIN");
+        disableDecoyBtn.setOnClickListener(v -> disableDecoyPin());
+        root.addView(disableDecoyBtn, buttonParams(10));
 
         root.addView(section("What WhatsThat Saves"));
         root.addView(copy("WhatsThat saves new notifications after you grant Notification Access. WhatsApp mode ignores status noise such as \"Checking for new messages\" and grouped \"2 new messages\" alerts."));
@@ -389,8 +399,21 @@ public class SettingsActivity extends Activity {
         startActivity(intent);
     }
 
+    void openDecoySetup() {
+        Intent intent = new Intent(this, LockActivity.class);
+        intent.putExtra(LockActivity.MODE, AppLock.hasDecoyPin(this) ? LockActivity.MODE_CHANGE : LockActivity.MODE_SET);
+        intent.putExtra("is_decoy", true);
+        startActivity(intent);
+    }
+
+    void disableDecoyPin() {
+        AppLock.disableDecoy(this);
+        updateLockButtons();
+        Toast.makeText(this, "Decoy PIN disabled.", Toast.LENGTH_SHORT).show();
+    }
+
     void updateLockButtons() {
-        if (lockBtn == null || lockOnCloseBtn == null || biometricBtn == null || disableLockBtn == null) return;
+        if (lockBtn == null || lockOnCloseBtn == null || biometricBtn == null || disableLockBtn == null || decoyBtn == null || disableDecoyBtn == null) return;
         boolean enabled = AppLock.isEnabled(this);
         lockBtn.setText(enabled ? "Change App Lock PIN" : "Set App Lock PIN");
         lockOnCloseBtn.setText(AppLock.lockOnClose(this) ? "Lock When App Closes: On" : "Lock When App Closes: Off");
@@ -398,6 +421,11 @@ public class SettingsActivity extends Activity {
         biometricBtn.setText(AppLock.biometricEnabled(this) ? "Biometric Unlock: On" : "Biometric Unlock: Off");
         biometricBtn.setVisibility(enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ? android.view.View.VISIBLE : android.view.View.GONE);
         disableLockBtn.setVisibility(enabled ? android.view.View.VISIBLE : android.view.View.GONE);
+
+        boolean decoyEnabled = AppLock.hasDecoyPin(this);
+        decoyBtn.setText(decoyEnabled ? "Change Decoy PIN" : "Set Decoy PIN");
+        decoyBtn.setVisibility(enabled ? android.view.View.VISIBLE : android.view.View.GONE);
+        disableDecoyBtn.setVisibility(enabled && decoyEnabled ? android.view.View.VISIBLE : android.view.View.GONE);
     }
 
     boolean captureOther() {

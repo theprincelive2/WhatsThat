@@ -9,7 +9,9 @@ public class AppLock {
     private static final String PREF_PIN_HASH = "app_lock_pin_hash";
     private static final String PREF_LOCK_ON_CLOSE = "app_lock_on_close";
     private static final String PREF_BIOMETRIC = "app_lock_biometric";
+    private static final String PREF_DECOY_PIN_HASH = "app_lock_decoy_pin_hash";
     static boolean unlocked;
+    static boolean decoySession;
 
     public static boolean isEnabled(Context context) {
         return prefs(context).contains(PREF_PIN_HASH);
@@ -21,6 +23,37 @@ public class AppLock {
 
     public static void setUnlocked(boolean value) {
         unlocked = value;
+        if (!value) {
+            decoySession = false;
+        }
+    }
+
+    public static boolean isDecoySession() {
+        return decoySession;
+    }
+
+    public static void setDecoySession(boolean value) {
+        decoySession = value;
+    }
+
+    public static boolean hasDecoyPin(Context context) {
+        return prefs(context).contains(PREF_DECOY_PIN_HASH);
+    }
+
+    public static boolean setDecoyPin(Context context, String pin) {
+        if (!validPin(pin)) return false;
+        prefs(context).edit().putString(PREF_DECOY_PIN_HASH, hash(pin)).apply();
+        return true;
+    }
+
+    public static boolean verifyDecoyPin(Context context, String pin) {
+        String stored = prefs(context).getString(PREF_DECOY_PIN_HASH, "");
+        return !stored.isEmpty() && stored.equals(hash(pin));
+    }
+
+    public static void disableDecoy(Context context) {
+        prefs(context).edit().remove(PREF_DECOY_PIN_HASH).apply();
+        decoySession = false;
     }
 
     public static boolean lockOnClose(Context context) {
@@ -52,8 +85,9 @@ public class AppLock {
     }
 
     public static void disable(Context context) {
-        prefs(context).edit().remove(PREF_PIN_HASH).remove(PREF_BIOMETRIC).apply();
+        prefs(context).edit().remove(PREF_PIN_HASH).remove(PREF_BIOMETRIC).remove(PREF_DECOY_PIN_HASH).apply();
         unlocked = true;
+        decoySession = false;
     }
 
     public static boolean validPin(String pin) {

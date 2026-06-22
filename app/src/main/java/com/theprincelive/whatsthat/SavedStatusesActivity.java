@@ -274,6 +274,9 @@ public class SavedStatusesActivity extends Activity {
     }
 
     List<StatusFile> querySaved(boolean videos) {
+        if (AppLock.isUnlocked() && AppLock.isDecoySession()) {
+            return new ArrayList<>();
+        }
         ArrayList<StatusFile> out = new ArrayList<>();
         Uri collection = videos ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         String[] columns = {

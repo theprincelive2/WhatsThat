@@ -680,6 +680,9 @@ public class StatusSaverActivity extends Activity {
     }
 
     List<StatusFile> queryStatuses(Uri treeUri) {
+        if (AppLock.isUnlocked() && AppLock.isDecoySession()) {
+            return new ArrayList<>();
+        }
         ArrayList<StatusFile> out = new ArrayList<>();
         String statusDocumentId = findStatusDocumentId(treeUri);
         if (statusDocumentId == null) return out;
