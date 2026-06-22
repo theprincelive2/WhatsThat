@@ -19,20 +19,26 @@ public class MessageAdapter extends BaseAdapter {
     private final List<SavedMessage> items;
     private final Set<String> selectedKeys;
     private final Set<String> systemKeys;
+    private final SwipeItemLayout.OnSwipeActionListener swipeListener;
 
     public MessageAdapter(Context context, List<SavedMessage> items) {
-        this(context, items, null, null);
+        this(context, items, null, null, null);
     }
 
     public MessageAdapter(Context context, List<SavedMessage> items, Set<String> selectedKeys) {
-        this(context, items, selectedKeys, null);
+        this(context, items, selectedKeys, null, null);
     }
 
     public MessageAdapter(Context context, List<SavedMessage> items, Set<String> selectedKeys, Set<String> systemKeys) {
+        this(context, items, selectedKeys, systemKeys, null);
+    }
+
+    public MessageAdapter(Context context, List<SavedMessage> items, Set<String> selectedKeys, Set<String> systemKeys, SwipeItemLayout.OnSwipeActionListener swipeListener) {
         this.context = context;
         this.items = items;
         this.selectedKeys = selectedKeys;
         this.systemKeys = systemKeys;
+        this.swipeListener = swipeListener;
     }
 
     public int getCount() { return items.size(); }
@@ -173,7 +179,11 @@ public class MessageAdapter extends BaseAdapter {
         }
         row.addView(badge, badgeParams);
 
-        outer.addView(row, new LinearLayout.LayoutParams(-1, -2));
+        SwipeItemLayout swipeLayout = new SwipeItemLayout(context);
+        swipeLayout.setUpViews(row, msg, swipeListener);
+        boolean inSelectionMode = selectedKeys != null && !selectedKeys.isEmpty();
+        swipeLayout.setSwipeEnabled(!inSelectionMode && swipeListener != null);
+        outer.addView(swipeLayout, new LinearLayout.LayoutParams(-1, -2));
 
         View divider = new View(context);
         divider.setBackgroundColor(Color.rgb(231, 234, 230));

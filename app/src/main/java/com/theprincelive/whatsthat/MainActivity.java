@@ -228,7 +228,7 @@ public class MainActivity extends Activity {
                 list.setVisibility(filtered.isEmpty() ? View.GONE : View.VISIBLE);
                 updateSelectionActions();
                 updateBottomNavigationHighlights(otherMode);
-                list.setAdapter(new MessageAdapter(MainActivity.this, filtered, selectedKeys, systemKeys));
+                setListAdapter(filtered);
                 restoreListPositionIfNeeded(filtered.size());
             });
         });
@@ -363,13 +363,13 @@ public class MainActivity extends Activity {
             selectedKeys.add(key);
         }
         updateSelectionActions();
-        list.setAdapter(new MessageAdapter(this, visibleRows, selectedKeys, systemKeys));
+        setListAdapter(visibleRows);
     }
 
     void clearSelection() {
         selectedKeys.clear();
         updateSelectionActions();
-        list.setAdapter(new MessageAdapter(this, visibleRows, selectedKeys, systemKeys));
+        setListAdapter(visibleRows);
     }
 
     void pruneSelection() {
@@ -749,6 +749,60 @@ public class MainActivity extends Activity {
 
     String normalizeForFilter(String value) {
         return value == null ? "" : value.trim().replaceAll("\\s+", " ").toLowerCase(Locale.US);
+    }
+
+    void setListAdapter(List<SavedMessage> items) {
+        SwipeItemLayout.OnSwipeActionListener swipeListener = new SwipeItemLayout.OnSwipeActionListener() {
+            @Override
+            public void onDelete(SavedMessage msg) {
+                deleteMessageConversation(msg);
+            }
+
+            @Override
+            public void onHide(SavedMessage msg) {
+                hideMessageConversation(msg);
+            }
+
+            @Override
+            public void onToggleRead(SavedMessage msg) {
+                toggleMessageRead(msg);
+            }
+        };
+        list.setAdapter(new MessageAdapter(this, items, selectedKeys, systemKeys, swipeListener));
+    }
+
+    void deleteMessageConversation(SavedMessage msg) {
+        dbExecutor.execute(() -> {
+            store.deleteConversation(msg.packageName, msg.sender);
+            runOnUiThread(() -> {
+                load();
+                Toast.makeText(this, "Deleted conversation with " + msg.sender + ".", Toast.LENGTH_SHORT).show();
+            });
+        });
+    }
+
+    void hideMessageConversation(SavedMessage msg) {
+        dbExecutor.execute(() -> {
+            NotificationRules.hideSimilar(this, msg.packageName, msg.sender, msg.body);
+            store.deleteSimilar(msg.packageName, msg.sender, msg.body);
+            runOnUiThread(() -> {
+                load();
+                Toast.makeText(this, "Hidden conversation pattern.", Toast.LENGTH_SHORT).show();
+            });
+        });
+    }
+
+    void toggleMessageRead(SavedMessage msg) {
+        dbExecutor.execute(() -> {
+            if (msg.unreadCount > 0 || !msg.read) {
+                store.markConversationRead(msg.packageName, msg.sender);
+            } else {
+                store.markConversationUnread(msg.packageName, msg.sender);
+            }
+            runOnUiThread(() -> {
+                load();
+            });
+        });
     }
 
     static class ThreadSummary {

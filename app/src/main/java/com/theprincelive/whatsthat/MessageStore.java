@@ -206,6 +206,17 @@ public class MessageStore extends SQLiteOpenHelper {
         );
     }
 
+    public int markConversationUnread(String packageName, String sender) {
+        ContentValues values = new ContentValues();
+        values.put("read_at", 0);
+        return getWritableDatabase().update(
+                "messages",
+                values,
+                "package_name=? AND sender=?",
+                new String[]{clean(packageName), clean(sender)}
+        );
+    }
+
     public int markMessageRead(long id) {
         ContentValues values = new ContentValues();
         values.put("read_at", System.currentTimeMillis());
