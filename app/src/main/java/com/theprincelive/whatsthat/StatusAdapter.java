@@ -3,6 +3,8 @@ package com.theprincelive.whatsthat;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.graphics.Typeface;
 import android.media.MediaMetadataRetriever;
 import android.view.Gravity;
@@ -48,62 +50,98 @@ class StatusAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         StatusFile file = files.get(position);
         boolean selected = selectedUris != null && selectedUris.contains(file.uri.toString());
-        LinearLayout row = new LinearLayout(context);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(dp(14), dp(10), dp(14), dp(10));
-        row.setBackgroundColor(selected ? Color.rgb(229, 245, 236) : (file.saved ? Color.rgb(247, 248, 246) : Color.TRANSPARENT));
+
+        android.widget.FrameLayout container = new android.widget.FrameLayout(context);
+        android.widget.AbsListView.LayoutParams layoutParams = new android.widget.AbsListView.LayoutParams(
+                android.widget.AbsListView.LayoutParams.MATCH_PARENT, dp(110));
+        container.setLayoutParams(layoutParams);
+
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.WHITE);
+        bg.setCornerRadius(dp(12));
+        bg.setStroke(dp(1), Color.parseColor("#E5E5EA"));
+        container.setBackground(bg);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            container.setClipToOutline(true);
+        }
 
         ImageView preview = new ImageView(context);
         preview.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        preview.setBackgroundColor(Color.rgb(239, 241, 239));
+        preview.setBackgroundColor(Color.parseColor("#F2F2F7"));
         if (file.isImage()) {
             preview.setImageURI(file.uri);
         } else {
             ThumbnailLoader.loadVideoThumbnail(context, file.uri, preview, R.drawable.ic_video);
         }
-        row.addView(preview, new LinearLayout.LayoutParams(dp(68), dp(68)));
+        container.addView(preview, new android.widget.FrameLayout.LayoutParams(-1, -1));
 
-        LinearLayout textWrap = new LinearLayout(context);
-        textWrap.setOrientation(LinearLayout.VERTICAL);
-        textWrap.setPadding(dp(14), 0, 0, 0);
+        if (file.isVideo()) {
+            android.widget.FrameLayout playCircle = new android.widget.FrameLayout(context);
+            GradientDrawable circleBg = new GradientDrawable();
+            circleBg.setShape(GradientDrawable.OVAL);
+            circleBg.setColor(Color.argb(128, 0, 0, 0));
+            playCircle.setBackground(circleBg);
 
-        TextView title = new TextView(context);
-        title.setText((selected ? "Selected - " : "") + (file.isVideo() ? "Video status" : "Photo status"));
-        title.setTextColor(Color.rgb(17, 27, 24));
-        title.setTextSize(15);
-        title.setTypeface(Typeface.DEFAULT_BOLD);
-        textWrap.addView(title);
+            TextView playSymbol = new TextView(context);
+            playSymbol.setText("▶");
+            playSymbol.setTextColor(Color.WHITE);
+            playSymbol.setTextSize(14);
+            playSymbol.setGravity(Gravity.CENTER);
+            
+            android.widget.FrameLayout.LayoutParams symbolParams = new android.widget.FrameLayout.LayoutParams(-2, -2);
+            symbolParams.gravity = Gravity.CENTER;
+            symbolParams.setMargins(dp(2), 0, 0, 0);
+            playCircle.addView(playSymbol, symbolParams);
 
-        TextView meta = new TextView(context);
-        meta.setText(file.name + " - " + sizeText(file.size));
-        meta.setTextColor(Color.rgb(91, 104, 98));
-        meta.setTextSize(13);
-        meta.setPadding(0, dp(5), 0, 0);
-        textWrap.addView(meta);
-
-        TextView time = new TextView(context);
-        time.setText(file.modifiedAt > 0 ? DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, Locale.getDefault()).format(new Date(file.modifiedAt)) : "");
-        time.setTextColor(Color.rgb(111, 117, 108));
-        time.setTextSize(12);
-        time.setPadding(0, dp(5), 0, 0);
-        textWrap.addView(time);
-
-        row.addView(textWrap, new LinearLayout.LayoutParams(0, -2, 1));
+            android.widget.FrameLayout.LayoutParams playCircleParams = new android.widget.FrameLayout.LayoutParams(dp(36), dp(36));
+            playCircleParams.gravity = Gravity.CENTER;
+            container.addView(playCircle, playCircleParams);
+        }
 
         if (file.saved) {
             TextView savedBadge = new TextView(context);
-            savedBadge.setText("Saved");
-            savedBadge.setTextColor(Color.rgb(18, 108, 61));
-            savedBadge.setTextSize(12);
-            savedBadge.setTypeface(Typeface.DEFAULT_BOLD);
+            savedBadge.setText("✓");
+            savedBadge.setTextColor(Color.WHITE);
+            savedBadge.setTextSize(10);
             savedBadge.setGravity(Gravity.CENTER);
-            savedBadge.setBackgroundResource(R.drawable.bg_saved_badge);
-            LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(-2, -2);
-            badgeParams.setMargins(dp(10), 0, 0, 0);
-            row.addView(savedBadge, badgeParams);
+            savedBadge.setTypeface(Typeface.DEFAULT_BOLD);
+            
+            GradientDrawable badgeBg = new GradientDrawable();
+            badgeBg.setShape(GradientDrawable.OVAL);
+            badgeBg.setColor(Color.parseColor("#34C759"));
+            savedBadge.setBackground(badgeBg);
+
+            android.widget.FrameLayout.LayoutParams badgeParams = new android.widget.FrameLayout.LayoutParams(dp(20), dp(20));
+            badgeParams.gravity = Gravity.BOTTOM | Gravity.END;
+            badgeParams.setMargins(0, 0, dp(6), dp(6));
+            container.addView(savedBadge, badgeParams);
         }
-        return row;
+
+        if (selected) {
+            View overlay = new View(context);
+            overlay.setBackgroundColor(Color.parseColor("#40007AFF"));
+            container.addView(overlay, new android.widget.FrameLayout.LayoutParams(-1, -1));
+
+            TextView selectBadge = new TextView(context);
+            selectBadge.setText("✓");
+            selectBadge.setTextColor(Color.WHITE);
+            selectBadge.setTextSize(10);
+            selectBadge.setGravity(Gravity.CENTER);
+            selectBadge.setTypeface(Typeface.DEFAULT_BOLD);
+
+            GradientDrawable selectBg = new GradientDrawable();
+            selectBg.setShape(GradientDrawable.OVAL);
+            selectBg.setColor(Color.parseColor("#007AFF"));
+            selectBadge.setBackground(selectBg);
+
+            android.widget.FrameLayout.LayoutParams selectParams = new android.widget.FrameLayout.LayoutParams(dp(20), dp(20));
+            selectParams.gravity = Gravity.TOP | Gravity.END;
+            selectParams.setMargins(0, dp(6), dp(6), 0);
+            container.addView(selectBadge, selectParams);
+        }
+
+        return container;
     }
 
     String sizeText(long size) {

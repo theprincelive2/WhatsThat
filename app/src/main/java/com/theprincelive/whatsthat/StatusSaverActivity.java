@@ -26,8 +26,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
+import android.widget.GridView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.io.File;
@@ -85,7 +85,7 @@ public class StatusSaverActivity extends Activity {
     TextView emptyText;
     Button openWhatsAppBtn;
     EditText searchBox;
-    ListView listView;
+    GridView gridView;
     List<StatusFile> allFiles = new ArrayList<>();
     List<StatusFile> visibleFiles = new ArrayList<>();
     List<StatusFile> pendingBulkSave = new ArrayList<>();
@@ -104,58 +104,109 @@ public class StatusSaverActivity extends Activity {
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(Color.WHITE);
-        root.setPadding(dp(18), dp(24), dp(18), dp(18));
+        root.setBackgroundColor(Color.parseColor("#F2F2F7"));
 
-        root.addView(BackNav.button(this, false), new LinearLayout.LayoutParams(dp(96), dp(42)));
+        LinearLayout headerContainer = new LinearLayout(this);
+        headerContainer.setOrientation(LinearLayout.VERTICAL);
+
+        LinearLayout header = new LinearLayout(this);
+        header.setOrientation(LinearLayout.HORIZONTAL);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        header.setPadding(dp(14), dp(18), dp(14), dp(14));
+        header.setBackgroundColor(Color.parseColor("#F9F9F9"));
+
+        header.addView(BackNav.button(this, false), new LinearLayout.LayoutParams(dp(76), dp(42)));
+
+        LinearLayout titleBlock = new LinearLayout(this);
+        titleBlock.setOrientation(LinearLayout.VERTICAL);
+        titleBlock.setPadding(dp(6), 0, 0, 0);
 
         TextView title = new TextView(this);
         title.setText("Status Saver");
-        title.setTextColor(Color.rgb(17, 27, 24));
-        title.setTextSize(26);
-        title.setTypeface(Typeface.DEFAULT_BOLD);
-        title.setIncludeFontPadding(false);
-        title.setPadding(0, dp(14), 0, 0);
-        root.addView(title);
+        title.setTextColor(Color.parseColor("#000000"));
+        title.setTextSize(17);
+        title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        title.setSingleLine(true);
+        titleBlock.addView(title);
 
-        TextView intro = copy("1. View a status in WhatsApp.\n2. Approve the .Statuses folder once.\n3. Return here to preview and save.");
-        root.addView(intro);
+        header.addView(titleBlock, new LinearLayout.LayoutParams(0, -2, 1));
 
-        LinearLayout buttonRow = new LinearLayout(this);
-        buttonRow.setOrientation(LinearLayout.HORIZONTAL);
-        findWhatsAppBtn = primaryButton("Find WhatsApp");
-        findWhatsAppBtn.setOnClickListener(v -> selectMode(MODE_WHATSAPP));
-        buttonRow.addView(findWhatsAppBtn, new LinearLayout.LayoutParams(0, dp(50), 1));
-
-        findBusinessBtn = secondaryButton("Business");
-        findBusinessBtn.setOnClickListener(v -> selectMode(MODE_BUSINESS));
-        LinearLayout.LayoutParams businessParams = new LinearLayout.LayoutParams(0, dp(50), 1);
-        businessParams.setMargins(dp(10), 0, 0, 0);
-        buttonRow.addView(findBusinessBtn, businessParams);
-        root.addView(buttonRow, buttonParams(16));
-
-        LinearLayout actionRow = new LinearLayout(this);
-        actionRow.setOrientation(LinearLayout.HORIZONTAL);
-
-        refreshBtn = primaryButton("Refresh");
+        refreshBtn = new Button(this);
+        refreshBtn.setText("Refresh");
+        refreshBtn.setAllCaps(false);
+        refreshBtn.setTextSize(16);
+        refreshBtn.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
+        refreshBtn.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
+        refreshBtn.setTextColor(Color.parseColor("#007AFF"));
+        refreshBtn.setBackgroundColor(Color.TRANSPARENT);
+        refreshBtn.setPadding(0, 0, dp(8), 0);
         refreshBtn.setOnClickListener(v -> {
             loadStatuses();
             Toast.makeText(this, "Statuses refreshed.", Toast.LENGTH_SHORT).show();
         });
-        actionRow.addView(refreshBtn, new LinearLayout.LayoutParams(0, dp(46), 1));
+        header.addView(refreshBtn, new LinearLayout.LayoutParams(dp(80), dp(42)));
 
-        chooseBtn = secondaryButton("Options");
+        chooseBtn = new Button(this);
+        chooseBtn.setText("Options");
+        chooseBtn.setAllCaps(false);
+        chooseBtn.setTextSize(16);
+        chooseBtn.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
+        chooseBtn.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
+        chooseBtn.setTextColor(Color.parseColor("#007AFF"));
+        chooseBtn.setBackgroundColor(Color.TRANSPARENT);
+        chooseBtn.setPadding(0, 0, dp(8), 0);
         chooseBtn.setOnClickListener(v -> showMoreActions());
-        LinearLayout.LayoutParams moreParams = new LinearLayout.LayoutParams(0, dp(46), 1);
-        moreParams.setMargins(dp(10), 0, 0, 0);
-        actionRow.addView(chooseBtn, moreParams);
-        root.addView(actionRow, buttonParams(10));
+        header.addView(chooseBtn, new LinearLayout.LayoutParams(dp(80), dp(42)));
+
+        headerContainer.addView(header);
+
+        View headerDivider = new View(this);
+        headerDivider.setBackgroundColor(Color.parseColor("#E5E5EA"));
+        headerContainer.addView(headerDivider, new LinearLayout.LayoutParams(-1, dp(1)));
+
+        root.addView(headerContainer);
+
+        LinearLayout contentLayout = new LinearLayout(this);
+        contentLayout.setOrientation(LinearLayout.VERTICAL);
+        contentLayout.setPadding(dp(18), dp(18), dp(18), 0);
+
+        TextView intro = copy("1. View a status in WhatsApp.\n2. Approve the folder once.\n3. Return here to preview and save.");
+        intro.setTextColor(Color.parseColor("#8E8E93"));
+        contentLayout.addView(intro);
+
+        LinearLayout modeSegment = new LinearLayout(this);
+        modeSegment.setOrientation(LinearLayout.HORIZONTAL);
+        modeSegment.setPadding(dp(2), dp(2), dp(2), dp(2));
+        GradientDrawable modeSegmentBg = new GradientDrawable();
+        modeSegmentBg.setColor(Color.parseColor("#E5E5EA"));
+        modeSegmentBg.setCornerRadius(dp(9));
+        modeSegment.setBackground(modeSegmentBg);
+
+        findWhatsAppBtn = new Button(this);
+        findWhatsAppBtn.setAllCaps(false);
+        findWhatsAppBtn.setOnClickListener(v -> selectMode(MODE_WHATSAPP));
+        modeSegment.addView(findWhatsAppBtn, new LinearLayout.LayoutParams(0, dp(32), 1));
+
+        findBusinessBtn = new Button(this);
+        findBusinessBtn.setAllCaps(false);
+        findBusinessBtn.setOnClickListener(v -> selectMode(MODE_BUSINESS));
+        modeSegment.addView(findBusinessBtn, new LinearLayout.LayoutParams(0, dp(32), 1));
+
+        LinearLayout.LayoutParams modeParams = new LinearLayout.LayoutParams(-1, dp(36));
+        modeParams.setMargins(0, dp(14), 0, 0);
+        contentLayout.addView(modeSegment, modeParams);
 
         searchBox = new EditText(this);
         searchBox.setSingleLine(true);
         searchBox.setHint("Search statuses");
         searchBox.setTextSize(14);
-        searchBox.setPadding(dp(14), 0, dp(14), 0);
+        GradientDrawable searchBg = new GradientDrawable();
+        searchBg.setColor(Color.parseColor("#E5E5EA"));
+        searchBg.setCornerRadius(dp(10));
+        searchBox.setBackground(searchBg);
+        searchBox.setPadding(dp(14), dp(8), dp(14), dp(8));
+        searchBox.setTextColor(Color.parseColor("#1C1C1E"));
+        searchBox.setHintTextColor(Color.parseColor("#8E8E93"));
         searchBox.addTextChangedListener(new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -164,110 +215,115 @@ public class StatusSaverActivity extends Activity {
             }
             public void afterTextChanged(Editable s) { }
         });
-        root.addView(searchBox, buttonParams(10));
+        LinearLayout.LayoutParams searchParams = new LinearLayout.LayoutParams(-1, -2);
+        searchParams.setMargins(0, dp(12), 0, 0);
+        contentLayout.addView(searchBox, searchParams);
 
-        LinearLayout filterRow = new LinearLayout(this);
-        filterRow.setOrientation(LinearLayout.HORIZONTAL);
-        allFilterBtn = primaryButton("All media");
+        LinearLayout filterSegment = new LinearLayout(this);
+        filterSegment.setOrientation(LinearLayout.HORIZONTAL);
+        filterSegment.setPadding(dp(2), dp(2), dp(2), dp(2));
+        GradientDrawable filterSegmentBg = new GradientDrawable();
+        filterSegmentBg.setColor(Color.parseColor("#E5E5EA"));
+        filterSegmentBg.setCornerRadius(dp(9));
+        filterSegment.setBackground(filterSegmentBg);
+
+        allFilterBtn = new Button(this);
+        allFilterBtn.setAllCaps(false);
         allFilterBtn.setOnClickListener(v -> setFilter(FILTER_ALL));
-        filterRow.addView(allFilterBtn, new LinearLayout.LayoutParams(0, dp(42), 1));
+        filterSegment.addView(allFilterBtn, new LinearLayout.LayoutParams(0, dp(32), 1));
 
-        photosFilterBtn = secondaryButton("Photos");
+        photosFilterBtn = new Button(this);
+        photosFilterBtn.setAllCaps(false);
         photosFilterBtn.setOnClickListener(v -> setFilter(FILTER_PHOTOS));
-        LinearLayout.LayoutParams photosParams = new LinearLayout.LayoutParams(0, dp(42), 1);
-        photosParams.setMargins(dp(8), 0, 0, 0);
-        filterRow.addView(photosFilterBtn, photosParams);
+        filterSegment.addView(photosFilterBtn, new LinearLayout.LayoutParams(0, dp(32), 1));
 
-        videosFilterBtn = secondaryButton("Videos");
+        videosFilterBtn = new Button(this);
+        videosFilterBtn.setAllCaps(false);
         videosFilterBtn.setOnClickListener(v -> setFilter(FILTER_VIDEOS));
-        LinearLayout.LayoutParams videosParams = new LinearLayout.LayoutParams(0, dp(42), 1);
-        videosParams.setMargins(dp(8), 0, 0, 0);
-        filterRow.addView(videosFilterBtn, videosParams);
-        root.addView(filterRow, buttonParams(10));
+        filterSegment.addView(videosFilterBtn, new LinearLayout.LayoutParams(0, dp(32), 1));
 
-        selectionRow = new LinearLayout(this);
-        selectionRow.setOrientation(LinearLayout.HORIZONTAL);
-        saveSelectedBtn = primaryButton("Save selected");
-        saveSelectedBtn.setOnClickListener(v -> saveSelectedStatuses());
-        selectionRow.addView(saveSelectedBtn, new LinearLayout.LayoutParams(0, dp(44), 1));
-
-        clearSelectionBtn = secondaryButton("Clear");
-        clearSelectionBtn.setOnClickListener(v -> clearSelection());
-        LinearLayout.LayoutParams clearParams = new LinearLayout.LayoutParams(0, dp(44), 1);
-        clearParams.setMargins(dp(8), 0, 0, 0);
-        selectionRow.addView(clearSelectionBtn, clearParams);
-        root.addView(selectionRow, buttonParams(10));
+        LinearLayout.LayoutParams filterParams = new LinearLayout.LayoutParams(-1, dp(36));
+        filterParams.setMargins(0, dp(12), 0, 0);
+        contentLayout.addView(filterSegment, filterParams);
 
         sourceText = copy("");
-        sourceText.setTextColor(Color.rgb(0, 107, 85));
-        sourceText.setTypeface(Typeface.DEFAULT_BOLD);
-        sourceText.setPadding(0, dp(14), 0, 0);
-        root.addView(sourceText);
+        sourceText.setTextColor(Color.parseColor("#8E8E93"));
+        sourceText.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        sourceText.setPadding(0, dp(12), 0, 0);
+        contentLayout.addView(sourceText);
 
         folderText = copy("");
-        folderText.setPadding(0, dp(6), 0, dp(6));
-        root.addView(folderText);
-
-        previewCard = buildPreviewCard();
-        LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(-1, -2);
-        previewParams.setMargins(0, dp(10), 0, 0);
-        root.removeView(searchBox);
-        root.removeView(filterRow);
-        root.removeView(selectionRow);
-        root.addView(previewCard, previewParams);
-
-        galleryHeading = copy("Media gallery");
-        galleryHeading.setTextColor(Color.rgb(17, 27, 24));
-        galleryHeading.setTypeface(Typeface.DEFAULT_BOLD);
-        galleryHeading.setPadding(0, dp(12), 0, dp(4));
-        root.addView(galleryHeading);
-
-        galleryStrip = new LinearLayout(this);
-        galleryStrip.setOrientation(LinearLayout.HORIZONTAL);
-        galleryStrip.setPadding(0, 0, dp(2), 0);
-        galleryScroller = new HorizontalScrollView(this);
-        galleryScroller.setHorizontalScrollBarEnabled(false);
-        galleryScroller.addView(galleryStrip, new HorizontalScrollView.LayoutParams(-2, -2));
-        root.addView(galleryScroller, new LinearLayout.LayoutParams(-1, dp(92)));
-
-        root.addView(searchBox, buttonParams(10));
-        root.addView(filterRow, buttonParams(10));
-        root.addView(selectionRow, buttonParams(10));
+        folderText.setTextColor(Color.parseColor("#8E8E93"));
+        folderText.setPadding(0, dp(4), 0, dp(4));
+        contentLayout.addView(folderText);
 
         emptyText = copy("");
         emptyText.setGravity(Gravity.CENTER);
+        emptyText.setTextColor(Color.parseColor("#8E8E93"));
         emptyText.setPadding(dp(16), dp(28), dp(16), dp(28));
-        root.addView(emptyText, new LinearLayout.LayoutParams(-1, -2));
+        contentLayout.addView(emptyText, new LinearLayout.LayoutParams(-1, -2));
 
         openWhatsAppBtn = primaryButton("Open WhatsApp");
         openWhatsAppBtn.setOnClickListener(v -> openActiveWhatsApp());
-        root.addView(openWhatsAppBtn, buttonParams(4));
+        LinearLayout.LayoutParams openParams = new LinearLayout.LayoutParams(-1, dp(50));
+        openParams.setMargins(0, dp(8), 0, dp(8));
+        contentLayout.addView(openWhatsAppBtn, openParams);
 
-        listView = new ListView(this);
-        listView.setDividerHeight(1);
-        listView.setCacheColorHint(Color.TRANSPARENT);
-        listView.setOnItemClickListener((parent, view, position, id) -> {
+        gridView = new GridView(this);
+        gridView.setNumColumns(3);
+        gridView.setHorizontalSpacing(dp(8));
+        gridView.setVerticalSpacing(dp(8));
+        gridView.setGravity(Gravity.CENTER);
+        gridView.setCacheColorHint(Color.TRANSPARENT);
+        gridView.setSelector(android.R.color.transparent);
+        gridView.setOnItemClickListener((parent, view, position, id) -> {
             StatusFile file = visibleFiles.get(position);
             if (!selectedUris.isEmpty()) {
                 toggleSelection(file);
             } else {
-                featuredFile = file;
-                updateFeaturedStatus(findStatusDocumentId(savedTree(activeMode())) != null);
+                openStatusPreview(file);
             }
         });
-        listView.setOnItemLongClickListener((parent, view, position, id) -> {
+        gridView.setOnItemLongClickListener((parent, view, position, id) -> {
             toggleSelection(visibleFiles.get(position));
             return true;
         });
+        LinearLayout.LayoutParams gridParams = new LinearLayout.LayoutParams(-1, 0, 1);
+        gridParams.setMargins(0, dp(8), 0, dp(8));
+        contentLayout.addView(gridView, gridParams);
 
-        listHeading = copy("Recent statuses");
-        listHeading.setTextColor(Color.rgb(17, 27, 24));
-        listHeading.setTypeface(Typeface.DEFAULT_BOLD);
-        listHeading.setPadding(0, dp(10), 0, dp(4));
-        root.addView(listHeading);
-        root.addView(listView, new LinearLayout.LayoutParams(-1, 0, 1));
+        root.addView(contentLayout, new LinearLayout.LayoutParams(-1, 0, 1));
+
+        selectionRow = new LinearLayout(this);
+        selectionRow.setOrientation(LinearLayout.VERTICAL);
+
+        View selectionDivider = new View(this);
+        selectionDivider.setBackgroundColor(Color.parseColor("#E5E5EA"));
+        selectionRow.addView(selectionDivider, new LinearLayout.LayoutParams(-1, dp(1)));
+
+        LinearLayout selectionBtnRow = new LinearLayout(this);
+        selectionBtnRow.setOrientation(LinearLayout.HORIZONTAL);
+        selectionBtnRow.setPadding(dp(14), dp(8), dp(14), dp(8));
+        selectionBtnRow.setBackgroundColor(Color.parseColor("#F9F9F9"));
+        selectionBtnRow.setGravity(Gravity.CENTER_VERTICAL);
+
+        saveSelectedBtn = toolbarButton("Save Selected", Color.parseColor("#007AFF"));
+        saveSelectedBtn.setOnClickListener(v -> saveSelectedStatuses());
+        selectionBtnRow.addView(saveSelectedBtn, new LinearLayout.LayoutParams(0, dp(44), 1));
+
+        clearSelectionBtn = toolbarButton("Clear", Color.parseColor("#8E8E93"));
+        clearSelectionBtn.setOnClickListener(v -> clearSelection());
+        LinearLayout.LayoutParams clearParams = new LinearLayout.LayoutParams(0, dp(44), 1);
+        clearParams.setMargins(dp(8), 0, 0, 0);
+        selectionBtnRow.addView(clearSelectionBtn, clearParams);
+
+        selectionRow.addView(selectionBtnRow);
+        root.addView(selectionRow);
 
         setContentView(root);
+        migrateOldStatusFolder();
+        loadStatuses();
+    }
         migrateOldStatusFolder();
         loadStatuses();
     }
@@ -367,12 +423,9 @@ public class StatusSaverActivity extends Activity {
             emptyText.setText("Tap " + modeLabel(mode) + ", approve the .Statuses folder once, then viewed statuses will appear here.");
             emptyText.setVisibility(View.VISIBLE);
             updateOpenWhatsAppButton(false);
-            listView.setVisibility(View.GONE);
-            if (listHeading != null) listHeading.setVisibility(View.GONE);
-            updateFeaturedStatus(false);
-            updateGalleryStrip(false);
+            gridView.setVisibility(View.GONE);
             updateSelectionActions();
-            listView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
+            gridView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
             return;
         }
         folderText.setText(modeLabel(mode) + " status folder is set. Use Options to change it.");
@@ -402,15 +455,9 @@ public class StatusSaverActivity extends Activity {
         emptyText.setText(emptyMessage(hasStatusFolder));
         emptyText.setVisibility(visibleFiles.isEmpty() ? View.VISIBLE : View.GONE);
         updateOpenWhatsAppButton(shouldShowOpenWhatsAppButton(hasStatusFolder));
-        listView.setVisibility(visibleFiles.isEmpty() ? View.GONE : View.VISIBLE);
-        if (listHeading != null) {
-            listHeading.setText(visibleFiles.size() <= 1 ? "Recent status" : "Recent statuses");
-            listHeading.setVisibility(visibleFiles.isEmpty() ? View.GONE : View.VISIBLE);
-        }
-        updateFeaturedStatus(hasStatusFolder);
-        updateGalleryStrip(hasStatusFolder);
+        gridView.setVisibility(visibleFiles.isEmpty() ? View.GONE : View.VISIBLE);
         updateSelectionActions();
-        listView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
+        gridView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
     }
 
     LinearLayout buildPreviewCard() {
@@ -567,13 +614,13 @@ public class StatusSaverActivity extends Activity {
             selectedUris.add(key);
         }
         updateSelectionActions();
-        listView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
+        gridView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
     }
 
     void clearSelection() {
         selectedUris.clear();
         updateSelectionActions();
-        listView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
+        gridView.setAdapter(new StatusAdapter(this, visibleFiles, selectedUris));
     }
 
     void updateSelectionActions() {
@@ -898,7 +945,7 @@ public class StatusSaverActivity extends Activity {
         String mode = activeMode();
         boolean whatsappSet = savedTree(MODE_WHATSAPP) != null;
         boolean businessSet = savedTree(MODE_BUSINESS) != null;
-        findWhatsAppBtn.setText(whatsappSet ? "WhatsApp" : "Set WhatsApp");
+        findWhatsAppBtn.setText(whatsappSet ? "Personal" : "Set Personal");
         findBusinessBtn.setText(businessSet ? "Business" : "Set Business");
         styleButton(findWhatsAppBtn, MODE_WHATSAPP.equals(mode));
         styleButton(findBusinessBtn, MODE_BUSINESS.equals(mode));
@@ -908,7 +955,7 @@ public class StatusSaverActivity extends Activity {
 
     void updateFilterButtons() {
         if (allFilterBtn == null || photosFilterBtn == null || videosFilterBtn == null) return;
-        allFilterBtn.setText("All media (" + countFilesForFilter(FILTER_ALL) + ")");
+        allFilterBtn.setText("All (" + countFilesForFilter(FILTER_ALL) + ")");
         photosFilterBtn.setText("Photos (" + countFilesForFilter(FILTER_PHOTOS) + ")");
         videosFilterBtn.setText("Videos (" + countFilesForFilter(FILTER_VIDEOS) + ")");
         styleButton(allFilterBtn, FILTER_ALL.equals(activeFilter));
@@ -957,29 +1004,41 @@ public class StatusSaverActivity extends Activity {
         Button button = new Button(this);
         button.setText(text);
         button.setAllCaps(false);
-        button.setTextSize(14);
-        button.setTypeface(Typeface.DEFAULT_BOLD);
-        styleButton(button, true);
+        button.setTextSize(16);
+        button.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        button.setTextColor(Color.parseColor("#007AFF"));
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.WHITE);
+        bg.setCornerRadius(dp(12));
+        bg.setStroke(dp(1), Color.parseColor("#E5E5EA"));
+        button.setBackground(bg);
         return button;
     }
 
     Button secondaryButton(String text) {
-        Button button = new Button(this);
-        button.setText(text);
-        button.setAllCaps(false);
-        button.setTextSize(14);
-        button.setTypeface(Typeface.DEFAULT_BOLD);
-        styleButton(button, false);
-        return button;
+        return primaryButton(text);
     }
 
     void styleButton(Button button, boolean primary) {
-        button.setTextColor(primary ? Color.WHITE : Color.rgb(0, 107, 85));
+        button.setAllCaps(false);
+        button.setTextSize(13);
+        button.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        button.setTextColor(primary ? Color.BLACK : Color.parseColor("#8E8E93"));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(primary ? Color.rgb(0, 107, 85) : Color.rgb(247, 248, 246));
-        bg.setCornerRadius(dp(18));
-        if (!primary) bg.setStroke(dp(1), Color.rgb(231, 234, 230));
+        bg.setColor(primary ? Color.WHITE : Color.TRANSPARENT);
+        bg.setCornerRadius(dp(7));
         button.setBackground(bg);
+    }
+
+    Button toolbarButton(String text, int textColor) {
+        Button button = new Button(this);
+        button.setText(text);
+        button.setAllCaps(false);
+        button.setTextSize(15);
+        button.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        button.setTextColor(textColor);
+        button.setBackgroundColor(Color.TRANSPARENT);
+        return button;
     }
 
     LinearLayout.LayoutParams buttonParams(int topMargin) {
