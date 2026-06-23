@@ -20,6 +20,15 @@ public class MessageAdapter extends BaseAdapter {
     private final Set<String> selectedKeys;
     private final Set<String> systemKeys;
     private final SwipeItemLayout.OnSwipeActionListener swipeListener;
+    private OnItemClickListener clickListener;
+
+    public interface OnItemClickListener {
+        void onItemClick(SavedMessage msg);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.clickListener = listener;
+    }
 
     public MessageAdapter(Context context, List<SavedMessage> items) {
         this(context, items, null, null, null);
@@ -70,6 +79,15 @@ public class MessageAdapter extends BaseAdapter {
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setPadding(0, dp(10), 0, dp(10));
+        
+        android.util.TypedValue outValue = new android.util.TypedValue();
+        context.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
+        row.setBackgroundResource(outValue.resourceId);
+        row.setOnClickListener(v -> {
+            if (clickListener != null) {
+                clickListener.onItemClick(msg);
+            }
+        });
 
         TextView avatar = new TextView(context);
         avatar.setText(initial(msg.sender));

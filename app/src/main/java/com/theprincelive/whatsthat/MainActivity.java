@@ -122,29 +122,7 @@ public class MainActivity extends Activity {
             }
             public void afterTextChanged(Editable e) { }
         });
-        list.setOnItemClickListener((parent, view, position, id) -> {
-            SavedMessage msg = (SavedMessage) parent.getItemAtPosition(position);
-            if (!selectedKeys.isEmpty()) {
-                toggleSelection(msg);
-                return;
-            }
-            if (activeSender == null) {
-                rememberListPosition();
-                Intent intent = new Intent(this, ConversationActivity.class);
-                intent.putExtra("packageName", msg.packageName);
-                intent.putExtra("sender", msg.sender);
-                startActivity(intent);
-                return;
-            }
-            rememberListPosition();
-            dbExecutor.execute(() -> store.markMessageRead(msg.id));
-            Intent intent = new Intent(this, MessageDetailActivity.class);
-            intent.putExtra("id", msg.id);
-            intent.putExtra("sender", msg.sender);
-            intent.putExtra("body", msg.body);
-            intent.putExtra("time", msg.time);
-            startActivity(intent);
-        });
+        // Click listener is handled inside MessageAdapter on the individual rows to avoid touch interception conflicts.
         list.setOnItemLongClickListener((parent, view, position, id) -> {
             SavedMessage msg = (SavedMessage) parent.getItemAtPosition(position);
             toggleSelection(msg);
@@ -813,7 +791,21 @@ public class MainActivity extends Activity {
                 toggleMessageRead(msg);
             }
         };
-        list.setAdapter(new MessageAdapter(this, items, selectedKeys, systemKeys, swipeListener));
+        MessageAdapter adapter = new MessageAdapter(this, items, selectedKeys, systemKeys, swipeListener);
+        adapter.setOnItemClickListener(msg -> {
+            if (!selectedKeys.isEmpty()) {
+                toggleSelection(msg);
+                return;
+            }
+            if (activeSender == null) {
+                rememberListPosition();
+                Intent intent = new Intent(this, ConversationActivity.class);
+                intent.putExtra("packageName", msg.packageName);
+                intent.putExtra("sender", msg.sender);
+                startActivity(intent);
+            }
+        });
+        list.setAdapter(adapter);
     }
 
     void deleteMessageConversation(SavedMessage msg) {
